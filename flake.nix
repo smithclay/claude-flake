@@ -44,7 +44,7 @@
 
       mkDevShell = name: buildInputs: extraShellHook: pkgs.mkShell {
         name = name;
-        buildInputs = buildInputs ++ [ pkgs.nodejs_20 ];
+        buildInputs = buildInputs ++ [ pkgs.nodejs_22 ];
         shellHook = ''
           echo "🚀 Entered ${name} dev shell"
           ${claudeSetup}
@@ -70,7 +70,8 @@
           '';
 
           pythonShell = mkDevShell "python-shell" [
-            pkgs.python3
+            pkgs.nodejs_22
+	    pkgs.python3
             pkgs.python3Packages.pip
             pkgs.python3Packages.virtualenv
             pkgs.python3Packages.black
@@ -86,15 +87,15 @@
 
       homeConfigurations = {
         clay = home-manager.lib.homeManagerConfiguration {
-          inherit pkgs system;
-          modules = [
+        pkgs = pkgs;
+  
+	modules = [
             {
               home.username = "clay";
               home.homeDirectory = "/home/clay";
-
+              home.stateVersion = "24.05";
               home.packages = with pkgs; [
                 # Shell and utilities
-                nodejs_20
                 yq
                 ripgrep
                 zsh
@@ -106,11 +107,6 @@
                 tree
                 htop
                 neovim
-                # Basic Python for scripts
-                python3
-                # Basic Rust for scripts
-                rustc
-                cargo
               ];
 
               programs.zsh = {
