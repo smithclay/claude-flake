@@ -17,28 +17,28 @@
       pkgs = nixpkgs.legacyPackages.${system};
 
       claudeSetup = ''
-        echo "⚙️   Setting up Claude CLI and Task Master env"
+        echo "⚙️   Checking Claude CLI and Task Master env"
 
         if ! command -v claude >/dev/null 2>&1; then
-          echo "📦 Installing @anthropic-ai/claude-code globally via npm..."
-          npm install -g @anthropic-ai/claude-code
-        fi
-
-        if ! command -v task-master >/dev/null 2>&1; then
-          echo "📦 Installing task-master-ai globally via npm..."
-          npm install -g task-master-ai
-        fi
-
-        if ! claude --version >/dev/null 2>&1; then
-          echo "⚠️  Claude CLI not found after install"
+          echo "⚠️  Claude CLI not found - please install with: npm install -g @anthropic-ai/claude-code"
         else
           echo "✅ Claude CLI ready: $(claude --version)"
         fi
         
-        if ! task-master --version >/dev/null 2>&1; then
-          echo "⚠️  Task Master not found after install"
+        if ! command -v task-master >/dev/null 2>&1; then
+          echo "⚠️  Task Master not found - please install with: npm install -g task-master-ai"
         else
           echo "✅ Task Master ready: $(task-master --version)"
+          
+          # Copy taskmaster config to project directory if it doesn't exist
+          if [ ! -f ".taskmaster/config.json" ]; then
+            echo "📋 Creating .taskmaster/config.json in project directory..."
+            mkdir -p .taskmaster
+            cp ${./taskmaster-config.json} .taskmaster/config.json
+            echo "✅ Task Master config copied to project directory"
+          else
+            echo "✅ Task Master config already exists in project directory"
+          fi
         fi
       '';
 
@@ -138,6 +138,16 @@
                   devrust = "nix develop .#rustShell";
                 };
                 initExtra = ''
+                  # Source nix profile if it exists
+                  if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then
+                    . $HOME/.nix-profile/etc/profile.d/nix.sh
+                  fi
+		  if [ -e $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh ]; then
+		    . $HOME/.nix-profile/etc/profile.d/hm-session-vars.sh
+		  fi
+                  # Ensure nix-profile/bin is in PATH
+                  export PATH="$HOME/.nix-profile/bin:$PATH"
+                  
                   # Custom zsh config
                   export EDITOR="nvim"
                   export PATH="$HOME/.local/bin:$PATH"
@@ -145,8 +155,10 @@
               };
 
               home.sessionPath = [
+                "$HOME/.nix-profile/bin"
                 "$HOME/.npm-global/bin"
                 "$HOME/.local/share/npm/bin"
+                "$HOME/.local/bin"
               ];
 
               home.sessionVariables = {
@@ -185,8 +197,6 @@
               # Tmux configuration
               home.file.".tmux.conf".source = ./tmux.conf;
               
-              # Task master config
-              home.file.".taskmaster/config.json".source = ./taskmaster-config.json;
             }
           ];
         };
