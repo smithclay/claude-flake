@@ -20,8 +20,8 @@
         echo "⚙️   Setting up Claude CLI and Task Master env"
 
         if ! command -v claude >/dev/null 2>&1; then
-          echo "📦 Installing @anthropic-ai/claude-cli globally via npm..."
-          npm install -g @anthropic-ai/claude-cli
+          echo "📦 Installing @anthropic-ai/claude-code globally via npm..."
+          npm install -g @anthropic-ai/claude-code
         fi
 
         if ! command -v task-master >/dev/null 2>&1; then
@@ -70,7 +70,6 @@
           '';
 
           pythonShell = mkDevShell "python-shell" [
-            pkgs.nodejs_22
 	    pkgs.python3
             pkgs.python3Packages.pip
             pkgs.python3Packages.virtualenv
@@ -101,19 +100,27 @@
                 zsh
                 tmux
                 git
+                gh
                 curl
                 wget
                 jq
                 tree
                 htop
                 neovim
+                nodejs_22
               ];
+
+              programs.git = {
+                enable = true;
+                userName = "Clay Smith";
+                userEmail = "smithclay@gmail.com";
+              };
 
               programs.zsh = {
                 enable = true;
                 oh-my-zsh = {
                   enable = true;
-                  plugins = [ "git" "docker" "kubectl" "rust" "python" "npm" "sudo" "z" ];
+                  plugins = [ "git" "docker" "rust" "python" "npm" "sudo" "z" ];
                   theme = "robbyrussell";
                 };
                 shellAliases = {
@@ -139,10 +146,28 @@
 
               home.sessionPath = [
                 "$HOME/.npm-global/bin"
+                "$HOME/.local/share/npm/bin"
               ];
 
               home.sessionVariables = {
                 NPM_CONFIG_PREFIX = "$HOME/.npm-global";
+              };
+
+              home.activation = {
+                installGlobalNpmPackages = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
+                  PATH="${pkgs.nodejs_22}/bin:$PATH"
+                  export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+                  
+                  if ! command -v claude >/dev/null 2>&1; then
+                    echo "Installing @anthropic-ai/claude-code..."
+                    npm install -g @anthropic-ai/claude-code
+                  fi
+                  
+                  if ! command -v task-master >/dev/null 2>&1; then
+                    echo "Installing task-master-ai..."
+                    npm install -g task-master-ai
+                  fi
+                '';
               };
 
               # Claude configuration
