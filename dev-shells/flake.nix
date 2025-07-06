@@ -37,7 +37,11 @@
           name: buildInputs: extraShellHook:
           pkgs.mkShell {
             inherit name;
-            buildInputs = buildInputs ++ [ pkgs.nodejs_22 ];
+            buildInputs = buildInputs ++ [ 
+              pkgs.nodejs_22 
+              pkgs.nixfmt-rfc-style
+              pkgs.statix
+            ];
             shellHook = ''
               echo "🚀 Entered ${name} dev shell"
               ${claudeSetup}
