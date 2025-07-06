@@ -149,26 +149,32 @@ This installs:
 
 ### Code Quality Tools
 
-To ensure code quality, install the Nix formatter and linter:
+The development shells include `nixfmt-rfc-style` and `statix` for code quality. Use them through the dev environment:
 
 ```bash
-# Install the Nix formatter (follows RFC 166 style guide)
-nix profile install nixpkgs#nixfmt-rfc-style
+# Enter development shell
+nix develop ./dev-shells
 
-# Install the Nix linter
-nix profile install nixpkgs#statix
-```
-
-Usage:
-```bash
 # Format all Nix files
-nixfmt *.nix **/*.nix
+find . -name '*.nix' -type f | xargs nixfmt
+
+# Check all Nix files are properly formatted
+find . -name '*.nix' -type f | xargs nixfmt --check
 
 # Check for linting issues
 statix check .
 
 # Auto-fix linting issues
 statix fix .
+```
+
+Or run them directly without entering the shell:
+```bash
+# Format check (same as CI)
+nix develop ./dev-shells --command bash -c "find . -name '*.nix' -type f | xargs nixfmt --check"
+
+# Lint check (same as CI)
+nix develop ./dev-shells --command bash -c "statix check ."
 ```
 
 ## Modern CLI Tools Usage
