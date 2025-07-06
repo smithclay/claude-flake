@@ -28,11 +28,17 @@ A modular Nix flake setup providing separate development shells and home-manager
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-### 2. Install Home-Manager
+### 2. Install Home-Manager (Standalone)
+
+For standalone home-manager with flakes, you don't need channels. Instead:
 
 ```bash
-nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-nix-channel --update
+# First time setup - creates ~/.config/home-manager/
+nix run home-manager/release-25.05 -- init
+
+# Or use our pre-configured home-manager
+cd /path/to/genai-nix-flake
+nix run home-manager -- switch --flake ./home-manager#clay
 ```
 
 ### 3. Use Development Shells
@@ -186,6 +192,10 @@ When using home-manager, these files are symlinked:
 - `~/.claude/settings.json` - Claude CLI configuration
 - `~/.claude/CLAUDE.md` - Claude instructions
 - `~/.claude/hooks/` - Hook scripts for linting and notifications
+- `~/.claude/commands/` - Claude custom commands:
+  - `check.md` - Verify code quality and fix all issues
+  - `next.md` - Execute production-quality implementation
+  - `prompt.md` - Synthesize complete prompts
 - `~/.tmux.conf` - Tmux configuration
 
 ## Updating
@@ -288,9 +298,15 @@ home-manager switch --flake github:yourusername/genai-nix-flake?dir=home-manager
 ## Troubleshooting
 
 **Command not found errors:**
-1. For home-manager packages: Run `home-manager switch`
+1. For home-manager packages: Run `nix run home-manager -- switch --flake ./home-manager#clay`
 2. For dev shell tools: Enter the shell with `nix develop`
 3. Check PATH includes `~/.nix-profile/bin`
+
+**home-manager command not found:**
+With flakes, home-manager isn't installed globally. Use one of:
+- `nix run home-manager -- <command>`
+- Add alias: `alias hm="nix run home-manager --"`
+- The pre-configured alias: `hms` (after applying config)
 
 **Direnv not working:**
 1. Install direnv: `nix-env -iA nixpkgs.direnv`

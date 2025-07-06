@@ -44,6 +44,9 @@
                 htop
                 neovim
                 nodejs_22
+                
+                # Note: home-manager binary is provided by the flake itself
+                # not as a package. Use 'nix run home-manager' or alias instead
               ];
 
               programs.git = {
@@ -76,6 +79,9 @@
                   devpy = "nix develop ../dev-shells#pythonShell";
                   devrust = "nix develop ../dev-shells#rustShell";
                   dev = "nix develop ../dev-shells"; # Uses default shell
+                  # Home-manager shortcuts
+                  hm = "nix run home-manager --";
+                  hms = "nix run home-manager -- switch --flake ~/workspace/genai-nix-flake/home-manager#clay";
                 };
               };
 
@@ -123,6 +129,11 @@
                 source = ../hooks/ntfy-notifier.sh;
                 executable = true;
               };
+              
+              # Claude commands
+              home.file.".claude/commands/check.md".source = ../commands/check.md;
+              home.file.".claude/commands/next.md".source = ../commands/next.md;
+              home.file.".claude/commands/prompt.md".source = ../commands/prompt.md;
               
               # Tmux configuration
               home.file.".tmux.conf".source = ../tmux.conf;
