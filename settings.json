@@ -1,5 +1,21 @@
 {
   "model": "opus",
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(nix flake check:*)",
+      "Bash(find:*)",
+      "Bash(nixfmt-rfc-style:*)",
+      "Bash(nixfmt:*)",
+      "Bash(mkdir:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo fmt:*)",
+      "Bash(cargo test:*)"
+    ],
+    "deny": [] 
+  },
   "hooks": {
     "PostToolUse": [
       {

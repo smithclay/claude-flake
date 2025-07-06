@@ -1,5 +1,9 @@
 # Modular Nix Development Environment
 
+[![CI](https://github.com/smithclay/genai-nix-flake/actions/workflows/ci.yml/badge.svg)](https://github.com/smithclay/genai-nix-flake/actions/workflows/ci.yml)
+[![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
+[![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
+
 A modular Nix flake setup providing separate development shells and home-manager configuration with AI tooling support.
 
 ## Project Structure
@@ -21,6 +25,36 @@ A modular Nix flake setup providing separate development shells and home-manager
 - Direnv (optional, for automatic shell activation)
 
 ## Quick Start
+
+### Using This Flake Directly from GitHub
+
+You can use this flake without cloning the repository:
+
+```bash
+# Enter the Python development shell
+nix develop github:smithclay/genai-nix-flake#pythonShell
+
+# Enter the Rust development shell
+nix develop github:smithclay/genai-nix-flake#rustShell
+
+# Use the home-manager configuration
+nix run home-manager -- switch --flake github:smithclay/genai-nix-flake/home-manager#clay
+```
+
+Or add it to your own flake:
+
+```nix
+{
+  inputs = {
+    genai-nix-flake.url = "github:smithclay/genai-nix-flake";
+  };
+  
+  outputs = { self, genai-nix-flake, ... }: {
+    # Use the dev shells
+    devShells = genai-nix-flake.devShells;
+  };
+}
+```
 
 ### 1. Enable Nix Flakes (if not already enabled)
 
