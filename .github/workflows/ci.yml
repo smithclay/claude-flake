@@ -13,13 +13,21 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install Nix
-        uses: cachix/install-nix-action@v24
+        uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
+            accept-flake-config = true
+      
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: genai-nix-flake
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       
       - name: Check all flakes
         run: |
+          set -euo pipefail
           echo "Checking dev-shells flake..."
           nix flake check ./dev-shells
           
@@ -31,10 +39,14 @@ jobs:
       
       - name: Format check
         run: |
-          nix profile install nixpkgs#nixfmt-rfc-style
-          nixfmt --check *.nix **/*.nix
+          set -euo pipefail
+          nix develop --command bash -c "
+            find . -name '*.nix' -type f | xargs nixfmt --check
+          "
       
       - name: Lint check
         run: |
-          nix profile install nixpkgs#statix
-          statix check .
+          set -euo pipefail
+          nix develop --command bash -c "
+            statix check .
+          "
