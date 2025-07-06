@@ -1,384 +1,230 @@
-# Modular Nix Development Environment
+# claude-flake
 
-[![CI](https://github.com/smithclay/genai-nix-flake/actions/workflows/ci.yml/badge.svg)](https://github.com/smithclay/genai-nix-flake/actions/workflows/ci.yml)
+[![CI](https://github.com/smithclay/claude-flake/actions/workflows/ci.yml/badge.svg)](https://github.com/smithclay/claude-flake/actions/workflows/ci.yml)
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
 
-A modular Nix flake setup providing separate development shells and home-manager configuration with AI tooling support.
+Nix flake providing consistent Claude Code configuration and development environments across machines.
 
-## Project Structure
+## 🙏 Credits
 
-```
-.
-├── flake.nix              # Main flake that imports both sub-flakes
-├── dev-shells/
-│   └── flake.nix         # Development shells (Python, Rust)
-├── home-manager/
-│   └── flake.nix         # Home-manager configuration
-└── .envrc                # Direnv integration for auto-loading shells
-```
+This project was inspired by and builds upon the excellent work at [Veraticus/nix-config](https://github.com/Veraticus/nix-config/tree/main/home-manager/claude-code). Thank you for pioneering Claude Code configuration management with Nix!
 
-## Prerequisites
+## 🚀 Quick Start - Just Claude Code + Task Master
 
-- Nix with flakes enabled
-- Home-manager (optional, for system configuration)
-- Direnv (optional, for automatic shell activation)
+Want just Claude Code and Task Master with validated community configuration?
 
-## Quick Start
-
-### Using This Flake Directly from GitHub
-
-You can use this flake without cloning the repository:
-
+First, install Nix and enable flakes:
 ```bash
-# Enter the Python development shell
-nix develop github:smithclay/genai-nix-flake#pythonShell
+# Install Nix
+curl -L https://install.determinate.systems/nix | sh -s -- install
 
-# Enter the Rust development shell
-nix develop github:smithclay/genai-nix-flake#rustShell
-
-# Use the home-manager configuration
-nix run home-manager -- switch --flake github:smithclay/genai-nix-flake/home-manager#clay
-```
-
-Or add it to your own flake:
-
-```nix
-{
-  inputs = {
-    genai-nix-flake.url = "github:smithclay/genai-nix-flake";
-  };
-  
-  outputs = { self, genai-nix-flake, ... }: {
-    # Use the dev shells
-    devShells = genai-nix-flake.devShells;
-  };
-}
-```
-
-### 1. Enable Nix Flakes (if not already enabled)
-
-```bash
+# Enable flakes (restart shell after this)
 echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 ```
 
-### 2. Install Home-Manager (Standalone)
-
-For standalone home-manager with flakes, you don't need channels. Instead:
-
+Then install the configuration:
 ```bash
-# First time setup - creates ~/.config/home-manager/
-nix run home-manager/release-25.05 -- init
-
-# Or use our pre-configured home-manager
-cd /path/to/genai-nix-flake
-nix run home-manager -- switch --flake ./home-manager#clay
-```
-
-### 3. Use Development Shells
-
-```bash
-# Enter default shell (Python)
-nix develop ./dev-shells
-
-# Or use specific shells
-nix develop ./dev-shells#pythonShell
-nix develop ./dev-shells#rustShell
-
-# From the root directory (re-exported)
-nix develop
-```
-
-#### With Direnv (Automatic Shell Activation)
-
-```bash
-# Allow direnv to load the shell automatically
-direnv allow
-
-# Now the Python shell loads automatically when entering the directory!
-```
-
-### 4. Apply Home Configuration (Optional)
-
-```bash
-# Build and switch to the home configuration
-home-manager switch --flake ./home-manager#clay
+nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster
 ```
 
 This installs:
-- Zsh with oh-my-zsh
-- Developer tools: fd, bat, eza, fzf
-- Basic utilities: git, tmux, ripgrep, etc.
-- Claude CLI configuration
-- Direnv with nix-direnv integration
+- Claude Code with community-validated settings
+- Task Master for AI-powered project management
+- Optimized hooks and commands from the Claude Code community
+- NPM configuration for global packages
+
+## Opinionated Workflow
+
+This packages MCPs, commands, and hooks that have been validated by the wider Claude Code community. The workflow is quickly evolving, but represents current best practices for productive Claude development.
+
+**Hooks** run automatically after Claude modifies files to enforce quality standards. **Commands** are custom `/slash` commands you can use in Claude conversations to trigger specific workflows.
+
+### MCPs (Model Context Protocols)
+- **[task-master](https://www.task-master.dev/)** - AI-powered project management that breaks down complex projects into manageable tasks, eliminates context overload, and keeps Claude focused on implementation rather than planning (via task-master-ai npm package)
+
+### Hooks
+- **smart-lint.sh** - Intelligent project-aware code quality checks (Go, Python, JavaScript/TypeScript, Rust, Nix)
+- **ntfy-notifier.sh** - Push notifications via ntfy service for Claude Code events
+
+### Commands
+- **check.md** - Verify code quality, run tests, ensure production readiness (zero-tolerance for issues)
+- **next.md** - Execute production-quality implementation with Research → Plan → Implement workflow
+- **prompt.md** - Synthesize complete prompts by combining templates with user arguments
+
+PRs welcome to improve the configuration based on community feedback.
+
+## Prerequisites
+
+**Supported platforms:** Linux, macOS, and WSL (Windows Subsystem for Linux)
+
+You need Nix installed with flakes enabled. If you don't have Nix:
+
+1. **Install Nix**: Follow the [official installer](https://nixos.org/download.html)
+2. **Enable flakes**: Add experimental features to your config
+   ```bash
+   echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+   ```
+3. **Restart your shell** to pick up the new configuration
+
+That's it. No need to install anything else - the flake handles all dependencies.
+
+## Development Environments (Optional)
+
+These provide pre-configured project shells with language tooling and Claude integration - useful for starting new projects or working in temporary environments.
+
+```bash
+# Python development environment
+nix develop github:smithclay/claude-flake#pythonShell
+
+# Rust development environment
+nix develop github:smithclay/claude-flake#rustShell
+```
+
+Both environments include:
+- Language tooling (formatters, linters, etc.)
+- Modern CLI tools (bat, eza, fzf, ripgrep)
+- Claude Code configuration
+- Task Master integration
+
+## Workflow: Writing Code with Claude
+
+### 1. Start Your Project
+```bash
+# Navigate to your project directory first
+cd /path/to/your/project
+
+# For Python projects
+nix develop github:smithclay/claude-flake#pythonShell
+
+# For Rust projects  
+nix develop github:smithclay/claude-flake#rustShell
+```
+
+### 2. Use Claude Code Naturally
+- **Claude Code + Task Master** are already configured and ready
+- **All language tools** (formatters, linters, testing) work out of the box
+- **Modern CLI tools** (bat, eza, fzf, ripgrep) enhance your workflow
+- **Consistent environment** across all your machines
+
+### 3. Write Code
+- Use your normal editor/IDE workflow
+- Claude Code provides AI assistance with full context
+- Task Master helps manage complex projects
+- All quality tools run automatically via hooks
+
 
 ## What's Included
 
-### Global (Home-Manager)
-- **Shell**: Zsh with oh-my-zsh plugins
-- **Editor**: Neovim (aliased as vim/vi)
-- **Modern CLI tools**: 
-  - `fd` - Better find (faster, intuitive syntax, respects .gitignore)
-  - `bat` - Better cat with syntax highlighting and Git integration
-  - `eza` - Better ls with icons, Git status, and tree view
-  - `fzf` - Fuzzy finder for files, history, commands, and more
-  - `ripgrep` - Lightning-fast grep alternative
-- **Utilities**: git, gh, tmux, jq, yq, tree, htop, curl, wget
-- **Languages**: Node.js 22
-- **Config Files**: Claude settings, tmux config, hook scripts
-- **Integration**: Direnv with nix-direnv
+| Component | Python Shell | Rust Shell | Base Config | Claude Config |
+|-----------|-------------|------------|-------------|---------------|
+| **Language Tools** | Python 3, pip, poetry, black, ruff, pytest | rustc, cargo, clippy, rust-analyzer | ❌ | ❌ |
+| **Claude Code** | ✅ | ✅ | ❌ | ✅ |
+| **Task Master** | ✅ | ✅ | ❌ | ✅ |
+| **Modern CLI** | bat, eza, fzf, ripgrep | bat, eza, fzf, ripgrep | ✅ | ❌ |
+| **Shell Setup** | Basic | Basic | Full (zsh, oh-my-zsh) | Basic |
+| **Dev Tools** | Node.js 22 | pkg-config, openssl | git, gh, neovim, tmux | Node.js 22 |
 
-### Python Development Shell
-- Python 3 with pip, virtualenv
-- **Formatters**: black, ruff
-- **Linters**: flake8, mypy
-- **Testing**: pytest
-- **REPL**: ipython
-- **Package Management**: poetry
-- Node.js 22
-- Claude CLI check and Task Master check
+## System Configuration (Optional)
 
-### Rust Development Shell
-- **Toolchain**: rustc, cargo, rustfmt, clippy
-- **IDE Support**: rust-analyzer
-- **Build dependencies**: pkg-config, openssl
-- Node.js 22
-- Claude CLI check and Task Master check
-
-## Development Tools
-
-### Code Quality Tools
-
-The development shells include `nixfmt-rfc-style` and `statix` for code quality. Use them through the dev environment:
-
+**Base development setup (Optional)** (no Claude dependencies):
 ```bash
-# Enter development shell
-nix develop ./dev-shells
-
-# Format all Nix files
-find . -name '*.nix' -type f | xargs nixfmt
-
-# Check all Nix files are properly formatted
-find . -name '*.nix' -type f | xargs nixfmt --check
-
-# Check for linting issues
-statix check .
-
-# Auto-fix linting issues
-statix fix .
+nix run home-manager -- switch --flake github:smithclay/claude-flake#base
 ```
 
-Or run them directly without entering the shell:
+The `base` configuration provides a complete development environment without any Claude-specific tools:
+- **Development tools**: git, gh, neovim, tmux
+- **Modern CLI tools**: bat, eza, fzf, ripgrep
+- **Shell environment**: zsh with oh-my-zsh and productivity aliases
+- **Auto-loading**: direnv integration for project environments
+- **Git configuration**: Pre-configured with sensible defaults
+
+Perfect for developers who want modern tooling but manage Claude separately, or teams that need consistent development environments without AI tooling dependencies.
+
+**Claude + Task Master only** (already shown in Quick Start):
 ```bash
-# Format check (same as CI)
-nix develop ./dev-shells --command bash -c "find . -name '*.nix' -type f | xargs nixfmt --check"
-
-# Lint check (same as CI)
-nix develop ./dev-shells --command bash -c "statix check ."
+nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster
 ```
-
-## Modern CLI Tools Usage
-
-### fd - Better find
-```bash
-fd                      # List all files (respects .gitignore)
-fd -e py               # Find all Python files
-fd "test.*\.py"        # Find with regex pattern
-fd -x chmod +x         # Execute command on results
-```
-
-### bat - Better cat
-```bash
-bat file.py            # View with syntax highlighting
-bat -n --diff file.py  # Show line numbers and Git changes
-bat -p file.py         # Plain output (no decorations)
-bat --theme=Nord       # Use different color theme
-```
-
-### eza - Better ls
-```bash
-eza -l --icons         # List with icons
-eza -la --git          # Show all files with Git status
-eza --tree -L 2        # Tree view (max 2 levels)
-eza -l --sort=size     # Sort by size
-```
-
-### fzf - Fuzzy finder
-```bash
-# Interactive file search and open in vim
-vim $(fzf)
-
-# Search command history (better than Ctrl+R)
-history | fzf
-
-# Interactive directory navigation
-cd $(find . -type d | fzf)
-
-# Git branch switcher
-git checkout $(git branch | fzf)
-```
-
-### ripgrep - Better grep
-```bash
-rg "TODO"              # Search for pattern
-rg -t py "import"      # Search only Python files
-rg -C 3 "error"        # Show 3 lines of context
-rg --hidden "config"   # Include hidden files
-```
+- Claude Code and Task Master
+- Claude settings and hook scripts  
+- NPM configuration for global packages
 
 ## Shell Aliases
 
 ```bash
-# Modern CLI replacements
-ll       # eza -l (better ls)
-la       # eza -la
+ll       # eza -l
+la       # eza -la  
 lt       # eza --tree
-cat      # bat (syntax highlighting)
-find     # fd (faster, user-friendly)
-
-# Git shortcuts
 gs       # git status
 gd       # git diff
 gc       # git commit
 gp       # git push
-
-# Development shortcuts
-dev      # nix develop (default Python shell)
-devpy    # nix develop ../dev-shells#pythonShell
-devrust  # nix develop ../dev-shells#rustShell
-
-# Others
-vim/vi   # neovim
 py       # python3
+vim      # nvim
+vi       # nvim
+cat      # bat (syntax highlighting)
+hm       # nix run home-manager --
+hms      # nix run home-manager -- switch --flake <flake>#claude-taskmaster
+devpy    # nix develop github:smithclay/claude-flake#pythonShell
+devrust  # nix develop github:smithclay/claude-flake#rustShell
 ```
 
-## Files Copied to Home Directory
-
-When using home-manager, these files are symlinked:
-- `~/.claude/settings.json` - Claude CLI configuration
-- `~/.claude/CLAUDE.md` - Claude instructions
-- `~/.claude/hooks/` - Hook scripts for linting and notifications
-- `~/.claude/commands/` - Claude custom commands:
-  - `check.md` - Verify code quality and fix all issues
-  - `next.md` - Execute production-quality implementation
-  - `prompt.md` - Synthesize complete prompts
-- `~/.tmux.conf` - Tmux configuration
-
-## Updating
+## Local Development
 
 ```bash
-# Update flake inputs
-nix flake update
+git clone https://github.com/smithclay/claude-flake.git
+cd genai-nix-flake
 
-# Update home configuration
-home-manager switch --flake ./home-manager#clay
+# Use locally
+nix develop .#pythonShell
+nix develop .#rustShell
 
-# Update dev shells (happens automatically)
-nix develop ./dev-shells
+# Auto-activate with direnv
+direnv allow
 ```
 
-## Development and Testing
+## Integration
 
-### Testing Dev Shells
-
-```bash
-# Test Python shell without entering it
-nix develop ./dev-shells#pythonShell --command python --version
-nix develop ./dev-shells#pythonShell --command ruff --version
-
-# Test Rust shell
-nix develop ./dev-shells#rustShell --command cargo --version
-nix develop ./dev-shells#rustShell --command rustc --version
-
-# Run a specific command in the shell
-nix develop ./dev-shells#pythonShell --command pytest tests/
-
-# Check what's available in a shell
-nix develop ./dev-shells#pythonShell --command "which python poetry ruff black"
+Add to your own flake:
+```nix
+{
+  inputs = {
+    claude-flake.url = "github:smithclay/claude-flake";
+  };
+  
+  outputs = { self, claude-flake, ... }: {
+    devShells = claude-flake.devShells;
+  };
+}
 ```
 
-### Testing Home-Manager Configuration
+See [development.md](./development.md) for detailed usage and testing.
+
+## Uninstall
+
+To remove the configuration:
 
 ```bash
-# Build without switching (dry run)
-home-manager build --flake ./home-manager#clay
+# Remove symlinks and revert to previous home-manager generation
+nix run home-manager -- generations  # Find the generation before claude-flake
+nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
 
-# See what would change
-home-manager diff --flake ./home-manager#clay
+# Or manually remove files
+rm -rf ~/.claude
+rm -rf ~/.npm-global  # If you want to remove npm packages too
 
-# Test specific programs
-home-manager build --flake ./home-manager#clay && \
-  ./result/home-files/.zshrc  # Inspect generated config
-
-# Temporarily test without affecting current environment
-nix run ./home-manager#homeConfigurations.clay.activationPackage
-```
-
-### Validation and Linting
-
-```bash
-# Validate all flakes
-nix flake check              # Main flake
-nix flake check ./dev-shells # Dev shells flake  
-nix flake check ./home-manager # Home-manager flake
-
-# Show flake info
-nix flake show
-nix flake metadata
-
-# Update lock files
-nix flake update             # Update all inputs
-nix flake lock --update-input nixpkgs  # Update specific input
-```
-
-### Making Changes
-
-When modifying the flakes:
-
-```bash
-# 1. Edit the relevant flake.nix
-vim dev-shells/flake.nix
-
-# 2. Test your changes immediately
-nix develop ./dev-shells#pythonShell --command "python -c 'import sys; print(sys.version)'"
-
-# 3. Check for errors
-nix flake check ./dev-shells
-
-# 4. Commit when satisfied
-git add -A && git commit -m "Add new Python package"
-```
-
-## Modular Usage
-
-Each component can be used independently:
-
-```bash
-# Use only dev shells from another project
-nix develop github:yourusername/genai-nix-flake?dir=dev-shells
-
-# Use only home config
-home-manager switch --flake github:yourusername/genai-nix-flake?dir=home-manager#clay
+# Clean up npm packages (optional)
+npm uninstall -g @anthropic-ai/claude-code task-master-ai
 ```
 
 ## Troubleshooting
 
-**Command not found errors:**
-1. For home-manager packages: Run `nix run home-manager -- switch --flake ./home-manager#clay`
-2. For dev shell tools: Enter the shell with `nix develop`
-3. Check PATH includes `~/.nix-profile/bin`
+**Command not found:**
+- Ensure you're inside the shell: `nix develop github:smithclay/claude-flake#pythonShell`
+- For home-manager tools: `nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster`
 
-**home-manager command not found:**
-With flakes, home-manager isn't installed globally. Use one of:
-- `nix run home-manager -- <command>`
-- Add alias: `alias hm="nix run home-manager --"`
-- The pre-configured alias: `hms` (after applying config)
+**nix develop not working:**
+- Enable flakes: `echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf`
+- Restart shell after enabling flakes
 
-**Direnv not working:**
-1. Install direnv: `nix-env -iA nixpkgs.direnv`
-2. Hook into your shell (add to ~/.zshrc): `eval "$(direnv hook zsh)"`
-3. Allow the .envrc: `direnv allow`
-
-**Claude/Task Master warnings:**
-- These are npm global packages - warnings are expected
-- They're checked but not auto-installed to avoid conflicts
+See [development.md](./development.md) for detailed troubleshooting.

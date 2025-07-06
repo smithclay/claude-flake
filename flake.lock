@@ -1,20 +1,5 @@
 {
   "nodes": {
-    "dev-shells": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
-      },
-      "locked": {
-        "path": "./dev-shells",
-        "type": "path"
-      },
-      "original": {
-        "path": "./dev-shells",
-        "type": "path"
-      },
-      "parent": []
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -36,16 +21,15 @@
     "home-manager": {
       "inputs": {
         "nixpkgs": [
-          "home-manager-config",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1751729568,
-        "narHash": "sha256-ay7O1jjalUxkL23QWLv9C2s8rdVGs3hUOPZClIbUHKs=",
+        "lastModified": 1751812549,
+        "narHash": "sha256-EdrrsS7Z7zhOLMJ6TPo54fQTJN8q4AZc0ix1I04kefs=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "f117b383dd591fd579bce5ee7bac07a3fdc1d050",
+        "rev": "153e680c4263fbd8fa416ef5b8ef13397e02fd2f",
         "type": "github"
       },
       "original": {
@@ -53,21 +37,6 @@
         "repo": "home-manager",
         "type": "github"
       }
-    },
-    "home-manager-config": {
-      "inputs": {
-        "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "path": "./home-manager",
-        "type": "path"
-      },
-      "original": {
-        "path": "./home-manager",
-        "type": "path"
-      },
-      "parent": []
     },
     "nixpkgs": {
       "locked": {
@@ -85,26 +54,11 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1751637120,
-        "narHash": "sha256-xVNy/XopSfIG9c46nRmPaKfH1Gn/56vQ8++xWA8itO4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "5c724ed1388e53cc231ed98330a60eb2f7be4be3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "dev-shells": "dev-shells",
-        "home-manager-config": "home-manager-config"
+        "flake-utils": "flake-utils",
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs"
       }
     },
     "systems": {

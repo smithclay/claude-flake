@@ -22,11 +22,8 @@ jobs:
       - name: Check all flakes
         run: |
           set -euo pipefail
-          echo "Checking dev-shells flake..."
-          nix flake check ./dev-shells
-          
           echo "Checking home-manager flake..."
-          nix flake check ./home-manager
+          nix flake check ./modules/home-manager
           
           echo "Checking main flake (with impure flag for local paths)..."
           nix flake check --impure

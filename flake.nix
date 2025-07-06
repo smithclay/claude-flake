@@ -1,22 +1,41 @@
 {
-  description = "Modular Nix configuration with dev shells and home-manager";
+  description = "Claude Code configuration and dev shells";
 
   inputs = {
-    dev-shells.url = "path:./dev-shells";
-    home-manager-config.url = "path:./home-manager";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
-      dev-shells,
-      home-manager-config,
+      nixpkgs,
+      flake-utils,
+      home-manager,
     }:
+    let
+      devShellsModule = import ./modules/dev-shells/default.nix;
+      homeManagerModule = import ./modules/home-manager/flake.nix;
+    in
     {
-      # Re-export dev shells for convenience
-      inherit (dev-shells) devShells;
+      # Import dev shells from modules
+      inherit
+        (devShellsModule {
+          inherit self nixpkgs flake-utils;
+        })
+        devShells
+        ;
 
-      # Re-export home configurations
-      inherit (home-manager-config) homeConfigurations;
+      # Import home configurations from modules
+      inherit
+        (homeManagerModule.outputs {
+          inherit self nixpkgs home-manager;
+        })
+        homeConfigurations
+        ;
     };
 }
