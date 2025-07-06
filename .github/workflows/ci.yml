@@ -26,8 +26,8 @@ jobs:
           echo "Checking home-manager flake..."
           nix flake check ./home-manager
           
-          echo "Checking main flake (without lock file due to local paths)..."
-          nix flake check --no-update-lock-file
+          echo "Checking main flake (with impure flag for local paths)..."
+          nix flake check --impure
       
       - name: Format check
         run: |
