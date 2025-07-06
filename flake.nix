@@ -6,12 +6,17 @@
     home-manager-config.url = "path:./home-manager";
   };
 
-  outputs = { self, dev-shells, home-manager-config }:
+  outputs =
+    {
+      self,
+      dev-shells,
+      home-manager-config,
+    }:
     {
       # Re-export dev shells for convenience
-      devShells = dev-shells.devShells;
-      
+      inherit (dev-shells) devShells;
+
       # Re-export home configurations
-      homeConfigurations = home-manager-config.homeConfigurations;
+      inherit (home-manager-config) homeConfigurations;
     };
 }

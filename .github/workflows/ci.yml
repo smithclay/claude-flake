@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v24
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      
+      - name: Check all flakes
+        run: |
+          echo "Checking main flake..."
+          nix flake check
+          
+          echo "Checking dev-shells flake..."
+          nix flake check ./dev-shells
+          
+          echo "Checking home-manager flake..."
+          nix flake check ./home-manager
+      
+      - name: Format check
+        run: |
+          nix profile install nixpkgs#nixfmt-rfc-style
+          nixfmt --check *.nix **/*.nix
+      
+      - name: Lint check
+        run: |
+          nix profile install nixpkgs#statix
+          statix check .

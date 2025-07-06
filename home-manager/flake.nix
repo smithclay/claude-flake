@@ -9,7 +9,12 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+    }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -17,126 +22,138 @@
     {
       homeConfigurations = {
         clay = home-manager.lib.homeManagerConfiguration {
-          pkgs = pkgs;
-    
+          inherit pkgs;
+
           modules = [
             {
-              home.username = "clay";
-              home.homeDirectory = "/home/clay";
-              home.stateVersion = "24.05";
-              
-              home.packages = with pkgs; [
-                # Shell and utilities
-                yq
-                ripgrep
-                fd
-                bat
-                eza
-                fzf
-                zsh
-                tmux
-                git
-                gh
-                curl
-                wget
-                jq
-                tree
-                htop
-                neovim
-                nodejs_22
-                
-                # Note: home-manager binary is provided by the flake itself
-                # not as a package. Use 'nix run home-manager' or alias instead
-              ];
+              home = {
+                username = "clay";
+                homeDirectory = "/home/clay";
+                stateVersion = "24.05";
 
-              programs.git = {
-                enable = true;
-                userName = "Clay Smith";
-                userEmail = "smithclay@gmail.com";
+                packages = with pkgs; [
+                  # Shell and utilities
+                  yq
+                  ripgrep
+                  fd
+                  bat
+                  eza
+                  fzf
+                  zsh
+                  tmux
+                  git
+                  gh
+                  curl
+                  wget
+                  jq
+                  tree
+                  htop
+                  neovim
+                  nodejs_22
+                ];
+
+                sessionPath = [
+                  "$HOME/.nix-profile/bin"
+                  "$HOME/.npm-global/bin"
+                  "$HOME/.local/share/npm/bin"
+                  "$HOME/.local/bin"
+                ];
+
+                sessionVariables = {
+                  NPM_CONFIG_PREFIX = "$HOME/.npm-global";
+                  GENAI_NIX_FLAKE = "$HOME/workspace/genai-nix-flake";
+                };
+
+                activation = {
+                  installGlobalNpmPackages = home-manager.lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                    PATH="${pkgs.nodejs_22}/bin:$PATH"
+                    export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+
+                    if ! command -v claude >/dev/null 2>&1; then
+                      echo "Installing @anthropic-ai/claude-code..."
+                      npm install -g @anthropic-ai/claude-code
+                    fi
+
+                    if ! command -v task-master >/dev/null 2>&1; then
+                      echo "Installing task-master-ai..."
+                      npm install -g task-master-ai
+                    fi
+                  '';
+                };
+
+                file = {
+                  # Claude configuration
+                  ".claude/settings.json".source = ../settings.json;
+                  ".claude/CLAUDE.md".source = ../CLAUDE.md;
+                  ".claude/hooks/smart-lint.sh" = {
+                    source = ../hooks/smart-lint.sh;
+                    executable = true;
+                  };
+                  ".claude/hooks/ntfy-notifier.sh" = {
+                    source = ../hooks/ntfy-notifier.sh;
+                    executable = true;
+                  };
+
+                  # Claude commands
+                  ".claude/commands/check.md".source = ../commands/check.md;
+                  ".claude/commands/next.md".source = ../commands/next.md;
+                  ".claude/commands/prompt.md".source = ../commands/prompt.md;
+
+                  # Tmux configuration
+                  ".tmux.conf".source = ../tmux.conf;
+                };
               };
 
-              programs.zsh = {
-                enable = true;
-                oh-my-zsh = {
+              programs = {
+                git = {
                   enable = true;
-                  plugins = [ "git" "docker" "rust" "python" "npm" "sudo" "z" ];
-                  theme = "robbyrussell";
+                  userName = "Clay Smith";
+                  userEmail = "smithclay@gmail.com";
                 };
-                shellAliases = {
-                  ll = "eza -l";
-                  la = "eza -la";
-                  lt = "eza --tree";
-                  gs = "git status";
-                  gd = "git diff";
-                  gc = "git commit";
-                  gp = "git push";
-                  py = "python3";
-                  vim = "nvim";
-                  vi = "nvim";
-                  cat = "bat";
-                  find = "fd";
-                  # Dev shell shortcuts
-                  devpy = "nix develop ../dev-shells#pythonShell";
-                  devrust = "nix develop ../dev-shells#rustShell";
-                  dev = "nix develop ../dev-shells"; # Uses default shell
-                  # Home-manager shortcuts
-                  hm = "nix run home-manager --";
-                  hms = "nix run home-manager -- switch --flake ~/workspace/genai-nix-flake/home-manager#clay";
+
+                zsh = {
+                  enable = true;
+                  oh-my-zsh = {
+                    enable = true;
+                    plugins = [
+                      "git"
+                      "docker"
+                      "rust"
+                      "python"
+                      "npm"
+                      "sudo"
+                      "z"
+                    ];
+                    theme = "robbyrussell";
+                  };
+                  shellAliases = {
+                    ll = "eza -l";
+                    la = "eza -la";
+                    lt = "eza --tree";
+                    gs = "git status";
+                    gd = "git diff";
+                    gc = "git commit";
+                    gp = "git push";
+                    py = "python3";
+                    vim = "nvim";
+                    vi = "nvim";
+                    cat = "bat";
+                    find = "fd";
+                    # Dev shell shortcuts
+                    devpy = "nix develop $GENAI_NIX_FLAKE/dev-shells#pythonShell";
+                    devrust = "nix develop $GENAI_NIX_FLAKE/dev-shells#rustShell";
+                    dev = "nix develop $GENAI_NIX_FLAKE/dev-shells"; # Uses default shell
+                    # Home-manager shortcuts
+                    hm = "nix run home-manager --";
+                    hms = "nix run home-manager -- switch --flake $GENAI_NIX_FLAKE/home-manager#clay";
+                  };
+                };
+
+                direnv = {
+                  enable = true;
+                  nix-direnv.enable = true;
                 };
               };
-
-              programs.direnv = {
-                enable = true;
-                nix-direnv.enable = true;
-              };
-
-              home.sessionPath = [
-                "$HOME/.nix-profile/bin"
-                "$HOME/.npm-global/bin"
-                "$HOME/.local/share/npm/bin"
-                "$HOME/.local/bin"
-              ];
-
-              home.sessionVariables = {
-                NPM_CONFIG_PREFIX = "$HOME/.npm-global";
-              };
-
-              home.activation = {
-                installGlobalNpmPackages = home-manager.lib.hm.dag.entryAfter ["writeBoundary"] ''
-                  PATH="${pkgs.nodejs_22}/bin:$PATH"
-                  export NPM_CONFIG_PREFIX="$HOME/.npm-global"
-                  
-                  if ! command -v claude >/dev/null 2>&1; then
-                    echo "Installing @anthropic-ai/claude-code..."
-                    npm install -g @anthropic-ai/claude-code
-                  fi
-                  
-                  if ! command -v task-master >/dev/null 2>&1; then
-                    echo "Installing task-master-ai..."
-                    npm install -g task-master-ai
-                  fi
-                '';
-              };
-
-              # Claude configuration
-              home.file.".claude/settings.json".source = ../settings.json;
-              home.file.".claude/CLAUDE.md".source = ../CLAUDE.md;
-              home.file.".claude/hooks/smart-lint.sh" = {
-                source = ../hooks/smart-lint.sh;
-                executable = true;
-              };
-              home.file.".claude/hooks/ntfy-notifier.sh" = {
-                source = ../hooks/ntfy-notifier.sh;
-                executable = true;
-              };
-              
-              # Claude commands
-              home.file.".claude/commands/check.md".source = ../commands/check.md;
-              home.file.".claude/commands/next.md".source = ../commands/next.md;
-              home.file.".claude/commands/prompt.md".source = ../commands/prompt.md;
-              
-              # Tmux configuration
-              home.file.".tmux.conf".source = ../tmux.conf;
             }
           ];
         };

@@ -111,6 +111,32 @@ This installs:
 - Node.js 22
 - Claude CLI check and Task Master check
 
+## Development Tools
+
+### Code Quality Tools
+
+To ensure code quality, install the Nix formatter and linter:
+
+```bash
+# Install the Nix formatter (follows RFC 166 style guide)
+nix profile install nixpkgs#nixfmt-rfc-style
+
+# Install the Nix linter
+nix profile install nixpkgs#statix
+```
+
+Usage:
+```bash
+# Format all Nix files
+nixfmt *.nix **/*.nix
+
+# Check for linting issues
+statix check .
+
+# Auto-fix linting issues
+statix fix .
+```
+
 ## Modern CLI Tools Usage
 
 ### fd - Better find
