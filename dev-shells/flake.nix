@@ -24,6 +24,12 @@
             echo "⚠️  Claude CLI not found - please install with: npm install -g @anthropic-ai/claude-code"
           else
             echo "✅ Claude CLI ready: $(claude --version)"
+            
+            # Configure task-master MCP server
+            if ! claude mcp list | grep -q "task-master"; then
+              echo "⚙️  Adding task-master MCP server..."
+              claude mcp add task-master -- npx -y task-master-ai
+            fi
           fi
 
           if ! command -v task-master >/dev/null 2>&1; then
