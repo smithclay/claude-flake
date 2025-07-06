@@ -5,6 +5,24 @@
   ...
 }:
 
+let
+  shellAliases = {
+    ll = "eza -l";
+    la = "eza -la";
+    lt = "eza --tree";
+    gs = "git status";
+    gd = "git diff";
+    gc = "git commit";
+    gp = "git push";
+    py = "python3";
+    vim = "nvim";
+    vi = "nvim";
+    cat = "bat";
+    # Development shell shortcuts
+    devpy = "nix develop github:smithclay/claude-flake#pythonShell";
+    devrust = "nix develop github:smithclay/claude-flake#rustShell";
+  };
+in
 {
   home = {
     packages = with pkgs; [
@@ -14,7 +32,6 @@
       bat
       eza
       fzf
-      zsh
       tmux
       git
       gh
@@ -44,37 +61,14 @@
       userEmail = "smithclay@gmail.com";
     };
 
+    bash = {
+      enable = true;
+      inherit shellAliases;
+    };
+
     zsh = {
       enable = true;
-      oh-my-zsh = {
-        enable = true;
-        plugins = [
-          "git"
-          "docker"
-          "rust"
-          "python"
-          "npm"
-          "sudo"
-          "z"
-        ];
-        theme = "robbyrussell";
-      };
-      shellAliases = {
-        ll = "eza -l";
-        la = "eza -la";
-        lt = "eza --tree";
-        gs = "git status";
-        gd = "git diff";
-        gc = "git commit";
-        gp = "git push";
-        py = "python3";
-        vim = "nvim";
-        vi = "nvim";
-        cat = "bat";
-        # Development shell shortcuts
-        devpy = "nix develop github:smithclay/claude-flake#pythonShell";
-        devrust = "nix develop github:smithclay/claude-flake#rustShell";
-      };
+      inherit shellAliases;
     };
 
     direnv = {

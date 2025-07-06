@@ -5,6 +5,13 @@
   ...
 }:
 
+let
+  shellAliases = {
+    # Claude and home-manager shortcuts
+    hm = "nix run home-manager --";
+    hms = "nix run home-manager -- switch --flake $GENAI_NIX_FLAKE#claude-taskmaster";
+  };
+in
 {
   home = {
     packages = with pkgs; [
@@ -59,12 +66,12 @@
   };
 
   programs = {
+    bash = {
+      inherit shellAliases;
+    };
+
     zsh = {
-      shellAliases = {
-        # Claude and home-manager shortcuts
-        hm = "nix run home-manager --";
-        hms = "nix run home-manager -- switch --flake $GENAI_NIX_FLAKE#claude-taskmaster";
-      };
+      inherit shellAliases;
     };
   };
 }
