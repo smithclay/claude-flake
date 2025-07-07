@@ -51,6 +51,7 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $*" >&2
 }
 
+# shellcheck disable=SC2317 # Used by external scripts that source this file
 log_success() {
     echo -e "${GREEN}[OK]${NC} $*" >&2
 }
@@ -120,6 +121,7 @@ detect_project_type() {
     echo "$project_type"
 }
 
+# shellcheck disable=SC2317 # Reserved for future use in file-specific linting
 # Get list of modified files (if available from git)
 get_modified_files() {
     if [[ -d .git ]] && command_exists git; then
@@ -129,6 +131,7 @@ get_modified_files() {
     fi
 }
 
+# shellcheck disable=SC2317 # Reserved for future use in file-specific linting
 # Check if we should skip a file
 should_skip_file() {
     local file="$1"
@@ -140,7 +143,7 @@ should_skip_file() {
             [[ -z "$pattern" || "$pattern" =~ ^[[:space:]]*# ]] && continue
             
             # Check if file matches pattern
-            if [[ "$file" == $pattern ]]; then
+            if [[ "$file" == "$pattern" ]]; then
                 log_debug "Skipping $file due to .claude-hooks-ignore pattern: $pattern"
                 return 0
             fi
@@ -204,6 +207,7 @@ load_config() {
     
     # Project-specific overrides
     if [[ -f ".claude-hooks-config.sh" ]]; then
+        # shellcheck source=/dev/null
         source ".claude-hooks-config.sh" || {
             log_error "Failed to load .claude-hooks-config.sh"
             exit 2
@@ -231,8 +235,10 @@ lint_go() {
     
     # Check if Makefile exists with fmt and lint targets
     if [[ -f "Makefile" ]]; then
-        local has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || echo "")
-        local has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || echo "")
+        local has_fmt
+        has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || echo "")
+        local has_lint
+        has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || echo "")
         
         if [[ -n "$has_fmt" && -n "$has_lint" ]]; then
             log_info "Using Makefile targets"
@@ -253,7 +259,8 @@ lint_go() {
             log_info "Using direct Go tools"
             
             # Format check
-            local unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
+            local unformatted_files
+            unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
             
             if [[ -n "$unformatted_files" ]]; then
                 local fmt_output
@@ -285,7 +292,8 @@ lint_go() {
         log_info "Using direct Go tools"
         
         # Format check
-        local unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
+        local unformatted_files
+        unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
         
         if [[ -n "$unformatted_files" ]]; then
             local fmt_output
@@ -328,8 +336,7 @@ lint_python() {
     
     # Black formatting
     if command_exists black; then
-        local black_output
-        if ! black_output=$(black . --check 2>&1); then
+        if ! black . --check >/dev/null 2>&1; then
             # Apply formatting and capture any errors
             local format_output
             if ! format_output=$(black . 2>&1); then
@@ -379,8 +386,7 @@ lint_javascript() {
     # Prettier
     if [[ -f ".prettierrc" ]] || [[ -f "prettier.config.js" ]] || [[ -f ".prettierrc.json" ]]; then
         if command_exists prettier; then
-            local prettier_output
-            if ! prettier_output=$(prettier --check . 2>&1); then
+            if ! prettier --check . >/dev/null 2>&1; then
                 # Apply formatting and capture any errors
                 local format_output
                 if ! format_output=$(prettier --write . 2>&1); then
@@ -389,8 +395,7 @@ lint_javascript() {
                 fi
             fi
         elif command_exists npx; then
-            local prettier_output
-            if ! prettier_output=$(npx prettier --check . 2>&1); then
+            if ! npx prettier --check . >/dev/null 2>&1; then
                 # Apply formatting and capture any errors
                 local format_output
                 if ! format_output=$(npx prettier --write . 2>&1); then
@@ -444,7 +449,8 @@ lint_nix() {
     log_info "Running Nix linters..."
     
     # Find all .nix files
-    local nix_files=$(find . -name "*.nix" -type f | grep -v -E "(result/|/nix/store/)" | head -20)
+    local nix_files
+    nix_files=$(find . -name "*.nix" -type f | grep -v -E "(result/|/nix/store/)" | head -20)
     
     if [[ -z "$nix_files" ]]; then
         log_debug "No Nix files found"
@@ -491,7 +497,6 @@ lint_nix() {
 # ============================================================================
 
 # Parse command line options
-FAST_MODE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --debug)
@@ -499,7 +504,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --fast)
-            FAST_MODE=true
+            # Fast mode flag - currently unused but reserved for future use
             shift
             ;;
         *)
@@ -528,8 +533,8 @@ log_info "Project type: $PROJECT_TYPE"
 main() {
     # Handle mixed project types
     if [[ "$PROJECT_TYPE" == mixed:* ]]; then
-        local types="${PROJECT_TYPE#mixed:}"
-        IFS=',' read -ra TYPE_ARRAY <<< "$types"
+        local project_types="${PROJECT_TYPE#mixed:}"
+        IFS=',' read -ra TYPE_ARRAY <<< "$project_types"
         
         for type in "${TYPE_ARRAY[@]}"; do
             case "$type" in
