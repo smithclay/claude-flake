@@ -1,0 +1,7 @@
+# Build artifacts
+result
+result-*
+
+# Example directory log files
+examples/*.log
+examples/output.log

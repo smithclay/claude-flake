@@ -2,20 +2,20 @@
 
 set -e
 
-IMAGE_NAME="genai-nix-flake-example"
-CONTAINER_NAME="genai-nix-test"
+IMAGE_NAME="claude-flake-example"
+CONTAINER_NAME="claude-flake-test"
 
 exec > >(tee output.log) 2>&1
 
 echo "🐳 Building Docker image..."
-docker build -t $IMAGE_NAME .
+docker build -t "$IMAGE_NAME" .
 
 echo "🚀 Starting test container..."
-docker run --rm --name $CONTAINER_NAME -d $IMAGE_NAME tail -f /dev/null
+docker run --rm --name "$CONTAINER_NAME" -d "$IMAGE_NAME" tail -f /dev/null
 
 cleanup() {
     echo "🧹 Cleaning up..."
-    docker stop $CONTAINER_NAME 2>/dev/null || true
+    docker stop "$CONTAINER_NAME" 2>/dev/null || true
 }
 trap cleanup EXIT
 

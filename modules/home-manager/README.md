@@ -27,7 +27,7 @@ After running `home-manager switch`, the command itself may disappear. This is b
 Add this to your shell configuration:
 ```bash
 alias hm="nix run home-manager --"
-alias hms="nix run home-manager -- switch --flake ~/workspace/genai-nix-flake/home-manager#clay"
+alias hms="nix run home-manager -- switch --flake ~/workspace/claude-flake/home-manager#clay"
 ```
 
 Now you can just run `hms` to update your home configuration!

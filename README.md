@@ -33,6 +33,16 @@ This installs:
 - Task Master for AI-powered project management
 - Optimized hooks and commands from the Claude Code community
 - NPM configuration for global packages
+- Claude-flake loader at `~/.config/claude-flake/loader.sh`
+
+**Important**: Add the loader to your shell configuration:
+```bash
+# For bash users
+echo '[[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh' >> ~/.bashrc
+
+# For zsh users
+echo '[[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh' >> ~/.zshrc
+```
 
 ## Opinionated Workflow
 
@@ -151,29 +161,28 @@ nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-task
 
 ## Shell Aliases
 
+The claude-flake loader provides these aliases:
+
 ```bash
-ll       # eza -l
-la       # eza -la  
-lt       # eza --tree
-gs       # git status
-gd       # git diff
-gc       # git commit
-gp       # git push
-py       # python3
-vim      # nvim
-vi       # nvim
-cat      # bat (syntax highlighting)
+# Home-manager shortcuts
 hm       # nix run home-manager --
-hms      # nix run home-manager -- switch --flake <flake>#claude-taskmaster
+hms      # nix run home-manager -- switch --flake $CLAUDE_FLAKE#claude-taskmaster
+
+# Development shell shortcuts
 devpy    # nix develop github:smithclay/claude-flake#pythonShell
 devrust  # nix develop github:smithclay/claude-flake#rustShell
+
+# Task-master shortcuts
+tm       # task-master
 ```
+
+**Note**: The base configuration includes additional aliases for modern CLI tools. You can add your own aliases in `~/.config/claude-flake/local.sh` which is safe to edit manually.
 
 ## Local Development
 
 ```bash
 git clone https://github.com/smithclay/claude-flake.git
-cd genai-nix-flake
+cd claude-flake
 
 # Use locally
 nix develop .#pythonShell
@@ -211,7 +220,12 @@ nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
 
 # Or manually remove files
 rm -rf ~/.claude
+rm -rf ~/.config/claude-flake  # Remove loader and configuration
 rm -rf ~/.npm-global  # If you want to remove npm packages too
+
+# Remove shell integration (check your shell config files)
+# Remove this line from ~/.bashrc or ~/.zshrc:
+# [[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh
 
 # Clean up npm packages (optional)
 npm uninstall -g @anthropic-ai/claude-code task-master-ai

@@ -5,13 +5,6 @@
   ...
 }:
 
-let
-  shellAliases = {
-    # Claude and home-manager shortcuts
-    hm = "nix run home-manager --";
-    hms = "nix run home-manager -- switch --flake $GENAI_NIX_FLAKE#claude-taskmaster";
-  };
-in
 {
   home = {
     packages = with pkgs; [
@@ -25,7 +18,7 @@ in
 
     sessionVariables = {
       NPM_CONFIG_PREFIX = "$HOME/.npm-global";
-      GENAI_NIX_FLAKE = "$HOME/workspace/genai-nix-flake";
+      CLAUDE_FLAKE = "$HOME/workspace/claude-flake";
     };
 
     activation = {
@@ -65,13 +58,6 @@ in
     };
   };
 
-  programs = {
-    bash = {
-      inherit shellAliases;
-    };
-
-    zsh = {
-      inherit shellAliases;
-    };
-  };
+  # Import shared shell configuration
+  imports = [ ./shared-shell.nix ];
 }
