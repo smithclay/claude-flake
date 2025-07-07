@@ -32,7 +32,7 @@
 
     file = {
       # Tmux configuration
-      ".tmux.conf".source = ../../../tmux.conf;
+      ".tmux.conf".source = ../tmux.conf;
     };
   };
 

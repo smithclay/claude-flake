@@ -40,24 +40,24 @@
 
     file = {
       # Claude configuration
-      ".claude/settings.json".source = ../../../settings.json;
-      ".claude/CLAUDE.md".source = ../../../CLAUDE.md;
+      ".claude/settings.json".source = ../settings.json;
+      ".claude/CLAUDE.md".source = ../CLAUDE.md;
       ".claude/hooks/smart-lint.sh" = {
-        source = ../../../hooks/smart-lint.sh;
+        source = ../hooks/smart-lint.sh;
         executable = true;
       };
       ".claude/hooks/ntfy-notifier.sh" = {
-        source = ../../../hooks/ntfy-notifier.sh;
+        source = ../hooks/ntfy-notifier.sh;
         executable = true;
       };
 
       # Claude commands
-      ".claude/commands/check.md".source = ../../../commands/check.md;
-      ".claude/commands/next.md".source = ../../../commands/next.md;
-      ".claude/commands/prompt.md".source = ../../../commands/prompt.md;
+      ".claude/commands/check.md".source = ../commands/check.md;
+      ".claude/commands/next.md".source = ../commands/next.md;
+      ".claude/commands/prompt.md".source = ../commands/prompt.md;
     };
   };
 
   # Import shared shell configuration
-  imports = [ ./shared-shell.nix ];
+  imports = [ ../base/shared-shell.nix ];
 }

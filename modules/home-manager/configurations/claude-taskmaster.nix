@@ -14,6 +14,6 @@
 
   # Import only Claude and Task Master functionality
   imports = [
-    ../modules/claude-taskmaster.nix
+    ../../../claude-tm/default.nix
   ];
 }

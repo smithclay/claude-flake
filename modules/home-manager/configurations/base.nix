@@ -14,6 +14,6 @@
 
   # Import only base development tools
   imports = [
-    ../modules/base.nix
+    ../../../base/default.nix
   ];
 }

@@ -18,7 +18,7 @@
       home-manager,
     }:
     let
-      devShellsModule = import ./modules/dev-shells/default.nix;
+      devShellsModule = import ./devshells/default.nix;
       homeManagerModule = import ./modules/home-manager/flake.nix;
     in
     {
