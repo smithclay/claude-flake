@@ -22,22 +22,19 @@ jobs:
       - name: Check all flakes
         run: |
           set -euo pipefail
-          echo "Checking home-manager flake..."
-          nix flake check ./modules/home-manager
-          
           echo "Checking main flake..."
           nix flake check
       
       - name: Format check
         run: |
           set -euo pipefail
-          nix develop --command bash -c "
+          nix develop .#nix --command bash -c "
             find . -name '*.nix' -type f | xargs nixfmt --check
           "
       
       - name: Lint check
         run: |
           set -euo pipefail
-          nix develop --command bash -c "
+          nix develop .#nix --command bash -c "
             statix check .
           "

@@ -4,241 +4,275 @@
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
 
-Nix flake providing consistent Claude Code configuration and development environments across machines.
+**Get Claude Code + development tools working perfectly in 5 minutes.**
+
+Claude Code is a powerful AI coding agent from Anthropic that works in your terminal. This setup gives you Claude Code pre-configured with validated hooks and commands to make Claude more effective, plus task management + development tools that work consistently across all machines.
+
+## 🤖 What You Get
+
+**Opinionated workflow** = The primary benefit - no decisions needed:
+- Research → Plan → Implement process built into commands
+- Quality checks that run automatically 
+- Proven patterns from the Claude Code community
+- Everything pre-configured to work together
+
+**Claude Code** = Powerful AI coding agent that:
+- Reads and understands your entire project
+- Writes code that matches your style and patterns  
+- Explains complex code in plain English
+- Helps debug errors and suggests fixes
+- Works in your terminal
+
+**Task Master** = Like a PM for AI agents - helps you:
+- Break big features into small tasks
+- Track what you've completed
+- Research solutions for complex problems
+
+**Plus:** Modern development tools that make terminal work actually enjoyable.
+
+## 📋 Requirements & Setup
+
+**You need:**
+- **Docker** (recommended) OR **Nix** (advanced)
+- **Anthropic API key** ($20 gets you ~1M tokens) OR **Claude Pro subscription** ($20/month)
+- Any coding project where you want AI help
+
+**Supported systems:** Linux, macOS, Windows (via WSL - Windows Subsystem for Linux)
+
+**New:** Intelligent project detection automatically sets up language-specific tools (Python, Rust, Go, Node.js) when you need them.
+
+## 🔑 Get Access First
+
+1. Go to [console.anthropic.com](https://console.anthropic.com) for API key OR [claude.ai](https://claude.ai) for Pro subscription
+2. Sign up and choose: API credits ($20) or Claude Pro ($20/month)
+3. Create an API key (if using API) or note your Pro login
+4. Save it - you'll add it to Claude Code during setup
+
+## 🐳 Quick Start with Docker (Recommended)
+
+**Step 1: Navigate to your project directory**
+```bash
+# On your computer, go to your project folder
+cd /path/to/your/project
+# For example: cd ~/my-python-app
+```
+
+**Step 2: Run the container**
+```bash
+# This mounts your current directory to /workspace inside the container
+docker run -it -v $(pwd):/workspace smithclay/claude-flake:latest
+```
+
+**You're now inside the container with a bash shell. Your project files are at /workspace**
+
+**Step 3: Start using Claude**
+```bash
+# Start Claude Code (you'll be prompted for your API key on first run)
+claude
+
+# You'll see something like this:
+# > Enter your message: help me understand this codebase
+# > Claude: I can see you have a Python project with Flask...
+
+# Task Master for simple todo lists
+task-master
+
+# All modern dev tools are available
+git status
+eza -la     # Better 'ls' - shows file types and permissions clearly
+rg "TODO"   # Better 'grep' - faster searching with syntax highlighting
+```
+
+**Step 4: Set up intelligent project detection (optional)**
+```bash
+# Auto-detect your project type and add enhanced tools
+claude-flake-init-project
+# This creates a .envrc file that automatically loads tools when you enter the directory
+```
+
+### Docker Workflow
+
+1. **Daily development**: Start the container with your project mounted
+2. **Persistent data**: Use volume mounts to keep configuration between sessions:
+   ```bash
+   docker run -it \
+     -v $(pwd):/workspace \
+     -v claude-config:/home/claude/.config \
+     -v claude-cache:/home/claude/.cache \
+     smithclay/claude-flake:latest
+   ```
+3. **Work normally**: Use Claude Code, edit files, run tests - everything stays in sync with your local filesystem
+
+## 📝 Step-by-Step Development Workflow
+
+### Setting Up a New Project
+
+1. **Create or navigate to your project directory**
+   ```bash
+   mkdir my-ai-project && cd my-ai-project
+   ```
+
+2. **Start claude-flake environment**
+   ```bash
+   # Docker way
+   docker run -it -v $(pwd):/workspace smithclay/claude-flake:latest
+   
+   # OR Nix way (if you have Nix installed)
+   nix run github:smithclay/claude-flake
+   ```
+
+3. **Set up intelligent tools for your project type**
+   ```bash
+   # Auto-detects Python, Rust, Go, Node.js projects
+   claude-flake-init-project
+   
+   # Follow the prompts to enhance your development environment
+   ```
+
+### Daily Development Loop
+
+1. **Start your environment** (same command as setup)
+2. **Use Claude for AI assistance**
+   ```bash
+   claude
+   # Example conversations:
+   # "Explain what this function does"
+   # "Help me fix this bug: [paste error]"
+   # "Write a function that validates email addresses"
+   # "Review this code for security issues"
+   ```
+3. **Manage tasks with Task Master**
+   ```bash
+   task-master init           # Set up project todos
+   task-master next          # Get next task to work on
+   task-master add-task "add user authentication"
+   ```
+4. **Use enhanced development tools**
+   ```bash
+   # Modern CLI tools that are actually better:
+   eza -la              # File listing with colors and icons
+   rg "search term"     # Text search that's 10x faster than grep
+   bat filename.py      # File viewing with syntax highlighting
+   ```
+
+### 🎯 Real Example: Building a Simple API
+
+Here's what using Claude Code with pre-configured commands looks like:
+
+```bash
+# 1. Start with planning
+claude
+> "/next I want to build a REST API in Python"
+
+# Claude follows the Research → Plan → Implement workflow
+# Suggests Flask, creates implementation plan, asks for approval
+
+# 2. Get specific help
+> "Write a Flask route that accepts JSON and validates email addresses"
+
+# Claude writes the code, explains validation options
+
+# 3. Check your work
+> "/check"
+
+# Runs all quality checks: linting, tests, formatting
+# Ensures production-ready code before continuing
+
+# 4. Debug issues
+> "I'm getting 'ImportError: No module named flask'. How do I fix this?"
+
+# Claude explains virtual environments and gives exact commands
+```
+
+### Language-Specific Enhancements
+
+When you run `claude-flake-init-project`, it automatically detects your project type and adds appropriate tools:
+
+- **Python projects**: Poetry, Black, pytest, mypy, ruff
+- **Rust projects**: Cargo, Clippy, rust-analyzer, rustfmt  
+- **Go projects**: Go toolchain, gopls, golangci-lint, delve
+- **Node.js projects**: npm/yarn/pnpm, ESLint, Prettier, TypeScript
+- **Nix projects**: nixfmt, statix, nil language server
+
+## 💻 Installation without Docker
+
+If you prefer to install directly on your system:
+
+**Step 1: Install Nix** (if not already installed)
+```bash
+curl -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+**Step 2: Enable flakes**
+```bash
+echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+# Restart your shell after this
+```
+
+**Step 3: Install claude-flake**
+```bash
+nix run github:smithclay/claude-flake
+```
+
+This automatically:
+- Installs Claude Code and Task Master
+- Configures your shell (bash/zsh) with helpful aliases
+- Sets up a universal development environment
+- Makes `claude-flake-init-project` available for enhanced project setups
+
+## 🗑️ Uninstall
+
+### Remove Docker setup
+```bash
+# Remove containers and images
+docker container prune
+docker image rm smithclay/claude-flake:latest
+
+# Remove persistent volumes (optional)
+docker volume rm claude-config claude-cache
+```
+
+### Remove Nix installation
+```bash
+# Revert shell configuration
+nix run home-manager -- generations  # Find previous generation
+nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
+
+# Remove installed packages
+npm uninstall -g @anthropic-ai/claude-code task-master-ai
+
+# Clean up directories
+rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
+```
+
+## 🎯 What's Included
+
+| Tool | Purpose |
+|------|---------|
+| **Claude Code** | AI pair programming assistant |
+| **Task Master** | AI-powered project management |
+| **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
+| **Development Tools** | git, gh, neovim, tmux, direnv |
+| **Language Support** | Python 3, Node.js, with intelligent detection for more |
+| **Shell Integration** | Automatic aliases and functions |
 
 ## 🙏 Credits
 
-This project was inspired by and builds upon the excellent work at [Veraticus/nix-config](https://github.com/Veraticus/nix-config/tree/main/home-manager/claude-code). Thank you for pioneering Claude Code configuration management with Nix!
+Built upon the excellent work at [Veraticus/nix-config](https://github.com/Veraticus/nix-config/tree/main/home-manager/claude-code) - thank you for pioneering Claude Code configuration with Nix.
 
-## 🚀 Quick Start - Just Claude Code + Task Master
+## 💡 Need Help?
 
-Want just Claude Code and Task Master with validated community configuration?
+**Common issues:**
+- `docker: command not found` → Install Docker Desktop from docker.com
+- `claude: command not found` → Restart your terminal after installation
+- `Permission denied` on Docker → Add yourself to docker group: `sudo usermod -aG docker $USER` then restart terminal
+- API key not working → Make sure you have credits in your Anthropic account
+- "WSL not found" on Windows → Install from Microsoft Store, then restart
 
-First, install Nix and enable flakes:
+**Project not detected correctly?** You can override detection:
 ```bash
-# Install Nix
-curl -L https://install.determinate.systems/nix | sh -s -- install
-
-# Enable flakes (restart shell after this)
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+CLAUDE_ENV=python claude-flake-init-project  # Force Python environment
+CLAUDE_ENV=rust claude-flake-init-project    # Force Rust environment
 ```
 
-Then install the configuration:
-```bash
-nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster
-```
-
-This installs:
-- Claude Code with community-validated settings
-- Task Master for AI-powered project management
-- Optimized hooks and commands from the Claude Code community
-- NPM configuration for global packages
-- Claude-flake loader at `~/.config/claude-flake/loader.sh`
-
-**Important**: Add the loader to your shell configuration:
-```bash
-# For bash users
-echo '[[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh' >> ~/.bashrc
-
-# For zsh users
-echo '[[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh' >> ~/.zshrc
-```
-
-## Opinionated Workflow
-
-This packages MCPs, commands, and hooks that have been validated by the wider Claude Code community. The workflow is quickly evolving, but represents current best practices for productive Claude development.
-
-**Hooks** run automatically after Claude modifies files to enforce quality standards. **Commands** are custom `/slash` commands you can use in Claude conversations to trigger specific workflows.
-
-### MCPs (Model Context Protocols)
-- **[task-master](https://www.task-master.dev/)** - AI-powered project management that breaks down complex projects into manageable tasks, eliminates context overload, and keeps Claude focused on implementation rather than planning (via task-master-ai npm package)
-
-### Hooks
-- **smart-lint.sh** - Intelligent project-aware code quality checks (Go, Python, JavaScript/TypeScript, Rust, Nix)
-- **ntfy-notifier.sh** - Push notifications via ntfy service for Claude Code events
-
-### Commands
-- **check.md** - Verify code quality, run tests, ensure production readiness (zero-tolerance for issues)
-- **next.md** - Execute production-quality implementation with Research → Plan → Implement workflow
-- **prompt.md** - Synthesize complete prompts by combining templates with user arguments
-
-PRs welcome to improve the configuration based on community feedback.
-
-## Prerequisites
-
-**Supported platforms:** Linux, macOS, and WSL (Windows Subsystem for Linux)
-
-You need Nix installed with flakes enabled. If you don't have Nix:
-
-1. **Install Nix**: Follow the [official installer](https://nixos.org/download.html)
-2. **Enable flakes**: Add experimental features to your config
-   ```bash
-   echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-   ```
-3. **Restart your shell** to pick up the new configuration
-
-That's it. No need to install anything else - the flake handles all dependencies.
-
-## Development Environments (Optional)
-
-These provide pre-configured project shells with language tooling and Claude integration - useful for starting new projects or working in temporary environments.
-
-```bash
-# Python development environment
-nix develop github:smithclay/claude-flake#pythonShell
-
-# Rust development environment
-nix develop github:smithclay/claude-flake#rustShell
-```
-
-Both environments include:
-- Language tooling (formatters, linters, etc.)
-- Modern CLI tools (bat, eza, fzf, ripgrep)
-- Claude Code configuration
-- Task Master integration
-
-## Workflow: Writing Code with Claude
-
-### 1. Start Your Project
-```bash
-# Navigate to your project directory first
-cd /path/to/your/project
-
-# For Python projects
-nix develop github:smithclay/claude-flake#pythonShell
-
-# For Rust projects  
-nix develop github:smithclay/claude-flake#rustShell
-```
-
-### 2. Use Claude Code Naturally
-- **Claude Code + Task Master** are already configured and ready
-- **All language tools** (formatters, linters, testing) work out of the box
-- **Modern CLI tools** (bat, eza, fzf, ripgrep) enhance your workflow
-- **Consistent environment** across all your machines
-
-### 3. Write Code
-- Use your normal editor/IDE workflow
-- Claude Code provides AI assistance with full context
-- Task Master helps manage complex projects
-- All quality tools run automatically via hooks
-
-
-## What's Included
-
-| Component | Python Shell | Rust Shell | Base Config | Claude Config |
-|-----------|-------------|------------|-------------|---------------|
-| **Language Tools** | Python 3, pip, poetry, black, ruff, pytest | rustc, cargo, clippy, rust-analyzer | ❌ | ❌ |
-| **Claude Code** | ✅ | ✅ | ❌ | ✅ |
-| **Task Master** | ✅ | ✅ | ❌ | ✅ |
-| **Modern CLI** | bat, eza, fzf, ripgrep | bat, eza, fzf, ripgrep | ✅ | ❌ |
-| **Shell Setup** | Basic | Basic | Full (zsh, oh-my-zsh) | Basic |
-| **Dev Tools** | Node.js 22 | pkg-config, openssl | git, gh, neovim, tmux | Node.js 22 |
-
-## System Configuration (Optional)
-
-**Base development setup (Optional)** (no Claude dependencies):
-```bash
-nix run home-manager -- switch --flake github:smithclay/claude-flake#base
-```
-
-The `base` configuration provides a complete development environment without any Claude-specific tools:
-- **Development tools**: git, gh, neovim, tmux
-- **Modern CLI tools**: bat, eza, fzf, ripgrep
-- **Shell environment**: zsh with oh-my-zsh and productivity aliases
-- **Auto-loading**: direnv integration for project environments
-- **Git configuration**: Pre-configured with sensible defaults
-
-Perfect for developers who want modern tooling but manage Claude separately, or teams that need consistent development environments without AI tooling dependencies.
-
-**Claude + Task Master only** (already shown in Quick Start):
-```bash
-nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster
-```
-- Claude Code and Task Master
-- Claude settings and hook scripts  
-- NPM configuration for global packages
-
-## Shell Aliases
-
-The claude-flake loader provides these aliases:
-
-```bash
-# Home-manager shortcuts
-hm       # nix run home-manager --
-hms      # nix run home-manager -- switch --flake $CLAUDE_FLAKE#claude-taskmaster
-
-# Development shell shortcuts
-devpy    # nix develop github:smithclay/claude-flake#pythonShell
-devrust  # nix develop github:smithclay/claude-flake#rustShell
-
-# Task-master shortcuts
-tm       # task-master
-```
-
-**Note**: The base configuration includes additional aliases for modern CLI tools. You can add your own aliases in `~/.config/claude-flake/local.sh` which is safe to edit manually.
-
-## Local Development
-
-```bash
-git clone https://github.com/smithclay/claude-flake.git
-cd claude-flake
-
-# Use locally
-nix develop .#pythonShell
-nix develop .#rustShell
-
-# Auto-activate with direnv
-direnv allow
-```
-
-## Integration
-
-Add to your own flake:
-```nix
-{
-  inputs = {
-    claude-flake.url = "github:smithclay/claude-flake";
-  };
-  
-  outputs = { self, claude-flake, ... }: {
-    devShells = claude-flake.devShells;
-  };
-}
-```
-
-See [development.md](./development.md) for detailed usage and testing.
-
-## Uninstall
-
-To remove the configuration:
-
-```bash
-# Remove symlinks and revert to previous home-manager generation
-nix run home-manager -- generations  # Find the generation before claude-flake
-nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
-
-# Or manually remove files
-rm -rf ~/.claude
-rm -rf ~/.config/claude-flake  # Remove loader and configuration
-rm -rf ~/.npm-global  # If you want to remove npm packages too
-
-# Remove shell integration (check your shell config files)
-# Remove this line from ~/.bashrc or ~/.zshrc:
-# [[ -r ~/.config/claude-flake/loader.sh ]] && source ~/.config/claude-flake/loader.sh
-
-# Clean up npm packages (optional)
-npm uninstall -g @anthropic-ai/claude-code task-master-ai
-```
-
-## Troubleshooting
-
-**Command not found:**
-- Ensure you're inside the shell: `nix develop github:smithclay/claude-flake#pythonShell`
-- For home-manager tools: `nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster`
-
-**nix develop not working:**
-- Enable flakes: `echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf`
-- Restart shell after enabling flakes
-
-See [development.md](./development.md) for detailed troubleshooting.
+**What's WSL?** On Windows, you need Windows Subsystem for Linux to run Docker and development tools. Install "Ubuntu" from Microsoft Store, then use that terminal.

@@ -1,0 +1,30 @@
+{
+    "system": "x86_64-linux",
+    "benchmark_time": "2025-07-07T15:40:40+00:00",
+    "initial_stats": {
+    "timestamp": "2025-07-07T15:39:46+00:00",
+    "phase": "initial",
+    "memory_usage_mb": 2328,
+    "disk_usage_gb": 85,
+    "load_average": "0.94, 0.88, 0.64"
+},
+    "final_stats": {
+    "timestamp": "2025-07-07T15:40:40+00:00",
+    "phase": "final",
+    "memory_usage_mb": 2198,
+    "disk_usage_gb": 84,
+    "load_average": "1.00, 0.92, 0.67"
+},
+    "cache_effectiveness": {
+    "cold_start_seconds": 33.964,
+    "warm_start_seconds": 0.079,
+    "improvement_percent": 99.77
+},
+    "operations": {
+    "flake_check_seconds": 0.783,
+    "flake_show_seconds": 0.085,
+    "build_activation_seconds": 14.909,
+    "average_seconds": 5.26,
+    "successful_operations": 3
+}
+}
