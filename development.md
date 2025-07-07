@@ -208,8 +208,10 @@ nix flake lock --update-input nixpkgs  # Update specific input
 When modifying the flakes:
 
 ```bash
-# 1. Edit the relevant flake.nix
-vim dev-shells/flake.nix
+# 1. Edit the relevant configuration files
+vim devshells/default.nix  # For dev shell changes
+vim devshells/python.nix   # For Python-specific changes
+vim devshells/rust.nix     # For Rust-specific changes
 
 # 2. Test your changes immediately
 nix develop .#pythonShell --command "python -c 'import sys; print(sys.version)'"
@@ -226,11 +228,13 @@ git add -A && git commit -m "Add new Python package"
 Each component can be used independently:
 
 ```bash
-# Use only dev shells from another project
-nix develop github:yourusername/claude-flake?dir=dev-shells
+# Use development shells directly
+nix develop github:smithclay/claude-flake#pythonShell
+nix develop github:smithclay/claude-flake#rustShell
 
-# Use only home config
-home-manager switch --flake github:yourusername/claude-flake?dir=home-manager#clay
+# Use home configurations
+nix run home-manager -- switch --flake github:smithclay/claude-flake#base
+nix run home-manager -- switch --flake github:smithclay/claude-flake#claude-taskmaster
 ```
 
 ## Updating
