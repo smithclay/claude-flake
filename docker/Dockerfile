@@ -27,7 +27,7 @@ RUN adduser --disabled-password --gecos "" --shell /bin/bash claude && \
     mkdir -p /home/claude /workspace && \
     chown -R claude:claude /home/claude /workspace
 
-# Install Nix using Determinate Systems installer (as root, configured for all users)
+# Install Nix using Determinate Systems installer for containers
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
     --init none \
     --extra-conf "experimental-features = nix-command flakes" \
@@ -35,11 +35,15 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/
     --extra-conf "sandbox = false" \
     --no-confirm
 
-# Copy entrypoint script and make it executable
+# Configure Nix for claude user ownership
+RUN chown -R claude:claude /nix
+
+# Copy entrypoint script and make it executable (need to be root for this)
+USER root
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Switch to claude user for Nix operations and Claude-Flake setup
+# Switch back to claude user for remaining operations
 USER claude
 WORKDIR /home/claude
 
@@ -48,9 +52,16 @@ ENV PATH="/nix/var/nix/profiles/default/bin:/home/claude/.nix-profile/bin:$PATH"
 ENV USER=claude
 ENV HOME=/home/claude
 
-# Source Nix environment and install Claude-Flake
+# Install home-manager first, then set up Claude-Flake using the dynamic setup
 RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh && \
-    nix run github:smithclay/claude-flake || echo "Warning: Claude-Flake setup encountered issues"
+    nix profile install nixpkgs#home-manager && \
+    export PATH="$HOME/.nix-profile/bin:$PATH" && \
+    nix run github:smithclay/claude-flake --accept-flake-config
+
+# Verify that claude command is available after setup
+RUN . /home/claude/.nix-profile/etc/profile.d/nix.sh && \
+    . /home/claude/.config/claude-flake/loader.sh && \
+    claude --version
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share

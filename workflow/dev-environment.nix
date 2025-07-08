@@ -1,5 +1,5 @@
 # workflow/dev-environment.nix - Universal development environment
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 
 {
   # Home configuration (consolidated to avoid repeated keys)

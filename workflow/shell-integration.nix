@@ -1,5 +1,5 @@
 # workflow/shell-integration.nix - Claude-Flake automatic shell integration
-{ pkgs, lib, ... }:
+_:
 
 {
   # Phase 3A: Automatic shell integration with home-manager

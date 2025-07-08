@@ -75,13 +75,21 @@
     in
     {
       # Home Manager configurations for common setups
-      homeConfigurations = {
-        # Generic configuration (user should override username/homeDirectory)
-        "user@linux" = mkHomeConfiguration "x86_64-linux" "user" "/home/user";
-        "user@darwin" = mkHomeConfiguration "x86_64-darwin" "user" "/Users/user";
-        "user@aarch64-linux" = mkHomeConfiguration "aarch64-linux" "user" "/home/user";
-        "user@aarch64-darwin" = mkHomeConfiguration "aarch64-darwin" "user" "/Users/user";
-      };
+      homeConfigurations =
+        let
+          # Function to create configurations for any username
+          mkUserConfigs = username: {
+            "${username}@linux" = mkHomeConfiguration "x86_64-linux" username "/home/${username}";
+            "${username}@darwin" = mkHomeConfiguration "x86_64-darwin" username "/Users/${username}";
+            "${username}@aarch64-linux" = mkHomeConfiguration "aarch64-linux" username "/home/${username}";
+            "${username}@aarch64-darwin" = mkHomeConfiguration "aarch64-darwin" username "/Users/${username}";
+          };
+        in
+        # Create configurations for common usernames
+        (mkUserConfigs "user")
+        // (mkUserConfigs "claude")
+        // (mkUserConfigs "dev")
+        // (mkUserConfigs "developer");
 
       # DevShells for project-specific environments
       devShells = forAllSystems (
@@ -117,7 +125,7 @@
 
               echo "🚀 Setting up Claude Code workflow for $USERNAME on $SYSTEM"
 
-              # Determine configuration based on system
+              # Use generic configuration and pass username via environment
               case "$SYSTEM" in
                 x86_64-linux) CONFIG="user@linux" ;;
                 aarch64-linux) CONFIG="user@aarch64-linux" ;;
