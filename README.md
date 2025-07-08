@@ -59,8 +59,12 @@ cd /path/to/your/project
 
 **Step 2: Run the container**
 ```bash
-# This mounts your current directory to /workspace inside the container
-docker run -it -v $(pwd):/workspace smithclay/claude-flake:latest
+# This mounts your current directory and Claude credentials to the container
+# The ~/.claude mount will pick up and save your existing Claude Code credentials
+docker run -it \
+  -v $(pwd):/workspace \
+  -v ~/.claude:/home/claude/.claude \
+  ghcr.io/smithclay/claude-flake:latest
 ```
 
 **You're now inside the container with a bash shell. Your project files are at /workspace**
@@ -93,13 +97,13 @@ claude-flake-init-project
 ### Docker Workflow
 
 1. **Daily development**: Start the container with your project mounted
-2. **Persistent data**: Use volume mounts to keep configuration between sessions:
+2. **Optional performance optimization**: Add cache volume for faster Nix operations:
    ```bash
    docker run -it \
      -v $(pwd):/workspace \
-     -v claude-config:/home/claude/.config \
-     -v claude-cache:/home/claude/.cache \
-     smithclay/claude-flake:latest
+     -v ~/.claude:/home/claude/.claude \
+     -v claude-cache:/home/claude/.cache/nix \
+     ghcr.io/smithclay/claude-flake:latest
    ```
 3. **Work normally**: Use Claude Code, edit files, run tests - everything stays in sync with your local filesystem
 
@@ -114,8 +118,11 @@ claude-flake-init-project
 
 2. **Start claude-flake environment**
    ```bash
-   # Docker way
-   docker run -it -v $(pwd):/workspace smithclay/claude-flake:latest
+   # Docker way (recommended - includes Claude credentials mounting)
+   docker run -it \
+     -v $(pwd):/workspace \
+     -v ~/.claude:/home/claude/.claude \
+     ghcr.io/smithclay/claude-flake:latest
    
    # OR Nix way (if you have Nix installed)
    nix run github:smithclay/claude-flake
@@ -226,10 +233,10 @@ This automatically:
 ```bash
 # Remove containers and images
 docker container prune
-docker image rm smithclay/claude-flake:latest
+docker image rm ghcr.io/smithclay/claude-flake:latest
 
-# Remove persistent volumes (optional)
-docker volume rm claude-config claude-cache
+# Remove cache volume (optional - improves Nix performance)
+docker volume rm claude-cache
 ```
 
 ### Remove Nix installation
