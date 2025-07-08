@@ -22,49 +22,40 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /tmp/* /var/tmp/* \
     && update-ca-certificates
 
-# Install Nix package manager
-RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon && \
-    . /etc/profile.d/nix.sh
+# Create claude user with real home directory first
+RUN adduser --disabled-password --gecos "" --shell /bin/bash claude && \
+    mkdir -p /home/claude /workspace && \
+    chown -R claude:claude /home/claude /workspace
 
-# Enable flakes support and configure Nix
-RUN mkdir -p /etc/nix && \
-    echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf && \
-    echo "trusted-users = root claude" >> /etc/nix/nix.conf && \
-    echo "filter-syscalls = false" >> /etc/nix/nix.conf
+# Install Nix using Determinate Systems installer (as root, configured for all users)
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+    --init none \
+    --extra-conf "experimental-features = nix-command flakes" \
+    --extra-conf "filter-syscalls = false" \
+    --extra-conf "sandbox = false" \
+    --no-confirm
 
-# Copy entrypoint script and make it executable (as root)
+# Copy entrypoint script and make it executable
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh && \
-    chown root:root /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Create directories for persistent volumes (as root)
-RUN mkdir -p /workspace
-
-# Create user for workspace with proper shell
-RUN adduser --disabled-password --gecos "" claude && \
-    mkdir -p /home/claude/.config && \
-    chown -R claude:claude /home/claude && \
-    chown -R claude:claude /workspace
+# Switch to claude user for Nix operations and Claude-Flake setup
 USER claude
 WORKDIR /home/claude
 
-# Set environment variables
+# Set environment variables for claude user
 ENV PATH="/nix/var/nix/profiles/default/bin:/home/claude/.nix-profile/bin:$PATH"
 ENV USER=claude
 ENV HOME=/home/claude
-ENV NIX_PATH="/nix/var/nix/profiles/per-user/root/channels"
 
-# Install Claude-Flake via the new architecture
-# This uses the current flake.nix with home-manager integration
-# Source Nix environment and run setup
-RUN . /etc/profile.d/nix.sh && \
+# Source Nix environment and install Claude-Flake
+RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh && \
     nix run github:smithclay/claude-flake || echo "Warning: Claude-Flake setup encountered issues"
 
 # Create additional directories for persistent volumes
-RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share && \
-    chown -R claude:claude /home/claude/.config /home/claude/.cache /home/claude/.local
+RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share
 
-# Set working directory to workspace for volume mounting
+# Set working directory to workspace for interactive use
 WORKDIR /workspace
 
 # Add volume declarations for persistence
