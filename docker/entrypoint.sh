@@ -35,12 +35,12 @@ if [ ! -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "🔧 Setting up Claude-Flake from local source..."
     if [ -d "$HOME/claude-flake-source" ]; then
         cd "$HOME/claude-flake-source"
-        echo "📦 Running: USER=$USER nix run .#default"
-        if USER="$USER" nix run .#default; then
+        echo "📦 Running: USER=$USER nix run .#default --accept-flake-config"
+        if USER="$USER" nix run .#default --accept-flake-config; then
             echo "✅ Claude-Flake setup complete from local source"
         else
             echo "❌ Local setup failed, falling back to GitHub"
-            if nix run github:smithclay/claude-flake; then
+            if nix run github:smithclay/claude-flake --accept-flake-config; then
                 echo "✅ Claude-Flake setup complete from GitHub"
             else
                 echo "❌ Both local and GitHub setup failed"
@@ -50,7 +50,7 @@ if [ ! -f "$HOME/.config/claude-flake/loader.sh" ]; then
         cd /workspace
     else
         echo "⚠️  Local source not found, trying GitHub..."
-        if nix run github:smithclay/claude-flake; then
+        if nix run github:smithclay/claude-flake --accept-flake-config; then
             echo "✅ Claude-Flake setup complete from GitHub"
         else
             echo "❌ GitHub setup failed"
