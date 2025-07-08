@@ -59,6 +59,7 @@ ENV HOME=/home/claude
 RUN rm -f /home/claude/.bashrc /home/claude/.profile
 
 # Note: Claude-Flake setup will be done at runtime to avoid build conflicts
+# This ensures proper USER environment variable handling
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share

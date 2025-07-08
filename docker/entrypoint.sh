@@ -30,6 +30,35 @@ else
     echo "⚠️  Nix cache not persistent - mount with: -v claude-cache:/home/claude/.cache/nix"
 fi
 
+# Setup Claude-Flake if not already configured
+if [ ! -f "$HOME/.config/claude-flake/loader.sh" ]; then
+    echo "🔧 Setting up Claude-Flake from local source..."
+    if [ -d "$HOME/claude-flake-source" ]; then
+        cd "$HOME/claude-flake-source"
+        echo "📦 Running: USER=$USER nix run .#default"
+        if USER="$USER" nix run .#default; then
+            echo "✅ Claude-Flake setup complete from local source"
+        else
+            echo "❌ Local setup failed, falling back to GitHub"
+            if nix run github:smithclay/claude-flake; then
+                echo "✅ Claude-Flake setup complete from GitHub"
+            else
+                echo "❌ Both local and GitHub setup failed"
+                echo "💡 You may need to run setup manually"
+            fi
+        fi
+        cd /workspace
+    else
+        echo "⚠️  Local source not found, trying GitHub..."
+        if nix run github:smithclay/claude-flake; then
+            echo "✅ Claude-Flake setup complete from GitHub"
+        else
+            echo "❌ GitHub setup failed"
+            echo "💡 You may need to run setup manually"
+        fi
+    fi
+fi
+
 # Source Claude-Flake configuration if available
 if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "✅ Loading Claude-Flake configuration..."
@@ -37,9 +66,8 @@ if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     source "$HOME/.config/claude-flake/loader.sh"
     echo "✅ Configuration loaded successfully"
 else
-    echo "⚠️  Claude-Flake configuration not found at $HOME/.config/claude-flake/loader.sh"
-    echo "💡 This might be the first run - configuration will be available after setup"
-    echo "🔧 You can initialize manually with: nix run github:smithclay/claude-flake"
+    echo "⚠️  Claude-Flake configuration still not found"
+    echo "💡 Manual setup: cd ~/claude-flake-source && USER=$USER nix run .#default"
 fi
 
 # Check if workspace is mounted and accessible
