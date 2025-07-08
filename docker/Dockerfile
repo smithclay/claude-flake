@@ -1,14 +1,24 @@
 # Docker MVP for Phase 2A - Single-stage, basic functionality
-# Ubuntu base image for better compatibility
-FROM ubuntu:22.04
+# Ubuntu 20.04 base image for better ARM64 emulation compatibility
+FROM ubuntu:20.04
+
+# Configure environment for QEMU stability
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 
 # Install dependencies and Nix package manager
 RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    --fix-missing \
     curl \
     git \
     sudo \
     xz-utils \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* /var/tmp/*
 
 # Install Nix package manager
 RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon && \
