@@ -1,5 +1,4 @@
-# Docker MVP for Phase 2A - Single-stage, basic functionality
-# Ubuntu 20.04 base image for better ARM64 emulation compatibility
+# Docker build for claude-flake with local flake support
 FROM ubuntu:20.04
 
 # Configure environment for QEMU stability
@@ -35,8 +34,12 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/
     --extra-conf "sandbox = false" \
     --no-confirm
 
-# Configure Nix for claude user ownership
+# Fix Nix ownership for claude user
 RUN chown -R claude:claude /nix
+
+# Copy local flake source
+COPY . /home/claude/claude-flake-source
+RUN chown -R claude:claude /home/claude/claude-flake-source
 
 # Copy entrypoint script and make it executable (need to be root for this)
 USER root
@@ -52,16 +55,10 @@ ENV PATH="/nix/var/nix/profiles/default/bin:/home/claude/.nix-profile/bin:$PATH"
 ENV USER=claude
 ENV HOME=/home/claude
 
-# Install home-manager first, then set up Claude-Flake using the dynamic setup
-RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh && \
-    nix profile install nixpkgs#home-manager && \
-    export PATH="$HOME/.nix-profile/bin:$PATH" && \
-    nix run github:smithclay/claude-flake --accept-flake-config
+# Prepare for Claude-Flake setup by removing conflicting shell files
+RUN rm -f /home/claude/.bashrc /home/claude/.profile
 
-# Verify that claude command is available after setup
-RUN . /home/claude/.nix-profile/etc/profile.d/nix.sh && \
-    . /home/claude/.config/claude-flake/loader.sh && \
-    claude --version
+# Note: Claude-Flake setup will be done at runtime to avoid build conflicts
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share

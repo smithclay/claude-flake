@@ -125,28 +125,19 @@
 
               echo "🚀 Setting up Claude Code workflow for $USERNAME on $SYSTEM"
 
-              # Use generic configuration and pass username via environment
+              # Use username-specific configuration
               case "$SYSTEM" in
-                x86_64-linux) CONFIG="user@linux" ;;
-                aarch64-linux) CONFIG="user@aarch64-linux" ;;
-                x86_64-darwin) CONFIG="user@darwin" ;;
-                aarch64-darwin) CONFIG="user@aarch64-darwin" ;;
-                *) CONFIG="user@linux" ;;
+                x86_64-linux) CONFIG="$USERNAME@linux" ;;
+                aarch64-linux) CONFIG="$USERNAME@aarch64-linux" ;;
+                x86_64-darwin) CONFIG="$USERNAME@darwin" ;;
+                aarch64-darwin) CONFIG="$USERNAME@aarch64-darwin" ;;
+                *) CONFIG="$USERNAME@linux" ;;
               esac
 
               echo "📦 Using configuration: $CONFIG"
               echo "🏠 Home directory: ${homeDir}/$USERNAME"
 
-              # Install home-manager if not available
-              if ! command -v home-manager >/dev/null 2>&1; then
-                echo "📦 Installing home-manager..."
-                nix profile install nixpkgs#home-manager || {
-                  echo "❌ Failed to install home-manager"
-                  echo "💡 You can install manually with: nix profile install nixpkgs#home-manager"
-                  exit 1
-                }
-                echo "✅ home-manager installed successfully"
-              fi
+              # Note: home-manager will be installed automatically by the configuration
 
               # Determine flake URL based on context
               if [ -n "''${NIX_FLAKE_URL:-}" ]; then
@@ -161,8 +152,8 @@
               echo "🏠 This will set up Claude Code workflow for $USERNAME"
               echo ""
 
-              # Execute the home-manager switch command
-              if home-manager switch --flake "$FLAKE_URL#$CONFIG"; then
+              # Execute the home-manager switch command using nix run
+              if nix run nixpkgs#home-manager -- switch --flake "$FLAKE_URL#$CONFIG"; then
                 echo ""
                 echo "🎉 Claude Code workflow setup complete!"
                 echo "✅ Claude CLI and Task Master will be available after shell reload"

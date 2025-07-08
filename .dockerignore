@@ -1,0 +1,32 @@
+# Git and development files
+.git
+.github
+.gitignore
+
+# Build outputs and caches
+result
+result-*
+.direnv
+.cache
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Documentation (except README)
+*.md
+!README.md
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Nix garbage
+.nix-garbage
