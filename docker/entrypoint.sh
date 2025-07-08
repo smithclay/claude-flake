@@ -67,7 +67,27 @@ if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "✅ Configuration loaded successfully"
 else
     echo "⚠️  Claude-Flake configuration still not found"
-    echo "💡 Manual setup: cd ~/claude-flake-source && USER=$USER nix run .#default"
+    echo "💡 Manual setup: cd ~/claude-flake-source && USER=$USER nix run .#default --accept-flake-config"
+fi
+
+# Ensure home-manager profile is in PATH
+if [ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+    echo "🔄 Loading home-manager session variables..."
+    # shellcheck source=/dev/null
+    set +u  # Temporarily disable unbound variable checking
+    source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" 2>/dev/null || echo "Warning: Session variables load had minor issues"
+    set -u  # Re-enable unbound variable checking
+fi
+
+# Add home-manager profile and npm global to PATH if not already there
+export PATH="$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
+
+# Show PATH and available commands for debugging
+echo "🚿 Debug info:"
+echo "  PATH: $PATH"
+echo "  Home-manager profile exists: $([ -d "$HOME/.nix-profile" ] && echo "Yes" || echo "No")"
+if [ -d "$HOME/.nix-profile/bin" ]; then
+    echo "  Available commands: $(ls $HOME/.nix-profile/bin | head -5 | tr '\n' ' ')..."
 fi
 
 # Check if workspace is mounted and accessible
