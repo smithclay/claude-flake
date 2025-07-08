@@ -29,7 +29,8 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon && \
 # Enable flakes support and configure Nix
 RUN mkdir -p /etc/nix && \
     echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf && \
-    echo "trusted-users = root claude" >> /etc/nix/nix.conf
+    echo "trusted-users = root claude" >> /etc/nix/nix.conf && \
+    echo "filter-syscalls = false" >> /etc/nix/nix.conf
 
 # Copy entrypoint script and make it executable (as root)
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
