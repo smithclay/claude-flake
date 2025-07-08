@@ -4,9 +4,9 @@
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
 
-**Get Claude Code + development tools working perfectly in 5 minutes.**
+**Opinionated Claude Code workflow with built-in config, hooks and commands.**
 
-Claude Code is a powerful AI coding agent from Anthropic that works in your terminal. This setup gives you Claude Code pre-configured with validated hooks and commands to make Claude more effective, plus task management + development tools that work consistently across all machines.
+Claude Code is a powerful AI coding agent from Anthropic that works in your terminal. This setup helps makes it more effective, plus task management + development tools that work consistently across all machines.
 
 ## 🤖 What You Get
 
