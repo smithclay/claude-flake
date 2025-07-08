@@ -12,13 +12,15 @@ ENV LANG=C.UTF-8
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     --fix-missing \
+    ca-certificates \
     curl \
     git \
     sudo \
     xz-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* /var/tmp/*
+    && rm -rf /tmp/* /var/tmp/* \
+    && update-ca-certificates
 
 # Install Nix package manager
 RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon && \
