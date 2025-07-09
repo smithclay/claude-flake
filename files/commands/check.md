@@ -87,14 +87,14 @@ Run appropriate linters for ALL languages in the project:
 - ZERO "nolint" or suppression comments without explanation
 - ZERO formatting issues (all code must be auto-formatted)
 
-**For Go projects specifically:**
-- ZERO warnings from golangci-lint (all checks enabled)
+**For strongly-typed compiled languages:**
+- ZERO warnings from static analysis tools (language-specific linters)
 - No disabled linter rules without explicit justification
-- No use of interface{} or any{} types
-- No nolint comments unless absolutely necessary with explanation
-- Proper error wrapping with context
-- No naked returns in functions over 5 lines
-- Consistent naming following Go conventions
+- Use appropriate type systems - avoid overly generic types
+- No linter suppressions unless absolutely necessary with explanation
+- Proper error handling with appropriate context
+- Clear return patterns without excessive complexity
+- Consistent naming following language conventions
 
 **Step 3: Test Verification**
 Run `make test` and ensure:
@@ -105,24 +105,24 @@ Run `make test` and ensure:
 - Benchmarks exist for performance-critical paths
 - Tests actually test behavior, not implementation details
 
-**Go Quality Checklist:**
-- [ ] No interface{} or any{} - concrete types everywhere
-- [ ] Simple error handling - no custom error hierarchies
+**Code Quality Checklist:**
+- [ ] Use appropriate type systems - avoid overly generic types
+- [ ] Simple error handling - no unnecessarily complex error hierarchies
 - [ ] Early returns to reduce nesting
 - [ ] Meaningful variable names (userID not id)
-- [ ] Proper context propagation
-- [ ] No goroutine leaks
-- [ ] Deferred cleanup where appropriate
-- [ ] No race conditions (run with -race flag)
-- [ ] No time.Sleep() for synchronization - channels used instead
-- [ ] Select with timeouts instead of polling loops
+- [ ] Proper context/state management
+- [ ] No resource leaks
+- [ ] Proper cleanup and disposal patterns
+- [ ] No race conditions (use language-appropriate testing)
+- [ ] No blocking operations for synchronization - use proper primitives
+- [ ] Use timeouts instead of polling loops
 
 **Code Hygiene Verification:**
-- [ ] All exported symbols have godoc comments
+- [ ] All public symbols have documentation comments
 - [ ] No commented-out code blocks
 - [ ] No debugging print statements
 - [ ] No placeholder implementations
-- [ ] Consistent formatting (gofmt/goimports)
+- [ ] Consistent formatting (language-specific formatters)
 - [ ] Dependencies are actually used
 - [ ] No circular dependencies
 
@@ -166,9 +166,9 @@ When issues are found:
 
 **Final Verification:**
 The code is ready when:
-✓ make lint: PASSES with zero warnings
-✓ make test: PASSES all tests
-✓ go test -race: NO race conditions
+✓ Language-specific linters: PASS with zero warnings
+✓ Test suites: PASS all tests
+✓ Concurrency testing: NO race conditions (where applicable)
 ✓ All checklist items verified
 ✓ Feature works end-to-end in realistic scenarios
 ✓ Error paths tested and handle gracefully

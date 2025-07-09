@@ -42,11 +42,12 @@
 
     # Automatic installation of Claude CLI and Task Master
     activation.installClaudeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      PATH="${pkgs.nodejs_22}/bin:$PATH"
+      # Set up proper PATH including npm global directory
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+      export PATH="${pkgs.nodejs_22}/bin:$HOME/.npm-global/bin:$PATH"
 
       # Create npm global directory if it doesn't exist
-      mkdir -p "$HOME/.npm-global"
+      mkdir -p "$HOME/.npm-global/bin"
 
       # Install Claude CLI if not present
       if ! command -v claude >/dev/null 2>&1; then
@@ -60,17 +61,21 @@
         npm install -g task-master-ai
       fi
 
-      # Configure MCP server
+      # Verify installations with updated PATH
       if command -v claude >/dev/null 2>&1; then
         echo "✅ Claude CLI installed: $(claude --version 2>/dev/null || echo 'version check failed')"
       else
-        echo "❌ Claude CLI installation failed"
+        echo "❌ Claude CLI installation failed - PATH: $PATH"
+        echo "   Debug: npm global bin directory contents:"
+        ls -la "$HOME/.npm-global/bin/" 2>/dev/null || echo "   No .npm-global/bin directory found"
       fi
 
       if command -v task-master >/dev/null 2>&1; then
         echo "✅ Task Master installed: $(task-master --version 2>/dev/null || echo 'version check failed')"
       else
-        echo "❌ Task Master installation failed"
+        echo "❌ Task Master installation failed - PATH: $PATH"
+        echo "   Debug: checking for task-master in npm global:"
+        ls -la "$HOME/.npm-global/bin/task-master"* 2>/dev/null || echo "   No task-master found in npm global bin"
       fi
     '';
   };

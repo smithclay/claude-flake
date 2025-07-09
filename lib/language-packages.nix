@@ -115,7 +115,6 @@ let
       git
       gh
       neovim
-      tmux
       bat
       eza
       fzf
@@ -143,8 +142,39 @@ let
   # Get shell hook commands for a specific language
   getShellHook =
     projectType:
+    let
+      # Shell prompt setup function - defines unique emoji per language
+      setupPrompt = ''
+        # Define emoji based on project type
+        case "${projectType}" in
+          rust)     export CLAUDE_FLAKE_PROMPT_INDICATOR="🦀" ;;
+          python)   export CLAUDE_FLAKE_PROMPT_INDICATOR="🐍" ;;
+          nodejs)   export CLAUDE_FLAKE_PROMPT_INDICATOR="🟢" ;;
+          go)       export CLAUDE_FLAKE_PROMPT_INDICATOR="🐹" ;;
+          nix)      export CLAUDE_FLAKE_PROMPT_INDICATOR="❄️" ;;
+          java)     export CLAUDE_FLAKE_PROMPT_INDICATOR="☕" ;;
+          cpp)      export CLAUDE_FLAKE_PROMPT_INDICATOR="⚡" ;;
+          shell)    export CLAUDE_FLAKE_PROMPT_INDICATOR="🐚" ;;
+          universal) export CLAUDE_FLAKE_PROMPT_INDICATOR="🌍" ;;
+          *)        export CLAUDE_FLAKE_PROMPT_INDICATOR="🔧" ;;
+        esac
+
+        export CLAUDE_FLAKE_SHELL_TYPE="${projectType}"
+
+        # Bash prompt setup
+        if [ -n "$BASH_VERSION" ]; then
+          export PS1="$CLAUDE_FLAKE_PROMPT_INDICATOR $PS1"
+        fi
+
+        # Zsh prompt setup
+        if [ -n "$ZSH_VERSION" ]; then
+          export PROMPT="$CLAUDE_FLAKE_PROMPT_INDICATOR $PROMPT"
+        fi
+      '';
+    in
     {
       rust = ''
+        ${setupPrompt}
         echo "🦀 Rust development environment loaded"
         echo "Available: cargo, clippy, rust-analyzer, rustfmt, cargo-watch, cargo-audit"
         if [ -f Cargo.toml ]; then
@@ -153,7 +183,8 @@ let
       '';
 
       python = ''
-        echo "🐍 Python development environment loaded"  
+        ${setupPrompt}
+        echo "🐍 Python development environment loaded"
         echo "Available: poetry, black, isort, pytest, mypy, ruff, bandit"
         if [ -f pyproject.toml ]; then
           echo "📦 Project detected with pyproject.toml"
@@ -163,7 +194,8 @@ let
       '';
 
       nodejs = ''
-        echo "📦 Node.js development environment loaded"
+        ${setupPrompt}
+        echo "🟢 Node.js development environment loaded"
         echo "Available: yarn, pnpm, eslint, prettier, typescript, stylelint"
         if [ -f package.json ]; then
           echo "📦 Project: $(jq -r .name package.json 2>/dev/null || echo 'unnamed')"
@@ -171,6 +203,7 @@ let
       '';
 
       go = ''
+        ${setupPrompt}
         echo "🐹 Go development environment loaded"
         echo "Available: go, gopls, golangci-lint, gofumpt, delve, gosec, govulncheck"
         if [ -f go.mod ]; then
@@ -179,6 +212,7 @@ let
       '';
 
       nix = ''
+        ${setupPrompt}
         echo "❄️  Nix development environment loaded"
         echo "Available: nixfmt, statix, deadnix, nil, nix-tree"
         if [ -f flake.nix ]; then
@@ -187,6 +221,7 @@ let
       '';
 
       java = ''
+        ${setupPrompt}
         echo "☕ Java development environment loaded"
         echo "Available: jdk17, maven, gradle, google-java-format, checkstyle"
         if [ -f pom.xml ]; then
@@ -197,6 +232,7 @@ let
       '';
 
       cpp = ''
+        ${setupPrompt}
         echo "⚡ C/C++ development environment loaded"
         echo "Available: gcc, clang, cmake, ninja, clang-format, cppcheck"
         if [ -f CMakeLists.txt ]; then
@@ -207,17 +243,20 @@ let
       '';
 
       shell = ''
+        ${setupPrompt}
         echo "🐚 Shell development environment loaded"
         echo "Available: shellcheck, shfmt, bash-language-server, bats"
         echo "📦 Shell scripting tools ready"
       '';
 
       universal = ''
+        ${setupPrompt}
         echo "🌍 Universal development environment loaded"
-        echo "Available: git, gh, neovim, tmux, and modern CLI tools"
+        echo "Available: git, gh, neovim, and modern CLI tools"
       '';
     }
     .${projectType} or ''
+      ${setupPrompt}
       echo "🔧 Development environment loaded"
     '';
 in

@@ -58,19 +58,19 @@ The smart-lint.sh hook will verify EVERYTHING. It will:
 - Delete old code when replacing functionality
 - No compatibility shims or transition helpers
 
-**For Go specifically:**
-- Absolutely NO interface{} or any{} - use concrete types or properly defined interfaces
-- Simple, focused interfaces following the Interface Segregation Principle (prefer many small interfaces over large ones)
-- Error handling must use simple error returns or well-established patterns (NO custom error structs unless absolutely necessary)
-- Avoid unnecessary type assertions and interface casting - if you need to cast, reconsider your design
-- Follow standard Go project layout (cmd/, internal/, pkg/ where appropriate)
-- NO time.Sleep() or busy waits - use channels and message passing for synchronization
-- Use channels to signal readiness, completion, or state changes between goroutines
-- Use select with timeout channels instead of sleep loops for timing operations
+**For strongly-typed compiled languages:**
+- Use appropriate type systems - avoid overly generic types when concrete types suffice
+- Design focused interfaces following good separation of concerns
+- Error handling must use simple, well-established patterns for the language
+- Avoid unnecessary type casting - if you need extensive casting, reconsider your design
+- Follow standard project layout conventions for your language
+- Use appropriate synchronization primitives - no busy waits or arbitrary delays
+- Use language-appropriate concurrency patterns for coordination
+- Use proper timing mechanisms instead of polling loops
 
 **Documentation Requirements:**
-- Reference specific sections of relevant documentation (e.g., "Per the Go Memory Model documentation section 3.2...")
-- Include links to official Go docs, relevant RFCs, or API documentation as needed
+- Reference specific sections of relevant documentation (e.g., "Per the language specification section 3.2...")
+- Include links to official language docs, relevant RFCs, or API documentation as needed
 - Document WHY decisions were made, not just WHAT the code does
 
 **Implementation Approach:**
@@ -78,7 +78,7 @@ The smart-lint.sh hook will verify EVERYTHING. It will:
 - When modifying existing code, replace it entirely - don't create parallel implementations
 - Run linters after EVERY file creation/modification
 - If a linter fails, fix it immediately before proceeding
-- Write meaningful tests for business logic, skip trivial tests for main() or simple wiring
+- Write meaningful tests for business logic, skip trivial tests for entry points or simple wiring
 - Benchmark critical paths
 
 **Procrastination Patterns (FORBIDDEN):**
@@ -90,13 +90,13 @@ The smart-lint.sh hook will verify EVERYTHING. It will:
 
 **Specific Antipatterns to Avoid:**
 - Do NOT create elaborate error type hierarchies
-- Do NOT use reflection unless absolutely necessary
+- Do NOT use reflection/metaprogramming unless absolutely necessary
 - Do NOT keep old implementations alongside new ones
 - Do NOT create "transition" or "compatibility" code
 - Do NOT stop at "mostly working" - the code must be production-ready
 - Do NOT accept any linter warnings as "acceptable" - fix them all
-- Do NOT use time.Sleep() for synchronization - use channels instead
-- Do NOT poll with loops - use channel selects for event-driven code
+- Do NOT use blocking operations for synchronization - use proper primitives
+- Do NOT poll with loops - use event-driven patterns where possible
 
 **Completion Checklist (ALL must be ✅):**
 - [ ] Research phase completed with codebase understanding

@@ -6,11 +6,11 @@ Automated code quality checks that run after Claude Code modifies files, enforci
 
 ### `smart-lint.sh`
 Intelligent project-aware linting that automatically detects language and runs appropriate checks:
-- **Go**: `gofmt`, `golangci-lint` (enforces forbidden patterns like `time.Sleep`, `panic()`, `interface{}`)
-- **Python**: `black`, `ruff` or `flake8`
+- **Go**: `gofmt`, `golangci-lint` (enforces language-specific patterns)
 - **JavaScript/TypeScript**: `eslint`, `prettier`
-- **Rust**: `cargo fmt`, `cargo clippy`
 - **Nix**: `nixpkgs-fmt`/`alejandra`, `statix`
+- **Python**: `black`, `ruff` or `flake8`
+- **Rust**: `cargo fmt`, `cargo clippy`
 
 Features:
 - Detects project type automatically

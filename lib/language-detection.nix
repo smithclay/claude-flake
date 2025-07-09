@@ -1,7 +1,7 @@
 # lib/language-detection.nix - Intelligent project detection for opt-in enhancement
 { lib, ... }:
 
-{
+rec {
   # Detect project type based on file markers with priority rules
   detectProjectType =
     projectPath:

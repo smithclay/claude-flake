@@ -1,5 +1,4 @@
-# Docker MVP for Phase 2A - Single-stage, basic functionality
-# Ubuntu 20.04 base image for better ARM64 emulation compatibility
+# Docker build for claude-flake with local flake support
 FROM ubuntu:20.04
 
 # Configure environment for QEMU stability
@@ -15,7 +14,9 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
     git \
+    jq \
     sudo \
+    vim \
     xz-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -25,9 +26,12 @@ RUN apt-get update && apt-get install -y \
 # Create claude user with real home directory first
 RUN adduser --disabled-password --gecos "" --shell /bin/bash claude && \
     mkdir -p /home/claude /workspace && \
-    chown -R claude:claude /home/claude /workspace
+    chown -R claude:claude /home/claude /workspace && \
+    usermod -aG sudo claude && \
+    echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Install Nix using Determinate Systems installer (as root, configured for all users)
+# Install Nix using Determinate Systems installer for containers
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
     --init none \
     --extra-conf "experimental-features = nix-command flakes" \
@@ -35,22 +39,37 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/
     --extra-conf "sandbox = false" \
     --no-confirm
 
-# Copy entrypoint script and make it executable
+# Fix Nix ownership for claude user
+RUN chown -R claude:claude /nix
+
+# Copy local flake source
+COPY . /home/claude/claude-flake-source
+RUN chown -R claude:claude /home/claude/claude-flake-source
+
+# Copy entrypoint script and make it executable (need to be root for this)
+USER root
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Switch to claude user for Nix operations and Claude-Flake setup
+# Switch back to claude user for remaining operations
 USER claude
 WORKDIR /home/claude
 
 # Set environment variables for claude user
-ENV PATH="/nix/var/nix/profiles/default/bin:/home/claude/.nix-profile/bin:$PATH"
+ENV PATH="/home/claude/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 ENV USER=claude
 ENV HOME=/home/claude
+ENV NIX_PATH="nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:nixos-config=/etc/nixos/configuration.nix:/nix/var/nix/profiles/per-user/root/channels"
 
-# Source Nix environment and install Claude-Flake
-RUN . /nix/var/nix/profiles/default/etc/profile.d/nix.sh && \
-    nix run github:smithclay/claude-flake || echo "Warning: Claude-Flake setup encountered issues"
+# Prepare for Claude-Flake setup by removing conflicting shell files
+RUN rm -f /home/claude/.bashrc /home/claude/.profile
+
+# Install Claude-Flake during build for faster startup
+WORKDIR /home/claude/claude-flake-source
+RUN export NIX_CONFIG="accept-flake-config = true" && \
+    export USER=claude && \
+    export HOME=/home/claude && \
+    nix run nixpkgs#home-manager --accept-flake-config -- switch --flake ".#claude@linux" --verbose
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share

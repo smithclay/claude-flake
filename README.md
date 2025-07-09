@@ -63,7 +63,7 @@ cd /path/to/your/project
 # The ~/.claude mount will pick up and save your existing Claude Code credentials
 docker run -it \
   -v $(pwd):/workspace \
-  -v ~/.claude:/home/claude/.claude \
+  -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
   ghcr.io/smithclay/claude-flake:latest
 ```
 
@@ -101,7 +101,7 @@ claude-flake-init-project
    ```bash
    docker run -it \
      -v $(pwd):/workspace \
-     -v ~/.claude:/home/claude/.claude \
+     -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
      -v claude-cache:/home/claude/.cache/nix \
      ghcr.io/smithclay/claude-flake:latest
    ```
@@ -121,11 +121,11 @@ claude-flake-init-project
    # Docker way (recommended - includes Claude credentials mounting)
    docker run -it \
      -v $(pwd):/workspace \
-     -v ~/.claude:/home/claude/.claude \
+     -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
      ghcr.io/smithclay/claude-flake:latest
    
    # OR Nix way (if you have Nix installed)
-   nix run github:smithclay/claude-flake
+   nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
    ```
 
 3. **Set up intelligent tools for your project type**
@@ -218,7 +218,7 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 
 **Step 3: Install claude-flake**
 ```bash
-nix run github:smithclay/claude-flake
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
 ```
 
 This automatically:
@@ -259,7 +259,7 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 | **Claude Code** | AI pair programming assistant |
 | **Task Master** | AI-powered project management |
 | **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
-| **Development Tools** | git, gh, neovim, tmux, direnv |
+| **Development Tools** | git, gh, neovim, direnv |
 | **Language Support** | Python 3, Node.js, with intelligent detection for more |
 | **Shell Integration** | Automatic aliases and functions |
 

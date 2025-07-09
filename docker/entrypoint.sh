@@ -30,6 +30,14 @@ else
     echo "⚠️  Nix cache not persistent - mount with: -v claude-cache:/home/claude/.cache/nix"
 fi
 
+# Check if Claude-Flake was pre-installed during build
+if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
+    echo "✅ Claude-Flake was pre-installed during build"
+else
+    echo "⚠️  Claude-Flake not found - build may have failed"
+    echo "💡 Manual setup: cd ~/claude-flake-source && nix run nixpkgs#home-manager --accept-flake-config -- switch --flake .#claude@linux"
+fi
+
 # Source Claude-Flake configuration if available
 if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "✅ Loading Claude-Flake configuration..."
@@ -37,9 +45,30 @@ if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     source "$HOME/.config/claude-flake/loader.sh"
     echo "✅ Configuration loaded successfully"
 else
-    echo "⚠️  Claude-Flake configuration not found at $HOME/.config/claude-flake/loader.sh"
-    echo "💡 This might be the first run - configuration will be available after setup"
-    echo "🔧 You can initialize manually with: nix run github:smithclay/claude-flake"
+    echo "⚠️  Claude-Flake configuration still not found"
+    echo "💡 Manual setup: cd ~/claude-flake-source && USER=$USER nix run .#default --accept-flake-config"
+fi
+
+# Ensure home-manager profile is in PATH
+if [ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+    echo "🔄 Loading home-manager session variables..."
+    # shellcheck source=/dev/null
+    set +u  # Temporarily disable unbound variable checking
+    source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" 2>/dev/null || echo "Warning: Session variables load had minor issues"
+    set -u  # Re-enable unbound variable checking
+fi
+
+# Add home-manager profile and npm global to PATH if not already there
+export PATH="$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
+
+# Note: .bashrc is managed by home-manager, not modified directly here
+
+# Show PATH and available commands for debugging
+echo "🚿 Debug info:"
+echo "  PATH: $PATH"
+echo "  Home-manager profile exists: $([ -d "$HOME/.nix-profile" ] && echo "Yes" || echo "No")"
+if [ -d "$HOME/.nix-profile/bin" ]; then
+    echo "  Available commands: $(find "$HOME/.nix-profile/bin" -maxdepth 1 -type f -executable | head -5 | xargs -I {} basename {} | tr '\n' ' ')..."
 fi
 
 # Check if workspace is mounted and accessible
@@ -58,7 +87,26 @@ fi
 # Show available commands if Claude-Flake is loaded
 if command -v claude >/dev/null 2>&1; then
     echo "🎯 Claude-Flake commands available: claude, task-master, tm"
+    echo "💡 Run 'cf-help' to see all available aliases"
 fi
+
+# Update ~/.claude.json with onboarding properties
+echo "🔧 Setting up Claude CLI configuration..."
+mkdir -p "$HOME/.claude"
+CLAUDE_VERSION=$(claude --version 2>/dev/null | head -1 | cut -d' ' -f2 || echo "unknown")
+
+# Check if ~/.claude.json exists, create if not
+if [ ! -f "$HOME/.claude.json" ]; then
+    echo "{}" > "$HOME/.claude.json"
+fi
+
+# Use jq to add/update onboarding properties
+jq --arg version "$CLAUDE_VERSION" '. + {
+  "hasCompletedOnboarding": true,
+  "lastCompletedOnboarding": $version
+}' "$HOME/.claude.json" > "$HOME/.claude.json.tmp" && mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+
+echo "✅ Claude CLI configuration updated with version: $CLAUDE_VERSION"
 
 # Execute the command passed to docker run, or start bash
 echo "🔄 Starting command: $*"

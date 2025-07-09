@@ -17,16 +17,16 @@ Choose the appropriate command for your system:
 
 ```bash
 # For most Linux systems (x86_64)
-nix run github:smithclay/claude-flake
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
 
 # For ARM64 Linux
-nix run github:smithclay/claude-flake#user@aarch64-linux
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@aarch64-linux
 
 # For macOS (Intel)
-nix run github:smithclay/claude-flake#user@darwin
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@darwin
 
 # For macOS (Apple Silicon)
-nix run github:smithclay/claude-flake#user@aarch64-darwin
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@aarch64-darwin
 ```
 
 ### 2. Manual Shell Integration (Required)
@@ -61,7 +61,7 @@ source ~/.zshrc     # For zsh
 - Claude CLI (`claude` command)
 - Task Master (`task-master` and `tm` commands)
 - Modern CLI tools (bat, eza, fzf, ripgrep)
-- Development tools (git, gh, neovim, tmux)
+- Development tools (git, gh, neovim)
 - Language runtimes (Node.js, Python)
 
 ## Available Commands
@@ -107,7 +107,7 @@ alias backend="cd ~/projects/api && claude"
 nix profile install nixpkgs#home-manager
 
 # Then retry the setup
-nix run github:smithclay/claude-flake
+nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
 ```
 
 ### Permission issues
