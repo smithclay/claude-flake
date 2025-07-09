@@ -27,6 +27,7 @@ RUN adduser --disabled-password --gecos "" --shell /bin/bash claude && \
     chown -R claude:claude /home/claude /workspace
 
 # Install Nix using Determinate Systems installer for containers
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
     --init none \
     --extra-conf "experimental-features = nix-command flakes" \
@@ -59,8 +60,12 @@ ENV NIX_PATH="nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:nixos-c
 # Prepare for Claude-Flake setup by removing conflicting shell files
 RUN rm -f /home/claude/.bashrc /home/claude/.profile
 
-# Note: Claude-Flake setup will be done at runtime to avoid build conflicts
-# This ensures proper USER environment variable handling
+# Install Claude-Flake during build for faster startup
+WORKDIR /home/claude/claude-flake-source
+RUN export NIX_CONFIG="accept-flake-config = true" && \
+    export USER=claude && \
+    export HOME=/home/claude && \
+    nix run nixpkgs#home-manager --accept-flake-config -- switch --flake ".#claude@linux" --verbose
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share

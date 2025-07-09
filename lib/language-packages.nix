@@ -153,7 +153,7 @@ let
       '';
 
       python = ''
-        echo "🐍 Python development environment loaded"  
+        echo "🐍 Python development environment loaded"
         echo "Available: poetry, black, isort, pytest, mypy, ruff, bandit"
         if [ -f pyproject.toml ]; then
           echo "📦 Project detected with pyproject.toml"

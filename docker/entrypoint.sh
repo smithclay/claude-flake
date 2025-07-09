@@ -30,25 +30,12 @@ else
     echo "⚠️  Nix cache not persistent - mount with: -v claude-cache:/home/claude/.cache/nix"
 fi
 
-# Setup Claude-Flake if not already configured
-if [ ! -f "$HOME/.config/claude-flake/loader.sh" ]; then
-    echo "🔧 Setting up Claude-Flake using direct home-manager..."
-    if [ -d "$HOME/claude-flake-source" ]; then
-        cd "$HOME/claude-flake-source"
-        echo "📦 Running: nix run nixpkgs#home-manager -- switch --flake .#claude@linux"
-        # Set environment to suppress interactive prompts and pipe yes responses
-        export NIX_CONFIG="accept-flake-config = true"
-        if yes | nix run nixpkgs#home-manager --accept-flake-config -- switch --flake ".#claude@linux"; then
-            echo "✅ Claude-Flake setup complete from local source"
-        else
-            echo "❌ Local setup failed"
-            echo "💡 Manual setup: nix run nixpkgs#home-manager --accept-flake-config -- switch --flake .#claude@linux"
-        fi
-        cd /workspace
-    else
-        echo "❌ Local source not found at $HOME/claude-flake-source"
-        echo "💡 Manual setup: nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux"
-    fi
+# Check if Claude-Flake was pre-installed during build
+if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
+    echo "✅ Claude-Flake was pre-installed during build"
+else
+    echo "⚠️  Claude-Flake not found - build may have failed"
+    echo "💡 Manual setup: cd ~/claude-flake-source && nix run nixpkgs#home-manager --accept-flake-config -- switch --flake .#claude@linux"
 fi
 
 # Source Claude-Flake configuration if available
@@ -81,7 +68,7 @@ echo "🚿 Debug info:"
 echo "  PATH: $PATH"
 echo "  Home-manager profile exists: $([ -d "$HOME/.nix-profile" ] && echo "Yes" || echo "No")"
 if [ -d "$HOME/.nix-profile/bin" ]; then
-    echo "  Available commands: $(ls $HOME/.nix-profile/bin | head -5 | tr '\n' ' ')..."
+    echo "  Available commands: $(find "$HOME/.nix-profile/bin" -maxdepth 1 -type f -executable | head -5 | xargs -I {} basename {} | tr '\n' ' ')..."
 fi
 
 # Check if workspace is mounted and accessible
