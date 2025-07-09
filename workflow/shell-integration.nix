@@ -141,6 +141,10 @@ _:
       # Claude-Flake environment marker
       export CLAUDE_FLAKE_LOADED=1
 
+      # NPM global directory setup
+      export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+      export PATH="$HOME/.npm-global/bin:$PATH"
+
       # Home-manager shortcuts
       alias hm="home-manager"
       alias hms="home-manager switch"
