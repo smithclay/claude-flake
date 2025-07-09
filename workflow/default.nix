@@ -26,4 +26,18 @@
 
   # Enable home-manager
   programs.home-manager.enable = true;
+
+  # Custom activation script with post-install message
+  home.activation.showPostInstallMessage = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD cat << 'EOF'
+
+    🎉 Claude-Flake installed!
+
+    Add to your .bashrc or .zshrc:
+      source ~/.config/claude-flake/loader.sh
+
+    Then run: claude
+
+    EOF
+  '';
 }

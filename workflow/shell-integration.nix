@@ -7,7 +7,7 @@ _:
 
   # Automatic bash configuration
   programs.bash = {
-    enable = true;
+    enable = false;
     enableCompletion = true;
 
     # Claude-Flake aliases
@@ -67,7 +67,7 @@ _:
 
   # Automatic zsh configuration
   programs.zsh = {
-    enable = true;
+    enable = false;
     enableCompletion = true;
 
     # Same aliases as bash for consistency
@@ -132,13 +132,59 @@ _:
 
   # Preserve loader system for backward compatibility during transition
   home.file = {
-    # Legacy loader script (now automatically sourced by home-manager)
+    # Loader script with all aliases and functions
     ".config/claude-flake/loader.sh".text = ''
       #!/usr/bin/env bash
-      # Claude-Flake loader system - Phase 3A: Automatic integration active
-      # This file is now automatically sourced by home-manager shell configuration
-      echo "Claude-Flake loader: Automatic shell integration active"
-      echo "Note: Manual shell setup no longer required"
+      # Claude-Flake loader system - Manual shell integration
+      # Source this file in your .bashrc or .zshrc to get claude-flake aliases
+
+      # Claude-Flake environment marker
+      export CLAUDE_FLAKE_LOADED=1
+
+      # Home-manager shortcuts
+      alias hm="home-manager"
+      alias hms="home-manager switch"
+
+      # Task Master shortcuts
+      alias tm="task-master"
+
+      # Claude-Flake management
+      alias claude-flake-update="nix flake update && home-manager switch --flake github:smithclay/claude-flake"
+      alias claude-flake-local="home-manager switch --flake path:$HOME/.config/claude-flake"
+
+      # Development utilities (modern CLI tools)
+      alias grep="rg"
+
+      # Git shortcuts
+      alias gs="git status"
+      alias ga="git add"
+      alias gc="git commit"
+      alias gp="git push"
+      alias gl="git log --oneline"
+
+      # Claude-Flake project enhancement
+      alias claude-flake-init-project="${../scripts/init-project.sh}"
+      alias cf-init="${../scripts/init-project.sh}"
+      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-init [DIR]    - Initialize project with .envrc" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager"'
+
+      # Function to check if command exists
+      command_exists() {
+        command -v "$1" >/dev/null 2>&1
+      }
+
+      # Conditional loading based on available commands
+      if command_exists claude; then
+        echo "✅ Claude CLI available"
+      fi
+
+      if command_exists task-master; then
+        echo "✅ Task Master available"
+      fi
+
+      # Source user customizations if they exist
+      if [ -f "$HOME/.config/claude-flake/local.sh" ]; then
+        source "$HOME/.config/claude-flake/local.sh"
+      fi
     '';
 
     # User customization file (preserved for user configurations)

@@ -52,8 +52,6 @@
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
@@ -70,26 +68,33 @@
               };
             }
           ];
-          extraSpecialArgs = { inherit self nixpkgs; };
+          extraSpecialArgs = {
+            inherit
+              self
+              nixpkgs
+              username
+              homeDirectory
+              ;
+          };
         };
     in
     {
-      # Home Manager configurations for common setups
+      # Home Manager configurations - dynamic with --impure
       homeConfigurations =
         let
-          # Function to create configurations for any username
-          mkUserConfigs = username: {
-            "${username}@linux" = mkHomeConfiguration "x86_64-linux" username "/home/${username}";
-            "${username}@darwin" = mkHomeConfiguration "x86_64-darwin" username "/Users/${username}";
-            "${username}@aarch64-linux" = mkHomeConfiguration "aarch64-linux" username "/home/${username}";
-            "${username}@aarch64-darwin" = mkHomeConfiguration "aarch64-darwin" username "/Users/${username}";
-          };
+          # Pull in $USER from environment (requires --impure)
+          username = builtins.getEnv "USER";
+
+          # Compute home directory based on system
+          homeDir = if username != "" then "/home/${username}" else "/home/user";
+
+          # Use the detected user or fallback
+          finalUsername = if username != "" then username else "user";
         in
-        # Create configurations for common usernames
-        (mkUserConfigs "user")
-        // (mkUserConfigs "claude")
-        // (mkUserConfigs "dev")
-        // (mkUserConfigs "developer");
+        {
+          # Single dynamic configuration based on current user
+          "${finalUsername}" = mkHomeConfiguration "x86_64-linux" finalUsername homeDir;
+        };
 
       # DevShells for project-specific environments
       devShells = forAllSystems (
@@ -107,7 +112,30 @@
         }
       );
 
-      # Note: Apps section removed - use direct home-manager commands instead:
-      # nix run nixpkgs#home-manager -- switch --flake .#claude@linux --accept-flake-config
+      # Function to create home configuration for any user (can be imported by other flakes)
+      lib.mkHomeConfigurationForUser =
+        {
+          username,
+          system ? "x86_64-linux",
+          homeDirectory ? "/home/${username}",
+        }:
+        mkHomeConfiguration system username homeDirectory;
+
+      # Apps for easy activation
+      apps = forAllSystems (
+        system:
+        let
+          # Get username from environment (requires --impure)
+          username = builtins.getEnv "USER";
+          finalUsername = if username != "" then username else "user";
+        in
+        {
+          # Define a run-target called "home" that points at the activationPackage
+          home = {
+            type = "app";
+            program = "${self.homeConfigurations.${finalUsername}.activationPackage}/activate";
+          };
+        }
+      );
     };
 }
