@@ -144,33 +144,37 @@ let
     projectType:
     let
       # Shell prompt setup function - defines unique emoji per language
-      setupPrompt = ''
-        # Define emoji based on project type
-        case "${projectType}" in
-          rust)     export CLAUDE_FLAKE_PROMPT_INDICATOR="🦀" ;;
-          python)   export CLAUDE_FLAKE_PROMPT_INDICATOR="🐍" ;;
-          nodejs)   export CLAUDE_FLAKE_PROMPT_INDICATOR="🟢" ;;
-          go)       export CLAUDE_FLAKE_PROMPT_INDICATOR="🐹" ;;
-          nix)      export CLAUDE_FLAKE_PROMPT_INDICATOR="❄️" ;;
-          java)     export CLAUDE_FLAKE_PROMPT_INDICATOR="☕" ;;
-          cpp)      export CLAUDE_FLAKE_PROMPT_INDICATOR="⚡" ;;
-          shell)    export CLAUDE_FLAKE_PROMPT_INDICATOR="🐚" ;;
-          universal) export CLAUDE_FLAKE_PROMPT_INDICATOR="🌍" ;;
-          *)        export CLAUDE_FLAKE_PROMPT_INDICATOR="🔧" ;;
-        esac
+      setupPrompt =
+        let
+          emoji =
+            {
+              rust = "🦀";
+              python = "🐍";
+              nodejs = "🟢";
+              go = "🐹";
+              nix = "❄️";
+              java = "☕";
+              cpp = "⚡";
+              shell = "🐚";
+              universal = "🌍";
+            }
+            .${projectType} or "🔧";
+        in
+        ''
+          # Set project-specific prompt indicator
+          export CLAUDE_FLAKE_PROMPT_INDICATOR="${emoji}"
+          export CLAUDE_FLAKE_SHELL_TYPE="${projectType}"
 
-        export CLAUDE_FLAKE_SHELL_TYPE="${projectType}"
+          # Bash prompt setup
+          if [ -n "$BASH_VERSION" ]; then
+            export PS1="$CLAUDE_FLAKE_PROMPT_INDICATOR $PS1"
+          fi
 
-        # Bash prompt setup
-        if [ -n "$BASH_VERSION" ]; then
-          export PS1="$CLAUDE_FLAKE_PROMPT_INDICATOR $PS1"
-        fi
-
-        # Zsh prompt setup
-        if [ -n "$ZSH_VERSION" ]; then
-          export PROMPT="$CLAUDE_FLAKE_PROMPT_INDICATOR $PROMPT"
-        fi
-      '';
+          # Zsh prompt setup
+          if [ -n "$ZSH_VERSION" ]; then
+            export PROMPT="$CLAUDE_FLAKE_PROMPT_INDICATOR $PROMPT"
+          fi
+        '';
     in
     {
       rust = ''
