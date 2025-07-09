@@ -52,9 +52,9 @@ Run: `make fmt && make test && make lint`
 5. **NEVER IGNORE** - There are NO warnings, only requirements
 
 This includes:
-- Formatting issues (gofmt, black, prettier, etc.)
-- Linting violations (golangci-lint, eslint, etc.)
-- Forbidden patterns (time.Sleep, panic(), interface{})
+- Formatting issues (language-specific formatters: black, prettier, gofmt, etc.)
+- Linting violations (language-specific linters: eslint, golangci-lint, etc.)
+- Language-specific anti-patterns and code smells
 - ALL other checks
 
 Your code must be 100% clean. No exceptions.
@@ -100,13 +100,13 @@ These commands make AI calls and may take up to a minute:
 - ✓ All tests pass  
 - ✓ Feature works end-to-end
 - ✓ Old code is deleted
-- ✓ Godoc on all exported symbols
+- ✓ Documentation comments on all public interfaces
 
 ### Testing Strategy
 - Complex business logic → Write tests first
 - Simple CRUD → Write tests after
 - Hot paths → Add benchmarks
-- Skip tests for main() and simple CLI parsing
+- Skip tests for entry points and simple CLI parsing
 
 ## Problem-Solving Together
 
