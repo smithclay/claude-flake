@@ -26,6 +26,7 @@ let
       python3Packages.pytest # Testing framework
       python3Packages.mypy # Static type checker
       python3Packages.ruff # Fast linter (replaces flake8, pylint)
+      python3Packages.flake8 # Traditional Python linter
       python3Packages.bandit # Security linter
       python3Packages.pip-tools # Dependency management
       python3Packages.coverage # Test coverage

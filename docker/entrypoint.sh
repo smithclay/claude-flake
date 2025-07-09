@@ -35,7 +35,7 @@ if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "✅ Claude-Flake was pre-installed during build"
 else
     echo "⚠️  Claude-Flake not found - build may have failed"
-    echo "💡 Manual setup: cd ~/claude-flake-source && nix run nixpkgs#home-manager --accept-flake-config -- switch --flake .#claude@linux"
+    echo "💡 Manual setup: cd ~/claude-flake-source && nix run --impure --accept-flake-config .#apps.x86_64-linux.home"
 fi
 
 # Source Claude-Flake configuration if available
@@ -46,7 +46,7 @@ if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
     echo "✅ Configuration loaded successfully"
 else
     echo "⚠️  Claude-Flake configuration still not found"
-    echo "💡 Manual setup: cd ~/claude-flake-source && USER=$USER nix run .#default --accept-flake-config"
+    echo "💡 Manual setup: cd ~/claude-flake-source && nix run --impure --accept-flake-config .#apps.x86_64-linux.home"
 fi
 
 # Ensure home-manager profile is in PATH
