@@ -51,9 +51,10 @@ USER claude
 WORKDIR /home/claude
 
 # Set environment variables for claude user
-ENV PATH="/nix/var/nix/profiles/default/bin:/home/claude/.nix-profile/bin:$PATH"
+ENV PATH="/home/claude/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 ENV USER=claude
 ENV HOME=/home/claude
+ENV NIX_PATH="nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos:nixos-config=/etc/nixos/configuration.nix:/nix/var/nix/profiles/per-user/root/channels"
 
 # Prepare for Claude-Flake setup by removing conflicting shell files
 RUN rm -f /home/claude/.bashrc /home/claude/.profile

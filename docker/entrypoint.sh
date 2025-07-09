@@ -32,30 +32,22 @@ fi
 
 # Setup Claude-Flake if not already configured
 if [ ! -f "$HOME/.config/claude-flake/loader.sh" ]; then
-    echo "🔧 Setting up Claude-Flake from local source..."
+    echo "🔧 Setting up Claude-Flake using direct home-manager..."
     if [ -d "$HOME/claude-flake-source" ]; then
         cd "$HOME/claude-flake-source"
-        echo "📦 Running: USER=$USER nix run .#default --accept-flake-config"
-        if USER="$USER" nix run .#default --accept-flake-config; then
+        echo "📦 Running: nix run nixpkgs#home-manager -- switch --flake .#claude@linux"
+        # Set environment to suppress interactive prompts and pipe yes responses
+        export NIX_CONFIG="accept-flake-config = true"
+        if yes | nix run nixpkgs#home-manager --accept-flake-config -- switch --flake ".#claude@linux"; then
             echo "✅ Claude-Flake setup complete from local source"
         else
-            echo "❌ Local setup failed, falling back to GitHub"
-            if nix run github:smithclay/claude-flake --accept-flake-config; then
-                echo "✅ Claude-Flake setup complete from GitHub"
-            else
-                echo "❌ Both local and GitHub setup failed"
-                echo "💡 You may need to run setup manually"
-            fi
+            echo "❌ Local setup failed"
+            echo "💡 Manual setup: nix run nixpkgs#home-manager --accept-flake-config -- switch --flake .#claude@linux"
         fi
         cd /workspace
     else
-        echo "⚠️  Local source not found, trying GitHub..."
-        if nix run github:smithclay/claude-flake --accept-flake-config; then
-            echo "✅ Claude-Flake setup complete from GitHub"
-        else
-            echo "❌ GitHub setup failed"
-            echo "💡 You may need to run setup manually"
-        fi
+        echo "❌ Local source not found at $HOME/claude-flake-source"
+        echo "💡 Manual setup: nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux"
     fi
 fi
 
@@ -81,6 +73,8 @@ fi
 
 # Add home-manager profile and npm global to PATH if not already there
 export PATH="$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
+
+# Note: .bashrc is managed by home-manager, not modified directly here
 
 # Show PATH and available commands for debugging
 echo "🚿 Debug info:"

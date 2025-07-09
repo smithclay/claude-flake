@@ -111,7 +111,7 @@ When running the container:
 
 ```bash
 # If Claude CLI is not available
-docker exec -it <container-id> nix run github:smithclay/claude-flake
+docker exec -it <container-id> nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
 
 # If permissions are wrong
 docker run -it -v $(pwd):/workspace -u $(id -u):$(id -g) claude-flake-mvp
@@ -151,7 +151,7 @@ docker run -it -v $(pwd):/workspace claude-flake-mvp bash -x
 
 ## Phase 2B Completed ✅
 
-- **✅ GitHub Flake Access**: `nix run github:smithclay/claude-flake` support
+- **✅ GitHub Flake Access**: `nix run nixpkgs#home-manager -- switch --flake github:smithclay/claude-flake#user@linux` support
 - **✅ Volume Persistence**: Persistent configuration across containers
 - **✅ Enhanced Docker**: Improved entrypoint with persistence detection
 - **✅ Clear Documentation**: Volume mounting and persistence management guides
