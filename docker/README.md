@@ -20,26 +20,22 @@ docker build -t claude-flake:latest -f docker/Dockerfile .
 # Basic usage - mount current directory as workspace
 docker run -it -v $(pwd):/workspace claude-flake-mvp
 
-# With persistent configuration (recommended)
+# With Nix cache persistence (recommended)
 docker run -it \
   -v $(pwd):/workspace \
-  -v claude-config:/home/claude/.config \
   -v claude-cache:/home/claude/.cache/nix \
   claude-flake-mvp
 
-# Full persistence with host credentials
+# With credentials for Claude CLI
 docker run -it \
   -v $(pwd):/workspace \
-  -v claude-config:/home/claude/.config \
   -v claude-cache:/home/claude/.cache/nix \
-  -v claude-local:/home/claude/.local/share \
   -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
   claude-flake-mvp
 
 # Run in background for long-running tasks
 docker run -d \
   -v $(pwd):/workspace \
-  -v claude-config:/home/claude/.config \
   -v claude-cache:/home/claude/.cache/nix \
   --name claude-workspace \
   claude-flake-mvp
@@ -65,19 +61,19 @@ docker run -it claude-flake-mvp bash -c "echo 'Testing Claude-Flake container...
 # Test with workspace mounting
 mkdir test-workspace
 echo "Hello from host" > test-workspace/test.txt
-docker run -it -v $(pwd)/test-workspace:/workspace claude-flake-mvp bash -c "ls -la /workspace && cat /workspace/test.txt"
+docker run -it -v $(pwd)/test-workspace:/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "ls -la /workspace && cat /workspace/test.txt"
 
 # Test enhanced commands
-docker run -it -v $(pwd):/workspace claude-flake-mvp bash -c "ll /workspace"
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "ll /workspace"
 
 # Test Claude CLI availability
-docker run -it claude-flake-mvp bash -c "claude --help || echo 'Claude CLI not yet available'"
+docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "claude --help || echo 'Claude CLI not yet available'"
 
 # Test Task Master availability
-docker run -it claude-flake-mvp bash -c "task-master --help || echo 'Task Master not yet available'"
+docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "task-master --help || echo 'Task Master not yet available'"
 
 # Interactive session with workspace
-docker run -it -v $(pwd):/workspace claude-flake-mvp
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp
 ```
 
 ### Expected Behavior
@@ -100,9 +96,8 @@ When running the container:
 
 ### New Persistence Features ✅
 
-- **Configuration Persistence**: Mount `-v claude-config:/home/claude/.config` to persist Claude settings
 - **Nix Cache Persistence**: Mount `-v claude-cache:/home/claude/.cache/nix` for faster rebuilds
-- **Local Data Persistence**: Mount `-v claude-local:/home/claude/.local/share` for application data
+- **Credentials Mounting**: Mount `-v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro` for Claude CLI access
 - **Automatic Detection**: Entrypoint script detects and reports volume mounting status
 
 ## Troubleshooting
@@ -114,16 +109,16 @@ When running the container:
 docker exec -it <container-id> nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
 
 # If permissions are wrong
-docker run -it -v $(pwd):/workspace -u $(id -u):$(id -g) claude-flake-mvp
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix -u $(id -u):$(id -g) claude-flake-mvp
 
 # If workspace is not mounted
-docker run -it -v $(pwd):/workspace claude-flake-mvp ls -la /workspace
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp ls -la /workspace
 
 # Check volume mounting status
-docker run -it -v $(pwd):/workspace claude-flake-mvp bash -c "ls -la /home/claude/.config"
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "ls -la /home/claude/.cache/nix"
 
-# Reset persistent configuration
-docker volume rm claude-config claude-cache claude-local
+# Reset Nix cache
+docker volume rm claude-cache
 ```
 
 ### Persistence Management
@@ -133,26 +128,26 @@ docker volume rm claude-config claude-cache claude-local
 docker volume ls | grep claude
 
 # Inspect volume details
-docker volume inspect claude-config
+docker volume inspect claude-cache
 
-# Backup configuration
-docker run --rm -v claude-config:/source -v $(pwd):/backup alpine tar czf /backup/claude-config.tar.gz -C /source .
+# Backup Nix cache
+docker run --rm -v claude-cache:/source -v $(pwd):/backup alpine tar czf /backup/claude-cache.tar.gz -C /source .
 
-# Restore configuration
-docker run --rm -v claude-config:/target -v $(pwd):/backup alpine tar xzf /backup/claude-config.tar.gz -C /target
+# Restore Nix cache
+docker run --rm -v claude-cache:/target -v $(pwd):/backup alpine tar xzf /backup/claude-cache.tar.gz -C /target
 ```
 
 ### Debug Mode
 
 ```bash
 # Run with debug output
-docker run -it -v $(pwd):/workspace claude-flake-mvp bash -x
+docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -x
 ```
 
 ## Phase 2B Completed ✅
 
 - **✅ GitHub Flake Access**: `nix run nixpkgs#home-manager -- switch --flake github:smithclay/claude-flake#user@linux` support
-- **✅ Volume Persistence**: Persistent configuration across containers
+- **✅ Nix Cache Persistence**: Persistent Nix cache across containers
 - **✅ Enhanced Docker**: Improved entrypoint with persistence detection
 - **✅ Clear Documentation**: Volume mounting and persistence management guides
 
