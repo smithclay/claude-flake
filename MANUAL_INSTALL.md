@@ -61,7 +61,7 @@ source ~/.zshrc     # For zsh
 - Claude CLI (`claude` command)
 - Task Master (`task-master` and `tm` commands)
 - Modern CLI tools (bat, eza, fzf, ripgrep)
-- Development tools (git, gh, neovim, tmux)
+- Development tools (git, gh, neovim)
 - Language runtimes (Node.js, Python)
 
 ## Available Commands

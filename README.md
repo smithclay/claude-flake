@@ -259,7 +259,7 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 | **Claude Code** | AI pair programming assistant |
 | **Task Master** | AI-powered project management |
 | **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
-| **Development Tools** | git, gh, neovim, tmux, direnv |
+| **Development Tools** | git, gh, neovim, direnv |
 | **Language Support** | Python 3, Node.js, with intelligent detection for more |
 | **Shell Integration** | Automatic aliases and functions |
 

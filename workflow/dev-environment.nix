@@ -10,7 +10,6 @@
       git
       gh
       neovim
-      tmux
 
       # Modern CLI tools
       bat
@@ -41,8 +40,6 @@
       "$HOME/.local/bin"
     ];
 
-    # Tmux configuration
-    file.".tmux.conf".source = ../files/tmux.conf;
   };
 
   # Direnv integration

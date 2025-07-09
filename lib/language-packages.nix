@@ -115,7 +115,6 @@ let
       git
       gh
       neovim
-      tmux
       bat
       eza
       fzf
@@ -214,7 +213,7 @@ let
 
       universal = ''
         echo "🌍 Universal development environment loaded"
-        echo "Available: git, gh, neovim, tmux, and modern CLI tools"
+        echo "Available: git, gh, neovim, and modern CLI tools"
       '';
     }
     .${projectType} or ''

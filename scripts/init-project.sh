@@ -220,7 +220,7 @@ export EDITOR=\${EDITOR:-nvim}
 export PAGER=\${PAGER:-bat}
 
 echo "🌍 Universal development environment loaded"
-echo "Available: git, gh, neovim, tmux, and modern CLI tools"
+echo "Available: git, gh, neovim, and modern CLI tools"
 
 # Load project-specific configuration if available
 if [[ -f .claude-env ]]; then
