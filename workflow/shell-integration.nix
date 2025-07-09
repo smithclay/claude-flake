@@ -33,7 +33,6 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-
       # Claude-Flake project enhancement
       claude-flake-init-project = "${../scripts/init-project.sh}";
       cf-init = "${../scripts/init-project.sh}";
@@ -93,7 +92,6 @@ _:
       gc = "git commit";
       gp = "git push";
       gl = "git log --oneline";
-
 
       # Claude-Flake project enhancement
       claude-flake-init-project = "${../scripts/init-project.sh}";

@@ -158,7 +158,7 @@ let
           universal) export CLAUDE_FLAKE_PROMPT_INDICATOR="🌍" ;;
           *)        export CLAUDE_FLAKE_PROMPT_INDICATOR="🔧" ;;
         esac
-        
+
         export CLAUDE_FLAKE_SHELL_TYPE="${projectType}"
 
         # Bash prompt setup
