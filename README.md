@@ -63,7 +63,7 @@ cd /path/to/your/project
 # The ~/.claude mount will pick up and save your existing Claude Code credentials
 docker run -it \
   -v $(pwd):/workspace \
-  -v ~/.claude:/home/claude/.claude \
+  -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
   ghcr.io/smithclay/claude-flake:latest
 ```
 
@@ -101,7 +101,7 @@ claude-flake-init-project
    ```bash
    docker run -it \
      -v $(pwd):/workspace \
-     -v ~/.claude:/home/claude/.claude \
+     -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
      -v claude-cache:/home/claude/.cache/nix \
      ghcr.io/smithclay/claude-flake:latest
    ```
@@ -121,7 +121,7 @@ claude-flake-init-project
    # Docker way (recommended - includes Claude credentials mounting)
    docker run -it \
      -v $(pwd):/workspace \
-     -v ~/.claude:/home/claude/.claude \
+     -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
      ghcr.io/smithclay/claude-flake:latest
    
    # OR Nix way (if you have Nix installed)

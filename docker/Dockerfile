@@ -14,7 +14,9 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
     git \
+    jq \
     sudo \
+    vim \
     xz-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -24,7 +26,9 @@ RUN apt-get update && apt-get install -y \
 # Create claude user with real home directory first
 RUN adduser --disabled-password --gecos "" --shell /bin/bash claude && \
     mkdir -p /home/claude /workspace && \
-    chown -R claude:claude /home/claude /workspace
+    chown -R claude:claude /home/claude /workspace && \
+    usermod -aG sudo claude && \
+    echo "claude ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Install Nix using Determinate Systems installer for containers
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

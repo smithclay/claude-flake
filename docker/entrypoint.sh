@@ -87,7 +87,26 @@ fi
 # Show available commands if Claude-Flake is loaded
 if command -v claude >/dev/null 2>&1; then
     echo "🎯 Claude-Flake commands available: claude, task-master, tm"
+    echo "💡 Run 'cf-help' to see all available aliases"
 fi
+
+# Update ~/.claude.json with onboarding properties
+echo "🔧 Setting up Claude CLI configuration..."
+mkdir -p "$HOME/.claude"
+CLAUDE_VERSION=$(claude --version 2>/dev/null | head -1 | cut -d' ' -f2 || echo "unknown")
+
+# Check if ~/.claude.json exists, create if not
+if [ ! -f "$HOME/.claude.json" ]; then
+    echo "{}" > "$HOME/.claude.json"
+fi
+
+# Use jq to add/update onboarding properties
+jq --arg version "$CLAUDE_VERSION" '. + {
+  "hasCompletedOnboarding": true,
+  "lastCompletedOnboarding": $version
+}' "$HOME/.claude.json" > "$HOME/.claude.json.tmp" && mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+
+echo "✅ Claude CLI configuration updated with version: $CLAUDE_VERSION"
 
 # Execute the command passed to docker run, or start bash
 echo "🔄 Starting command: $*"

@@ -27,13 +27,13 @@ docker run -it \
   -v claude-cache:/home/claude/.cache/nix \
   claude-flake-mvp
 
-# Full persistence with API keys
+# Full persistence with host credentials
 docker run -it \
   -v $(pwd):/workspace \
   -v claude-config:/home/claude/.config \
   -v claude-cache:/home/claude/.cache/nix \
   -v claude-local:/home/claude/.local/share \
-  -e ANTHROPIC_API_KEY="your-key" \
+  -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
   claude-flake-mvp
 
 # Run in background for long-running tasks

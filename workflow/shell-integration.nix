@@ -24,12 +24,7 @@ _:
       claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
 
       # Development utilities (modern CLI tools)
-      ll = "eza -la";
-      la = "eza -la";
-      ls = "eza";
-      cat = "bat";
       grep = "rg";
-      find = "fd";
 
       # Git shortcuts
       gs = "git status";
@@ -38,13 +33,11 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude Code workflow shortcuts
-      check = "claude /check";
-      next = "claude /next";
-      prompt = "claude /prompt";
 
       # Claude-Flake project enhancement
       claude-flake-init-project = "${../scripts/init-project.sh}";
+      cf-init = "${../scripts/init-project.sh}";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for bash
@@ -92,12 +85,7 @@ _:
       claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
 
       # Development utilities (modern CLI tools)
-      ll = "eza -la";
-      la = "eza -la";
-      ls = "eza";
-      cat = "bat";
       grep = "rg";
-      find = "fd";
 
       # Git shortcuts
       gs = "git status";
@@ -106,13 +94,11 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude Code workflow shortcuts
-      check = "claude /check";
-      next = "claude /next";
-      prompt = "claude /prompt";
 
       # Claude-Flake project enhancement
       claude-flake-init-project = "${../scripts/init-project.sh}";
+      cf-init = "${../scripts/init-project.sh}";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for zsh
