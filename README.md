@@ -125,7 +125,7 @@ claude-flake-init-project
      ghcr.io/smithclay/claude-flake:latest
    
    # OR Nix way (if you have Nix installed)
-   nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
+   nix run --impure --accept-flake-config github:smithclay/claude-flake#apps.x86_64-linux.home
    ```
 
 3. **Set up intelligent tools for your project type**
@@ -218,7 +218,7 @@ echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
 
 **Step 3: Install claude-flake**
 ```bash
-nix run nixpkgs#home-manager --accept-flake-config -- switch --flake github:smithclay/claude-flake#user@linux
+nix run --impure --accept-flake-config github:smithclay/claude-flake#apps.x86_64-linux.home
 ```
 
 This automatically:

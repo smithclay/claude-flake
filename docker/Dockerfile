@@ -69,7 +69,7 @@ WORKDIR /home/claude/claude-flake-source
 RUN export NIX_CONFIG="accept-flake-config = true" && \
     export USER=claude && \
     export HOME=/home/claude && \
-    nix run nixpkgs#home-manager --accept-flake-config -- switch --flake ".#claude@linux" --verbose
+    nix run --impure --accept-flake-config .#apps.x86_64-linux.home
 
 # Create additional directories for persistent volumes
 RUN mkdir -p /home/claude/.config/claude-flake /home/claude/.cache/nix /home/claude/.local/share
