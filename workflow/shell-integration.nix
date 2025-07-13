@@ -176,6 +176,13 @@ _:
         command -v "$1" >/dev/null 2>&1
       }
 
+      # Direnv integration
+      if command_exists direnv; then
+        eval "$(direnv hook bash)"
+        eval "$(direnv hook zsh)"
+        echo "✅ Direnv hooks enabled"
+      fi
+
       # Conditional loading based on available commands
       if command_exists claude; then
         echo "✅ Claude CLI available"
