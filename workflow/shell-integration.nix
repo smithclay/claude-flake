@@ -33,10 +33,13 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude-Flake project enhancement
-      claude-flake-init-project = "${../scripts/init-project.sh}";
-      cf-init = "${../scripts/init-project.sh}";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
+      # Claude-Flake shortcuts
+      cf-rust = "nix develop github:smithclay/claude-flake#rust";
+      cf-python = "nix develop github:smithclay/claude-flake#python";
+      cf-nodejs = "nix develop github:smithclay/claude-flake#nodejs";
+      cf-go = "nix develop github:smithclay/claude-flake#go";
+      cf-nix = "nix develop github:smithclay/claude-flake#nix";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for bash
@@ -48,6 +51,27 @@ _:
       command_exists() {
         command -v "$1" >/dev/null 2>&1
       }
+
+      # Claude-Flake prompt function for nix shells
+      __claude_flake_prompt() {
+        if [ -n "$IN_NIX_SHELL" ]; then
+          local indicator=""
+          case "$CLAUDE_FLAKE_SHELL_TYPE" in
+            rust) indicator="🦀 " ;;
+            python) indicator="🐍 " ;;
+            nodejs) indicator="🟢 " ;;
+            go) indicator="🐹 " ;;
+            nix) indicator="❄️  " ;;
+            *) indicator="🔧 " ;;
+          esac
+          echo "$indicator"
+        fi
+      }
+
+      # Set up PS1 with Claude-Flake indicator
+      if [[ "$PS1" != *"__claude_flake_prompt"* ]]; then
+        export PS1='$(__claude_flake_prompt)'"$PS1"
+      fi
 
       # Conditional loading based on available commands
       if command_exists claude; then
@@ -93,10 +117,13 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude-Flake project enhancement
-      claude-flake-init-project = "${../scripts/init-project.sh}";
-      cf-init = "${../scripts/init-project.sh}";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
+      # Claude-Flake shortcuts
+      cf-rust = "nix develop github:smithclay/claude-flake#rust";
+      cf-python = "nix develop github:smithclay/claude-flake#python";
+      cf-nodejs = "nix develop github:smithclay/claude-flake#nodejs";
+      cf-go = "nix develop github:smithclay/claude-flake#go";
+      cf-nix = "nix develop github:smithclay/claude-flake#nix";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for zsh
@@ -108,6 +135,28 @@ _:
       command_exists() {
         command -v "$1" >/dev/null 2>&1
       }
+
+      # Claude-Flake prompt function for nix shells
+      __claude_flake_prompt() {
+        if [ -n "$IN_NIX_SHELL" ]; then
+          local indicator=""
+          case "$CLAUDE_FLAKE_SHELL_TYPE" in
+            rust) indicator="🦀 " ;;
+            python) indicator="🐍 " ;;
+            nodejs) indicator="🟢 " ;;
+            go) indicator="🐹 " ;;
+            nix) indicator="❄️  " ;;
+            *) indicator="🔧 " ;;
+          esac
+          echo "$indicator"
+        fi
+      }
+
+      # Set up PROMPT with Claude-Flake indicator
+      setopt PROMPT_SUBST
+      if [[ "$PROMPT" != *"__claude_flake_prompt"* ]]; then
+        export PROMPT='$(__claude_flake_prompt)'"$PROMPT"
+      fi
 
       # Conditional loading based on available commands
       if command_exists claude; then
@@ -145,6 +194,36 @@ _:
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"
       export PATH="$HOME/.npm-global/bin:$PATH"
 
+      # Claude-Flake prompt function for nix shells
+      __claude_flake_prompt() {
+        if [ -n "$IN_NIX_SHELL" ]; then
+          local indicator=""
+          case "$CLAUDE_FLAKE_SHELL_TYPE" in
+            rust) indicator="🦀 " ;;
+            python) indicator="🐍 " ;;
+            nodejs) indicator="🟢 " ;;
+            go) indicator="🐹 " ;;
+            nix) indicator="❄️  " ;;
+            *) indicator="🔧 " ;;
+          esac
+          echo "$indicator"
+        fi
+      }
+
+      # Set up prompt based on shell type
+      if [ -n "$BASH_VERSION" ]; then
+        # Bash prompt setup
+        if [[ "$PS1" != *"__claude_flake_prompt"* ]]; then
+          export PS1='$(__claude_flake_prompt)'"$PS1"
+        fi
+      elif [ -n "$ZSH_VERSION" ]; then
+        # Zsh prompt setup
+        setopt PROMPT_SUBST 2>/dev/null || true
+        if [[ "$PROMPT" != *"__claude_flake_prompt"* ]]; then
+          export PROMPT='$(__claude_flake_prompt)'"$PROMPT"
+        fi
+      fi
+
       # Home-manager shortcuts
       alias hm="home-manager"
       alias hms="home-manager switch"
@@ -166,22 +245,18 @@ _:
       alias gp="git push"
       alias gl="git log --oneline"
 
-      # Claude-Flake project enhancement
-      alias claude-flake-init-project="${../scripts/init-project.sh}"
-      alias cf-init="${../scripts/init-project.sh}"
-      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-init [DIR]    - Initialize project with .envrc" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager"'
+      # Claude-Flake shortcuts
+      alias cf-rust="nix develop github:smithclay/claude-flake#rust"
+      alias cf-python="nix develop github:smithclay/claude-flake#python"
+      alias cf-nodejs="nix develop github:smithclay/claude-flake#nodejs"
+      alias cf-go="nix develop github:smithclay/claude-flake#go"
+      alias cf-nix="nix develop github:smithclay/claude-flake#nix"
+      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-rust          - Rust development shell" && echo "  cf-python        - Python development shell" && echo "  cf-nodejs        - Node.js development shell" && echo "  cf-go            - Go development shell" && echo "  cf-nix           - Nix development shell" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager"'
 
       # Function to check if command exists
       command_exists() {
         command -v "$1" >/dev/null 2>&1
       }
-
-      # Direnv integration
-      if command_exists direnv; then
-        eval "$(direnv hook bash)"
-        eval "$(direnv hook zsh)"
-        echo "✅ Direnv hooks enabled"
-      fi
 
       # Conditional loading based on available commands
       if command_exists claude; then

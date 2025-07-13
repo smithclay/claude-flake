@@ -34,7 +34,10 @@ node_modules/
 
 # Test projects for development
 test-projects/
-test-projects/
+test-*/
 
 # Task Master project-specific files
 .taskmaster/
+
+# Direnv files (kept for cleanup)
+.direnv/

@@ -28,8 +28,6 @@
       python3 # Most common development language
 
       # Development utilities
-      direnv
-      nix-direnv
       nixfmt-rfc-style
       statix
     ];
@@ -40,13 +38,5 @@
       "$HOME/.local/bin"
     ];
 
-  };
-
-  # Direnv integration
-  programs.direnv = {
-    enable = true;
-    enableBashIntegration = true;
-    enableZshIntegration = true;
-    nix-direnv.enable = true;
   };
 }

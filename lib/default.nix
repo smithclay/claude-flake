@@ -8,28 +8,20 @@
   # Export language package sets
   languagePackages = import ./language-packages.nix { inherit pkgs; };
 
-  # Export envrc template generation
-  envrcTemplates = import ./envrc-templates.nix { inherit lib; };
-
   # Utility function to get complete project configuration
   getProjectConfig =
-    projectPath: flakeUrl:
+    projectPath:
     let
       detection = import ./language-detection.nix { inherit lib; };
       packages = import ./language-packages.nix { inherit pkgs; };
-      templates = import ./envrc-templates.nix { inherit lib; };
 
       projectType = detection.getProjectType projectPath;
       projectPackages = packages.getPackagesForType projectType;
-      envrcContent = templates.generateCompleteEnvrc projectType flakeUrl;
-      validation = templates.validateProjectDirectory projectPath;
     in
     {
       inherit
         projectType
         projectPackages
-        envrcContent
-        validation
         ;
       description = detection.getProjectDescription projectType;
       markers = detection.listDetectedMarkers projectPath;
@@ -58,6 +50,7 @@
         in
         pkgs.mkShell {
           buildInputs = shellPackages;
+          CLAUDE_FLAKE_SHELL_TYPE = projectType;
           shellHook = ''
             ${shellHook}
 

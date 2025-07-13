@@ -15,6 +15,7 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 - Quality checks that run automatically 
 - Proven patterns from the Claude Code community
 - Everything pre-configured to work together
+- Language-specific development shells with all tools included
 
 **Claude Code** = Powerful AI coding agent that:
 - Reads and understands your entire project
@@ -39,7 +40,12 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 
 **Supported systems:** Linux, macOS, Windows (via WSL - Windows Subsystem for Linux)
 
-**New:** Intelligent project detection automatically sets up language-specific tools (Python, Rust, Go, Node.js) when you need them.
+**Language Shells:** Enter dedicated development environments with all the tools you need:
+- 🦀 Rust: cargo, clippy, rust-analyzer, rustfmt, cargo-watch
+- 🐍 Python: poetry, black, pytest, mypy, ruff
+- 🟢 Node.js: yarn, pnpm, eslint, prettier, typescript
+- 🐹 Go: gopls, golangci-lint, gofumpt, delve
+- ❄️ Nix: nixfmt, statix, deadnix, nil
 
 ## 🔑 Get Access First
 
@@ -87,11 +93,13 @@ eza -la     # Better 'ls' - shows file types and permissions clearly
 rg "TODO"   # Better 'grep' - faster searching with syntax highlighting
 ```
 
-**Step 4: Set up intelligent project detection (optional)**
+**Step 4: Use language-specific development shells (optional)**
 ```bash
-# Auto-detect your project type and add enhanced tools
-claude-flake-init-project
-# This creates a .envrc file that automatically loads tools when you enter the directory
+# Enter a language-specific shell with appropriate tools
+nix develop github:smithclay/claude-flake#rust     # For Rust projects
+nix develop github:smithclay/claude-flake#python   # For Python projects
+nix develop github:smithclay/claude-flake#nodejs   # For Node.js projects
+# Tools are automatically available in the shell
 ```
 
 ### Docker Workflow
@@ -128,12 +136,21 @@ claude-flake-init-project
    nix run --impure --accept-flake-config github:smithclay/claude-flake#apps.x86_64-linux.home
    ```
 
-3. **Set up intelligent tools for your project type**
+3. **Use language-specific shells for your project**
    ```bash
-   # Auto-detects Python, Rust, Go, Node.js projects
-   claude-flake-init-project
+   # Enter the appropriate development shell with all tools pre-installed
+   nix develop github:smithclay/claude-flake#python   # 🐍 Python development
+   nix develop github:smithclay/claude-flake#rust     # 🦀 Rust development
+   nix develop github:smithclay/claude-flake#nodejs   # 🟢 Node.js development
+   nix develop github:smithclay/claude-flake#go       # 🐹 Go development
+   nix develop github:smithclay/claude-flake#nix      # ❄️ Nix development
    
-   # Follow the prompts to enhance your development environment
+   # Or use the cf-* aliases after installation:
+   cf-python   # Quick access to Python shell
+   cf-rust     # Quick access to Rust shell
+   cf-nodejs   # Quick access to Node.js shell
+   cf-go       # Quick access to Go shell
+   cf-nix      # Quick access to Nix shell
    ```
 
 ### Daily Development Loop
@@ -193,13 +210,13 @@ claude
 
 ### Language-Specific Enhancements
 
-When you run `claude-flake-init-project`, it automatically detects your project type and adds appropriate tools:
+When you enter a language-specific shell, you get appropriate tools:
 
-- **Python projects**: Poetry, Black, pytest, mypy, ruff
-- **Rust projects**: Cargo, Clippy, rust-analyzer, rustfmt  
-- **Go projects**: Go toolchain, gopls, golangci-lint, delve
-- **Node.js projects**: npm/yarn/pnpm, ESLint, Prettier, TypeScript
-- **Nix projects**: nixfmt, statix, nil language server
+- **Python projects** 🐍: Poetry, Black, pytest, mypy, ruff, bandit, isort
+- **Rust projects** 🦀: Cargo, Clippy, rust-analyzer, rustfmt, cargo-watch, cargo-audit
+- **Go projects** 🐹: Go toolchain, gopls, golangci-lint, delve, gosec, gofumpt
+- **Node.js projects** 🟢: npm/yarn/pnpm, ESLint, Prettier, TypeScript, stylelint
+- **Nix projects** ❄️: nixfmt, statix, nil language server, deadnix, nix-tree
 
 ## 💻 Installation without Docker
 
@@ -225,7 +242,34 @@ This automatically:
 - Installs Claude Code and Task Master
 - Configures your shell (bash/zsh) with helpful aliases
 - Sets up a universal development environment
-- Makes `claude-flake-init-project` available for enhanced project setups
+- Makes language-specific shells available via `nix develop`
+
+## 🚀 Using Language-Specific Shells
+
+Once installed, you can enter development shells tailored for your project type:
+
+```bash
+# Enter a shell with all tools for your language
+nix develop github:smithclay/claude-flake#rust     # Rust: cargo, clippy, rust-analyzer
+nix develop github:smithclay/claude-flake#python   # Python: poetry, black, pytest, mypy
+nix develop github:smithclay/claude-flake#nodejs   # Node.js: yarn, pnpm, eslint, prettier
+nix develop github:smithclay/claude-flake#go       # Go: gopls, golangci-lint, delve
+nix develop github:smithclay/claude-flake#nix      # Nix: nixfmt, statix, nil
+
+# Or use shortcuts (after sourcing ~/.config/claude-flake/loader.sh)
+cf-rust    # Quick access to Rust shell
+cf-python  # Quick access to Python shell
+cf-nodejs  # Quick access to Node.js shell
+cf-go      # Quick access to Go shell
+cf-nix     # Quick access to Nix shell
+```
+
+Each shell includes:
+- Language-specific linters and formatters
+- LSP servers for editor integration
+- Testing frameworks
+- Build tools
+- Security scanners
 
 ## 🗑️ Uninstall
 
@@ -259,9 +303,9 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 | **Claude Code** | AI pair programming assistant |
 | **Task Master** | AI-powered project management |
 | **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
-| **Development Tools** | git, gh, neovim, direnv |
-| **Language Support** | Python 3, Node.js, with intelligent detection for more |
-| **Shell Integration** | Automatic aliases and functions |
+| **Development Tools** | git, gh, neovim |
+| **Language Shells** | Dedicated environments for Python, Rust, Go, Node.js, Nix with all tools |
+| **Shell Integration** | Automatic aliases, functions, and prompt indicators |
 
 ## 🙏 Credits
 
@@ -276,10 +320,13 @@ Built upon the excellent work at [Veraticus/nix-config](https://github.com/Verat
 - API key not working → Make sure you have credits in your Anthropic account
 - "WSL not found" on Windows → Install from Microsoft Store, then restart
 
-**Project not detected correctly?** You can override detection:
+**Need a specific language shell?** After installation, use the aliases:
 ```bash
-CLAUDE_ENV=python claude-flake-init-project  # Force Python environment
-CLAUDE_ENV=rust claude-flake-init-project    # Force Rust environment
+cf-python   # 🐍 Enter Python development shell with poetry, black, pytest, etc.
+cf-rust     # 🦀 Enter Rust development shell with cargo, clippy, rust-analyzer, etc.
+cf-nodejs   # 🟢 Enter Node.js development shell with eslint, prettier, typescript, etc.
+cf-go       # 🐹 Enter Go development shell with gopls, golangci-lint, etc.
+cf-nix      # ❄️ Enter Nix development shell with nixfmt, statix, etc.
 ```
 
 **What's WSL?** On Windows, you need Windows Subsystem for Linux to run Docker and development tools. Install "Ubuntu" from Microsoft Store, then use that terminal.

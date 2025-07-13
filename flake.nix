@@ -41,11 +41,10 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      ...
+    { self
+    , nixpkgs
+    , home-manager
+    , ...
     }:
     let
       # Support multiple systems
@@ -114,16 +113,16 @@
 
       # Function to create home configuration for any user (can be imported by other flakes)
       lib.mkHomeConfigurationForUser =
-        {
-          username,
-          system ? "x86_64-linux",
-          homeDirectory ? "/home/${username}",
+        { username
+        , system ? "x86_64-linux"
+        , homeDirectory ? "/home/${username}"
+        ,
         }:
         mkHomeConfiguration system username homeDirectory;
 
       # Apps for easy activation
       apps = forAllSystems (
-        system:
+        _system:
         let
           # Get username from environment (requires --impure)
           username = builtins.getEnv "USER";
