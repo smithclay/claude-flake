@@ -32,6 +32,62 @@ _:
       gc = "git commit";
       gp = "git push";
       gl = "git log --oneline";
+      gd = "git diff";
+      gdc = "git diff --cached";
+      gb = "git branch";
+      gco = "git checkout";
+      gcb = "git checkout -b";
+      gf = "git fetch";
+      gpl = "git pull";
+      gm = "git merge";
+      gr = "git rebase";
+      gst = "git stash";
+      gsp = "git stash pop";
+      gss = "git stash show";
+      gcp = "git cherry-pick";
+      glo = "git log --oneline --graph --decorate";
+      gla = "git log --oneline --graph --decorate --all";
+
+      # Common system aliases
+      ".." = "cd ..";
+      "..." = "cd ../..";
+      "...." = "cd ../../..";
+      ll = "ls -la";
+      la = "ls -la";
+      l = "ls -l";
+      cls = "clear";
+      c = "clear";
+      h = "history";
+      j = "jobs";
+      v = "vim";
+      e = "echo";
+      p = "pwd";
+      md = "mkdir -p";
+      rd = "rmdir";
+      cp = "cp -i";
+      mv = "mv -i";
+      rm = "rm -i";
+      df = "df -h";
+      du = "du -h";
+      free = "free -h";
+      ps = "ps aux";
+      top = "htop";
+      wget = "wget -c";
+      curl = "curl -L";
+      tree = "tree -C";
+      find = "find . -name";
+      mount = "mount | column -t";
+      path = "echo -e $PATH | tr \":\" \"\\n\"";
+      now = "date +'%Y-%m-%d %H:%M:%S'";
+      today = "date +'%Y-%m-%d'";
+      myip = "curl -s http://whatismyip.akamai.com/";
+      localip = "hostname -I | cut -d' ' -f1";
+      ports = "netstat -tuln";
+      untar = "tar -zxvf";
+      grep = "grep --color=auto";
+      egrep = "egrep --color=auto";
+      fgrep = "fgrep --color=auto";
+      make = "make -j$(nproc)";
 
       # Claude-Flake shortcuts
       cf-rust = "nix develop github:smithclay/claude-flake#rust";
@@ -244,6 +300,62 @@ _:
       alias gc="git commit"
       alias gp="git push"
       alias gl="git log --oneline"
+      alias gd="git diff"
+      alias gdc="git diff --cached"
+      alias gb="git branch"
+      alias gco="git checkout"
+      alias gcb="git checkout -b"
+      alias gf="git fetch"
+      alias gpl="git pull"
+      alias gm="git merge"
+      alias gr="git rebase"
+      alias gst="git stash"
+      alias gsp="git stash pop"
+      alias gss="git stash show"
+      alias gcp="git cherry-pick"
+      alias glo="git log --oneline --graph --decorate"
+      alias gla="git log --oneline --graph --decorate --all"
+
+      # Common system aliases
+      alias ..="cd .."
+      alias ...="cd ../.."
+      alias ....="cd ../../.."
+      alias ll="ls -la"
+      alias la="ls -la"
+      alias l="ls -l"
+      alias cls="clear"
+      alias c="clear"
+      alias h="history"
+      alias j="jobs"
+      alias v="vim"
+      alias e="echo"
+      alias p="pwd"
+      alias md="mkdir -p"
+      alias rd="rmdir"
+      alias cp="cp -i"
+      alias mv="mv -i"
+      alias rm="rm -i"
+      alias df="df -h"
+      alias du="du -h"
+      alias free="free -h"
+      alias ps="ps aux"
+      alias top="htop"
+      alias wget="wget -c"
+      alias curl="curl -L"
+      alias tree="tree -C"
+      alias find="find . -name"
+      alias mount="mount | column -t"
+      alias path='echo -e $PATH | tr ":" "\n"'
+      alias now="date +'%Y-%m-%d %H:%M:%S'"
+      alias today="date +'%Y-%m-%d'"
+      alias myip="curl -s http://whatismyip.akamai.com/"
+      alias localip="hostname -I | cut -d' ' -f1"
+      alias ports="netstat -tuln"
+      alias untar="tar -zxvf"
+      alias grep="grep --color=auto"
+      alias egrep="egrep --color=auto"
+      alias fgrep="fgrep --color=auto"
+      alias make="make -j$(nproc)"
 
       # Claude-Flake shortcuts
       alias cf-rust="nix develop github:smithclay/claude-flake#rust"
