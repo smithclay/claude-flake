@@ -1,0 +1,47 @@
+🐳 Building Docker image...
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.73kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:20.04
+#2 DONE 0.1s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [ 1/12] FROM docker.io/library/ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [ 4/12] RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux     --init none     --extra-conf "experimental-features = nix-command flakes"     --extra-conf "filter-syscalls = false"     --extra-conf "sandbox = false"     --no-confirm
+#6 CACHED
+
+#7 [ 5/12] RUN chown -R claude:claude /nix
+#7 CACHED
+
+#8 [ 2/12] RUN apt-get update && apt-get install -y     --no-install-recommends     --fix-missing     ca-certificates     curl     git     sudo     xz-utils     && apt-get clean     && rm -rf /var/lib/apt/lists/*     && rm -rf /tmp/* /var/tmp/*     && update-ca-certificates
+#8 CACHED
+
+#9 [ 3/12] RUN adduser --disabled-password --gecos "" --shell /bin/bash claude &&     mkdir -p /home/claude /workspace &&     chown -R claude:claude /home/claude /workspace
+#9 CACHED
+
+#10 [ 6/12] COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+#10 ERROR: failed to calculate checksum of ref dd23132d-1def-4c21-bf3c-6f1b50a32614::yschm0jtx6b30pqtcxqt8eagz: "/docker/entrypoint.sh": not found
+------
+ > [ 6/12] COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh:
+------
+Dockerfile:43
+--------------------
+  41 |     # Copy entrypoint script and make it executable (need to be root for this)
+  42 |     USER root
+  43 | >>> COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+  44 |     RUN chmod +x /usr/local/bin/entrypoint.sh
+  45 |     
+--------------------
+ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref dd23132d-1def-4c21-bf3c-6f1b50a32614::yschm0jtx6b30pqtcxqt8eagz: "/docker/entrypoint.sh": not found
