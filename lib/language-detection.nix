@@ -105,7 +105,7 @@ rec {
         universal = "Universal development environment";
       };
     in
-    descriptions.${projectType} or "Unknown project type";
+      descriptions.${projectType} or "Unknown project type";
 
   # List all detected project markers for debugging
   listDetectedMarkers =

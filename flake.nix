@@ -41,11 +41,10 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      ...
+    { self
+    , nixpkgs
+    , home-manager
+    , ...
     }:
     let
       # Support multiple systems
@@ -114,10 +113,10 @@
 
       # Function to create home configuration for any user (can be imported by other flakes)
       lib.mkHomeConfigurationForUser =
-        {
-          username,
-          system ? "x86_64-linux",
-          homeDirectory ? "/home/${username}",
+        { username
+        , system ? "x86_64-linux"
+        , homeDirectory ? "/home/${username}"
+        ,
         }:
         mkHomeConfiguration system username homeDirectory;
 
@@ -134,6 +133,18 @@
           home = {
             type = "app";
             program = "${self.homeConfigurations.${finalUsername}.activationPackage}/activate";
+            meta = {
+              description = "Activate the home-manager configuration for Claude Code workflow";
+              longDescription = ''
+                This app activates the home-manager configuration that sets up
+                the complete Claude Code development environment with all necessary
+                tools, configurations, and workflows.
+              '';
+              homepage = "https://github.com/your-org/claude-flake";
+              license = nixpkgs.lib.licenses.mit;
+              maintainers = [ "Claude Code Team" ];
+              platforms = nixpkgs.lib.platforms.linux;
+            };
           };
         }
       );

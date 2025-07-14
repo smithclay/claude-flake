@@ -158,8 +158,7 @@ let
               cpp = "⚡";
               shell = "🐚";
               universal = "🌍";
-            }
-            .${projectType} or "🔧";
+            }.${projectType} or "🔧";
         in
         ''
           # Set project-specific prompt indicator
@@ -177,93 +176,92 @@ let
           fi
         '';
     in
-    {
-      rust = ''
-        ${setupPrompt}
-        echo "🦀 Rust development environment loaded"
-        echo "Available: cargo, clippy, rust-analyzer, rustfmt, cargo-watch, cargo-audit"
-        if [ -f Cargo.toml ]; then
-          echo "📦 Project: $(grep '^name = ' Cargo.toml | cut -d'"' -f2)"
-        fi
-      '';
+      {
+        rust = ''
+          ${setupPrompt}
+          echo "🦀 Rust development environment loaded"
+          echo "Available: cargo, clippy, rust-analyzer, rustfmt, cargo-watch, cargo-audit"
+          if [ -f Cargo.toml ]; then
+            echo "📦 Project: $(grep '^name = ' Cargo.toml | cut -d'"' -f2)"
+          fi
+        '';
 
-      python = ''
-        ${setupPrompt}
-        echo "🐍 Python development environment loaded"
-        echo "Available: poetry, black, isort, pytest, mypy, ruff, bandit"
-        if [ -f pyproject.toml ]; then
-          echo "📦 Project detected with pyproject.toml"
-        elif [ -f requirements.txt ]; then
-          echo "📦 Project detected with requirements.txt"
-        fi
-      '';
+        python = ''
+          ${setupPrompt}
+          echo "🐍 Python development environment loaded"
+          echo "Available: poetry, black, isort, pytest, mypy, ruff, bandit"
+          if [ -f pyproject.toml ]; then
+            echo "📦 Project detected with pyproject.toml"
+          elif [ -f requirements.txt ]; then
+            echo "📦 Project detected with requirements.txt"
+          fi
+        '';
 
-      nodejs = ''
-        ${setupPrompt}
-        echo "🟢 Node.js development environment loaded"
-        echo "Available: yarn, pnpm, eslint, prettier, typescript, stylelint"
-        if [ -f package.json ]; then
-          echo "📦 Project: $(jq -r .name package.json 2>/dev/null || echo 'unnamed')"
-        fi
-      '';
+        nodejs = ''
+          ${setupPrompt}
+          echo "🟢 Node.js development environment loaded"
+          echo "Available: yarn, pnpm, eslint, prettier, typescript, stylelint"
+          if [ -f package.json ]; then
+            echo "📦 Project: $(jq -r .name package.json 2>/dev/null || echo 'unnamed')"
+          fi
+        '';
 
-      go = ''
-        ${setupPrompt}
-        echo "🐹 Go development environment loaded"
-        echo "Available: go, gopls, golangci-lint, gofumpt, delve, gosec, govulncheck"
-        if [ -f go.mod ]; then
-          echo "📦 Module: $(grep '^module ' go.mod | cut -d' ' -f2)"
-        fi
-      '';
+        go = ''
+          ${setupPrompt}
+          echo "🐹 Go development environment loaded"
+          echo "Available: go, gopls, golangci-lint, gofumpt, delve, gosec, govulncheck"
+          if [ -f go.mod ]; then
+            echo "📦 Module: $(grep '^module ' go.mod | cut -d' ' -f2)"
+          fi
+        '';
 
-      nix = ''
-        ${setupPrompt}
-        echo "❄️  Nix development environment loaded"
-        echo "Available: nixfmt, statix, deadnix, nil, nix-tree"
-        if [ -f flake.nix ]; then
-          echo "📦 Nix flake project detected"
-        fi
-      '';
+        nix = ''
+          ${setupPrompt}
+          echo "❄️  Nix development environment loaded"
+          echo "Available: nixfmt, statix, deadnix, nil, nix-tree"
+          if [ -f flake.nix ]; then
+            echo "📦 Nix flake project detected"
+          fi
+        '';
 
-      java = ''
-        ${setupPrompt}
-        echo "☕ Java development environment loaded"
-        echo "Available: jdk17, maven, gradle, google-java-format, checkstyle"
-        if [ -f pom.xml ]; then
-          echo "📦 Maven project detected"
-        elif [ -f build.gradle ] || [ -f build.gradle.kts ]; then
-          echo "📦 Gradle project detected"
-        fi
-      '';
+        java = ''
+          ${setupPrompt}
+          echo "☕ Java development environment loaded"
+          echo "Available: jdk17, maven, gradle, google-java-format, checkstyle"
+          if [ -f pom.xml ]; then
+            echo "📦 Maven project detected"
+          elif [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+            echo "📦 Gradle project detected"
+          fi
+        '';
 
-      cpp = ''
-        ${setupPrompt}
-        echo "⚡ C/C++ development environment loaded"
-        echo "Available: gcc, clang, cmake, ninja, clang-format, cppcheck"
-        if [ -f CMakeLists.txt ]; then
-          echo "📦 CMake project detected"
-        elif [ -f Makefile ]; then
-          echo "📦 Makefile project detected"
-        fi
-      '';
+        cpp = ''
+          ${setupPrompt}
+          echo "⚡ C/C++ development environment loaded"
+          echo "Available: gcc, clang, cmake, ninja, clang-format, cppcheck"
+          if [ -f CMakeLists.txt ]; then
+            echo "📦 CMake project detected"
+          elif [ -f Makefile ]; then
+            echo "📦 Makefile project detected"
+          fi
+        '';
 
-      shell = ''
-        ${setupPrompt}
-        echo "🐚 Shell development environment loaded"
-        echo "Available: shellcheck, shfmt, bash-language-server, bats"
-        echo "📦 Shell scripting tools ready"
-      '';
+        shell = ''
+          ${setupPrompt}
+          echo "🐚 Shell development environment loaded"
+          echo "Available: shellcheck, shfmt, bash-language-server, bats"
+          echo "📦 Shell scripting tools ready"
+        '';
 
-      universal = ''
+        universal = ''
+          ${setupPrompt}
+          echo "🌍 Universal development environment loaded"
+          echo "Available: git, gh, neovim, and modern CLI tools"
+        '';
+      }.${projectType} or ''
         ${setupPrompt}
-        echo "🌍 Universal development environment loaded"
-        echo "Available: git, gh, neovim, and modern CLI tools"
+        echo "🔧 Development environment loaded"
       '';
-    }
-    .${projectType} or ''
-      ${setupPrompt}
-      echo "🔧 Development environment loaded"
-    '';
 in
 {
   inherit languagePackages getPackagesForType getShellHook;

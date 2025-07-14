@@ -21,7 +21,9 @@
 #   Project-specific overrides can be placed in .claude-hooks-config.sh
 #   See inline documentation for all available options.
 
-# Don't use set -e - we need to control exit codes carefully
+# Use pipefail for better error detection in pipelines
+set -uo pipefail
+# Don't use set -e - we need to control exit codes carefully for error collection
 set +e
 
 # ============================================================================
@@ -260,7 +262,7 @@ lint_go() {
             
             # Format check
             local unformatted_files
-            unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
+            unformatted_files="$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)"
             
             if [[ -n "$unformatted_files" ]]; then
                 local fmt_output
@@ -293,7 +295,7 @@ lint_go() {
         
         # Format check
         local unformatted_files
-        unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
+        unformatted_files="$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)"
         
         if [[ -n "$unformatted_files" ]]; then
             local fmt_output
@@ -450,7 +452,7 @@ lint_nix() {
     
     # Find all .nix files
     local nix_files
-    nix_files=$(find . -name "*.nix" -type f | grep -v -E "(result/|/nix/store/)" | head -20)
+    nix_files="$(find . -name "*.nix" -type f | grep -v -E "(result/|/nix/store/)" | head -20)"
     
     if [[ -z "$nix_files" ]]; then
         log_debug "No Nix files found"

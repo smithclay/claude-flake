@@ -2,7 +2,7 @@
 
 > **Phase 2A**: Simple single-stage Docker container for Claude-Flake with basic functionality.
 
-This Docker implementation provides a containerized environment for Claude-Flake, making it easy to run Claude Code and Task Master without local installation.
+This Docker implementation provides a containerized environment for Claude-Flake, making it easy to run Claude Code without local installation.
 
 ## Quick Start
 
@@ -46,7 +46,6 @@ docker run -d \
 - **Nix Environment**: Nix package manager with flakes enabled
 - **Claude-Flake Configuration**: Home-manager based setup
 - **Claude CLI**: Latest Claude Code CLI
-- **Task Master**: AI-powered task management (via npm)
 - **Enhanced Tools**: bat, eza, fzf, ripgrep, and more
 - **Workspace**: Dedicated `/workspace` directory for volume mounting
 - **Security**: Non-root user (`claude`) for secure operation
@@ -69,8 +68,6 @@ docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix clau
 # Test Claude CLI availability
 docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "claude --help || echo 'Claude CLI not yet available'"
 
-# Test Task Master availability
-docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "task-master --help || echo 'Task Master not yet available'"
 
 # Interactive session with workspace
 docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp

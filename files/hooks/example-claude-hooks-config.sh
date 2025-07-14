@@ -6,6 +6,8 @@
 #
 # This file is sourced by smart-lint.sh, so it can override any setting.
 
+set -euo pipefail
+
 # ============================================================================
 # COMMON OVERRIDES
 # ============================================================================

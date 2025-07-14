@@ -1,12 +1,11 @@
 # claude-flake
 
-[![CI](https://github.com/smithclay/claude-flake/actions/workflows/ci.yml/badge.svg)](https://github.com/smithclay/claude-flake/actions/workflows/ci.yml)
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
 
 **Opinionated Claude Code workflow with built-in config, hooks and commands.**
 
-Claude Code is a powerful AI coding agent from Anthropic that works in your terminal. This setup helps makes it more effective, plus task management + development tools that work consistently across all machines.
+Claude Code is a powerful AI coding agent from Anthropic that works in your terminal. This setup helps makes it more effective, plus development tools that work consistently across all machines.
 
 ## 🤖 What You Get
 
@@ -23,11 +22,6 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 - Helps debug errors and suggests fixes
 - Works in your terminal
 
-**Task Master** = Like a PM for AI agents - helps you:
-- Break big features into small tasks
-- Track what you've completed
-- Research solutions for complex problems
-
 **Plus:** Modern development tools that make terminal work actually enjoyable.
 
 ## 📋 Requirements & Setup
@@ -39,7 +33,6 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 
 **Supported systems:** Linux, macOS, Windows (via WSL - Windows Subsystem for Linux)
 
-**New:** Intelligent project detection automatically sets up language-specific tools (Python, Rust, Go, Node.js) when you need them.
 
 ## 🔑 Get Access First
 
@@ -78,21 +71,12 @@ claude
 # > Enter your message: help me understand this codebase
 # > Claude: I can see you have a Python project with Flask...
 
-# Task Master for simple todo lists
-task-master
-
 # All modern dev tools are available
 git status
 eza -la     # Better 'ls' - shows file types and permissions clearly
 rg "TODO"   # Better 'grep' - faster searching with syntax highlighting
 ```
 
-**Step 4: Set up intelligent project detection (optional)**
-```bash
-# Auto-detect your project type and add enhanced tools
-claude-flake-init-project
-# This creates a .envrc file that automatically loads tools when you enter the directory
-```
 
 ### Docker Workflow
 
@@ -128,13 +112,6 @@ claude-flake-init-project
    nix run --impure --accept-flake-config github:smithclay/claude-flake#apps.x86_64-linux.home
    ```
 
-3. **Set up intelligent tools for your project type**
-   ```bash
-   # Auto-detects Python, Rust, Go, Node.js projects
-   claude-flake-init-project
-   
-   # Follow the prompts to enhance your development environment
-   ```
 
 ### Daily Development Loop
 
@@ -148,13 +125,7 @@ claude-flake-init-project
    # "Write a function that validates email addresses"
    # "Review this code for security issues"
    ```
-3. **Manage tasks with Task Master**
-   ```bash
-   task-master init           # Set up project todos
-   task-master next          # Get next task to work on
-   task-master add-task "add user authentication"
-   ```
-4. **Use enhanced development tools**
+3. **Use enhanced development tools**
    ```bash
    # Modern CLI tools that are actually better:
    eza -la              # File listing with colors and icons
@@ -191,15 +162,6 @@ claude
 # Claude explains virtual environments and gives exact commands
 ```
 
-### Language-Specific Enhancements
-
-When you run `claude-flake-init-project`, it automatically detects your project type and adds appropriate tools:
-
-- **Python projects**: Poetry, Black, pytest, mypy, ruff
-- **Rust projects**: Cargo, Clippy, rust-analyzer, rustfmt  
-- **Go projects**: Go toolchain, gopls, golangci-lint, delve
-- **Node.js projects**: npm/yarn/pnpm, ESLint, Prettier, TypeScript
-- **Nix projects**: nixfmt, statix, nil language server
 
 ## 💻 Installation without Docker
 
@@ -222,10 +184,9 @@ nix run --impure --accept-flake-config github:smithclay/claude-flake#apps.x86_64
 ```
 
 This automatically:
-- Installs Claude Code and Task Master
+- Installs Claude Code
 - Configures your shell (bash/zsh) with helpful aliases
 - Sets up a universal development environment
-- Makes `claude-flake-init-project` available for enhanced project setups
 
 ## 🗑️ Uninstall
 
@@ -246,7 +207,7 @@ nix run home-manager -- generations  # Find previous generation
 nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
 
 # Remove installed packages
-npm uninstall -g @anthropic-ai/claude-code task-master-ai
+npm uninstall -g @anthropic-ai/claude-code
 
 # Clean up directories
 rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
@@ -257,10 +218,9 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 | Tool | Purpose |
 |------|---------|
 | **Claude Code** | AI pair programming assistant |
-| **Task Master** | AI-powered project management |
 | **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
 | **Development Tools** | git, gh, neovim, direnv |
-| **Language Support** | Python 3, Node.js, with intelligent detection for more |
+| **Language Support** | Python 3, Node.js, and modern development tools |
 | **Shell Integration** | Automatic aliases and functions |
 
 ## 🙏 Credits
@@ -276,10 +236,5 @@ Built upon the excellent work at [Veraticus/nix-config](https://github.com/Verat
 - API key not working → Make sure you have credits in your Anthropic account
 - "WSL not found" on Windows → Install from Microsoft Store, then restart
 
-**Project not detected correctly?** You can override detection:
-```bash
-CLAUDE_ENV=python claude-flake-init-project  # Force Python environment
-CLAUDE_ENV=rust claude-flake-init-project    # Force Rust environment
-```
 
 **What's WSL?** On Windows, you need Windows Subsystem for Linux to run Docker and development tools. Install "Ubuntu" from Microsoft Store, then use that terminal.

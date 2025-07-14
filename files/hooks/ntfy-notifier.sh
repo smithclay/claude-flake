@@ -68,8 +68,8 @@ if ! command -v yq >/dev/null 2>&1; then
 fi
 
 # Extract configuration with error handling
-NTFY_TOPIC=$(yq -r '.ntfy_topic // empty' "$CONFIG_FILE" 2>/dev/null || echo "")
-NTFY_SERVER=$(yq -r '.ntfy_server // "https://ntfy.sh"' "$CONFIG_FILE" 2>/dev/null || echo "https://ntfy.sh")
+NTFY_TOPIC="$(yq -r '.ntfy_topic // empty' "$CONFIG_FILE" 2>/dev/null || echo "")"
+NTFY_SERVER="$(yq -r '.ntfy_server // "https://ntfy.sh"' "$CONFIG_FILE" 2>/dev/null || echo "https://ntfy.sh")"
 
 # Validate required configuration
 if [[ -z "$NTFY_TOPIC" ]]; then
@@ -80,8 +80,8 @@ fi
 # Rate limiting - prevent notification spam
 RATE_LIMIT_FILE="/tmp/.claude-ntfy-rate-limit"
 if [[ -f "$RATE_LIMIT_FILE" ]]; then
-    LAST_NOTIFICATION=$(cat "$RATE_LIMIT_FILE" 2>/dev/null || echo "0")
-    CURRENT_TIME=$(date +%s)
+    LAST_NOTIFICATION="$(cat "$RATE_LIMIT_FILE" 2>/dev/null || echo "0")"
+    CURRENT_TIME="$(date +%s)"
     TIME_DIFF=$((CURRENT_TIME - LAST_NOTIFICATION))
     
     # Limit to one notification per 2 seconds
@@ -92,8 +92,8 @@ fi
 date +%s > "$RATE_LIMIT_FILE"
 
 # Get context information
-CWD=$(pwd)
-CWD_BASENAME=$(basename "$CWD")
+CWD="$(pwd)"
+CWD_BASENAME="$(basename "$CWD")"
 
 # Function to clean terminal title
 clean_terminal_title() {
@@ -113,9 +113,9 @@ get_terminal_title() {
         if [[ -n "${TMUX:-}" ]]; then
             # Get the current pane's window name
             local window_name
-            window_name=$(tmux display-message -p '#W' 2>/dev/null || echo "")
+            window_name="$(tmux display-message -p '#W' 2>/dev/null || echo "")"
             local pane_title
-            pane_title=$(tmux display-message -p '#{pane_title}' 2>/dev/null || echo "")
+            pane_title="$(tmux display-message -p '#{pane_title}' 2>/dev/null || echo "")"
             
             if [[ -n "$window_name" ]]; then
                 title="$window_name"
@@ -128,26 +128,26 @@ get_terminal_title() {
     elif [[ "$(uname)" == "Darwin" ]] && command -v osascript >/dev/null 2>&1; then
         # macOS: Get Terminal or iTerm2 window title
         if [[ "${TERM_PROGRAM:-}" == "iTerm.app" ]]; then
-            title=$(osascript -e 'tell application "iTerm2" to name of current window' 2>/dev/null || echo "")
+            title="$(osascript -e 'tell application "iTerm2" to name of current window' 2>/dev/null || echo "")"
         else
-            title=$(osascript -e 'tell application "Terminal" to name of front window' 2>/dev/null || echo "")
+            title="$(osascript -e 'tell application "Terminal" to name of front window' 2>/dev/null || echo "")"
         fi
     elif [[ -n "${DISPLAY:-}" ]] && command -v xprop >/dev/null 2>&1; then
         # Linux with X11: Get window title
         local window_id
-        window_id=$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | awk '{print $5}')
+        window_id="$(xprop -root _NET_ACTIVE_WINDOW 2>/dev/null | awk '{print $5}')"
         if [[ -n "$window_id" && "$window_id" != "0x0" ]]; then
-            title=$(xprop -id "$window_id" WM_NAME 2>/dev/null | cut -d'"' -f2 || echo "")
+            title="$(xprop -id "$window_id" WM_NAME 2>/dev/null | cut -d'"' -f2 || echo "")"
         fi
     elif [[ -n "${WAYLAND_DISPLAY:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
         # Wayland with Sway: Get focused window title
-        title=$(swaymsg -t get_tree | jq -r '.. | select(.focused? == true) | .name' 2>/dev/null || echo "")
+        title="$(swaymsg -t get_tree | jq -r '.. | select(.focused? == true) | .name' 2>/dev/null || echo "")"
     fi
     
     clean_terminal_title "$title"
 }
 
-TERM_TITLE=$(get_terminal_title)
+TERM_TITLE="$(get_terminal_title)"
 
 # Build context string
 CONTEXT="Claude Code: $CWD_BASENAME"
@@ -190,7 +190,7 @@ case "$EVENT_TYPE" in
         # Claude sent a notification - parse the payload if available
         if [[ -n "${CLAUDE_HOOK_PAYLOAD:-}" ]]; then
             # Extract message from JSON payload
-            MESSAGE=$(echo "$CLAUDE_HOOK_PAYLOAD" | jq -r '.message // "Claude notification"' 2>/dev/null || echo "Claude notification")
+            MESSAGE="$(echo "$CLAUDE_HOOK_PAYLOAD" | jq -r '.message // "Claude notification"' 2>/dev/null || echo "Claude notification")"
             
             # Check for error or warning indicators
             PRIORITY="default"

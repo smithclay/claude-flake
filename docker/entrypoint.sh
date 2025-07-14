@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Docker entrypoint script for Claude-Flake MVP
 
 set -euo pipefail
@@ -18,20 +18,20 @@ echo "👤 User: $(whoami)"
 
 # Check for persistent volumes
 echo "🔍 Checking persistent volumes..."
-if [ -d "$HOME/.config" ] && [ -w "$HOME/.config" ]; then
+if [[ -d "$HOME/.config" ]] && [[ -w "$HOME/.config" ]]; then
     echo "✅ Configuration persistence: $HOME/.config"
 else
     echo "⚠️  Configuration not persistent - mount with: -v claude-config:/home/claude/.config"
 fi
 
-if [ -d "$HOME/.cache/nix" ] && [ -w "$HOME/.cache/nix" ]; then
+if [[ -d "$HOME/.cache/nix" ]] && [[ -w "$HOME/.cache/nix" ]]; then
     echo "✅ Nix cache persistence: $HOME/.cache/nix"
 else
     echo "⚠️  Nix cache not persistent - mount with: -v claude-cache:/home/claude/.cache/nix"
 fi
 
 # Check if Claude-Flake was pre-installed during build
-if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
+if [[ -f "$HOME/.config/claude-flake/loader.sh" ]]; then
     echo "✅ Claude-Flake was pre-installed during build"
 else
     echo "⚠️  Claude-Flake not found - build may have failed"
@@ -39,7 +39,7 @@ else
 fi
 
 # Source Claude-Flake configuration if available
-if [ -f "$HOME/.config/claude-flake/loader.sh" ]; then
+if [[ -f "$HOME/.config/claude-flake/loader.sh" ]]; then
     echo "✅ Loading Claude-Flake configuration..."
     # shellcheck source=/dev/null
     source "$HOME/.config/claude-flake/loader.sh"
@@ -50,7 +50,7 @@ else
 fi
 
 # Ensure home-manager profile is in PATH
-if [ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+if [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]]; then
     echo "🔄 Loading home-manager session variables..."
     # shellcheck source=/dev/null
     set +u  # Temporarily disable unbound variable checking
@@ -66,14 +66,14 @@ export PATH="$HOME/.npm-global/bin:$HOME/.nix-profile/bin:$PATH"
 # Show PATH and available commands for debugging
 echo "🚿 Debug info:"
 echo "  PATH: $PATH"
-echo "  Home-manager profile exists: $([ -d "$HOME/.nix-profile" ] && echo "Yes" || echo "No")"
-if [ -d "$HOME/.nix-profile/bin" ]; then
+echo "  Home-manager profile exists: $([[ -d "$HOME/.nix-profile" ]] && echo "Yes" || echo "No")"
+if [[ -d "$HOME/.nix-profile/bin" ]]; then
     echo "  Available commands: $(find "$HOME/.nix-profile/bin" -maxdepth 1 -type f -executable | head -5 | xargs -I {} basename {} | tr '\n' ' ')..."
 fi
 
 # Check if workspace is mounted and accessible
-if [ -d "/workspace" ]; then
-    if [ "$(ls -A /workspace 2>/dev/null)" ]; then
+if [[ -d "/workspace" ]]; then
+    if [[ "$(ls -A /workspace 2>/dev/null)" ]]; then
         echo "📂 Workspace mounted with content"
         echo "📋 Contents: $(find /workspace -maxdepth 1 | wc -l) items"
     else
@@ -86,8 +86,8 @@ fi
 
 # Show available commands if Claude-Flake is loaded
 if command -v claude >/dev/null 2>&1; then
-    echo "🎯 Claude-Flake commands available: claude, task-master, tm"
-    echo "💡 Run 'cf-help' to see all available aliases"
+    echo "🎯 Claude-Flake commands available: claude"
+    echo "💡 Run 'claude --help' to see Claude options"
 fi
 
 # Update ~/.claude.json with onboarding properties
@@ -96,7 +96,7 @@ mkdir -p "$HOME/.claude"
 CLAUDE_VERSION=$(claude --version 2>/dev/null | head -1 | cut -d' ' -f2 || echo "unknown")
 
 # Check if ~/.claude.json exists, create if not
-if [ ! -f "$HOME/.claude.json" ]; then
+if [[ ! -f "$HOME/.claude.json" ]]; then
     echo "{}" > "$HOME/.claude.json"
 fi
 
