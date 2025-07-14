@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Docker entrypoint script for Claude-Flake MVP
 
 set -euo pipefail
@@ -101,13 +101,41 @@ if [ ! -f "$HOME/.claude.json" ]; then
 fi
 
 # Use jq to add/update onboarding properties
-jq --arg version "$CLAUDE_VERSION" '. + {
+if command -v jq >/dev/null 2>&1; then
+    if jq --arg version "$CLAUDE_VERSION" '. + {
+      "hasCompletedOnboarding": true,
+      "lastCompletedOnboarding": $version
+    }' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"; then
+        mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+    else
+        echo "⚠️  Failed to update JSON with jq - using basic update"
+        rm -f "$HOME/.claude.json.tmp"
+        # Fall back to basic JSON update
+        cat > "$HOME/.claude.json" <<EOF
+{
   "hasCompletedOnboarding": true,
-  "lastCompletedOnboarding": $version
-}' "$HOME/.claude.json" > "$HOME/.claude.json.tmp" && mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+  "lastCompletedOnboarding": "$CLAUDE_VERSION"
+}
+EOF
+    fi
+else
+    echo "⚠️  jq not found - using basic JSON update"
+    # Basic JSON update without jq
+    cat > "$HOME/.claude.json" <<EOF
+{
+  "hasCompletedOnboarding": true,
+  "lastCompletedOnboarding": "$CLAUDE_VERSION"
+}
+EOF
+fi
 
 echo "✅ Claude CLI configuration updated with version: $CLAUDE_VERSION"
 
 # Execute the command passed to docker run, or start bash
-echo "🔄 Starting command: $*"
-exec "$@"
+if [[ $# -eq 0 ]]; then
+    echo "🔄 No command provided, starting interactive bash shell"
+    exec bash -l
+else
+    echo "🔄 Starting command: $*"
+    exec "$@"
+fi

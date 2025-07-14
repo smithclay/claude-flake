@@ -208,10 +208,11 @@ load_config() {
     # Project-specific overrides
     if [[ -f ".claude-hooks-config.sh" ]]; then
         # shellcheck source=/dev/null
-        source ".claude-hooks-config.sh" || {
-            log_error "Failed to load .claude-hooks-config.sh"
+        if ! source ".claude-hooks-config.sh"; then
+            log_error "Failed to load .claude-hooks-config.sh - check for syntax errors"
+            log_error "You can disable hooks by setting CLAUDE_HOOKS_ENABLED=false"
             exit 2
-        }
+        fi
     fi
     
     # Quick exit if hooks are disabled
@@ -236,9 +237,9 @@ lint_go() {
     # Check if Makefile exists with fmt and lint targets
     if [[ -f "Makefile" ]]; then
         local has_fmt
-        has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || echo "")
+        has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || true)
         local has_lint
-        has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || echo "")
+        has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || true)
         
         if [[ -n "$has_fmt" && -n "$has_lint" ]]; then
             log_info "Using Makefile targets"
