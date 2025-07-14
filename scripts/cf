@@ -1,0 +1,386 @@
+#!/usr/bin/env bash
+
+# cf - Claude Flake unified command-line interface
+# Simplifies claude-flake lifecycle management and development shell access
+
+set -euo pipefail
+
+# Version information
+CF_VERSION="2.0.0"
+# More robust git commit detection
+if [[ -n "${CF_COMMIT:-}" ]]; then
+    # CF_COMMIT already set in environment
+    :
+else
+    # Try to get git commit from the script's parent directory
+    script_dir="${BASH_SOURCE[0]%/*}/.."
+    if [[ -d "${script_dir}/.git" ]] && command -v git >/dev/null 2>&1; then
+        CF_COMMIT="$(git -C "${script_dir}" rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+    else
+        CF_COMMIT="unknown"
+    fi
+fi
+
+# Configuration
+CLAUDE_FLAKE_SOURCE="${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
+NIX_DEVELOP_CMD="nix develop --accept-flake-config"
+
+# Language detection based on project files
+detect_language() {
+    local current_dir
+    current_dir="$(pwd)"
+    
+    # Check for language-specific files in order of specificity
+    # Rust
+    if [[ -f "${current_dir}/Cargo.toml" || -f "${current_dir}/Cargo.lock" ]]; then
+        echo "rust"
+        return 0
+    fi
+    
+    # Go
+    if [[ -f "${current_dir}/go.mod" || -f "${current_dir}/go.sum" ]]; then
+        echo "go"
+        return 0
+    fi
+    
+    # Python
+    if [[ -f "${current_dir}/pyproject.toml" || -f "${current_dir}/requirements.txt" || \
+          -f "${current_dir}/poetry.lock" || -f "${current_dir}/setup.py" || \
+          -f "${current_dir}/Pipfile" || -f "${current_dir}/environment.yml" ]]; then
+        echo "python"
+        return 0
+    fi
+    
+    # Node.js
+    if [[ -f "${current_dir}/package.json" || -f "${current_dir}/yarn.lock" || \
+          -f "${current_dir}/package-lock.json" || -f "${current_dir}/pnpm-lock.yaml" || \
+          -f "${current_dir}/bun.lockb" ]]; then
+        echo "nodejs"
+        return 0
+    fi
+    
+    # Nix
+    if [[ -f "${current_dir}/flake.nix" || -f "${current_dir}/shell.nix" || \
+          -f "${current_dir}/default.nix" ]]; then
+        echo "nix"
+        return 0
+    fi
+    
+    # Default to universal if no specific language detected
+    echo "universal"
+}
+
+# Check if we're currently in a claude-flake shell
+is_in_cf_shell() {
+    [[ -n "${CF_SHELL:-}" ]] || [[ -n "${CLAUDE_FLAKE_SHELL:-}" ]]
+}
+
+# Get current shell type
+get_current_shell() {
+    if is_in_cf_shell; then
+        echo "${CF_SHELL:-${CLAUDE_FLAKE_SHELL:-unknown}}"
+    else
+        echo "none"
+    fi
+}
+
+# Subcommand implementations
+cmd_help() {
+    cat << 'EOF'
+cf - Claude Flake unified command-line interface
+
+USAGE:
+    cf [COMMAND] [OPTIONS]
+
+COMMANDS:
+    (no command)        Auto-detect project type and enter development shell
+    dev [LANGUAGE]      Enter development shell (auto-detect or specify language)
+    help               Show this help message
+    version            Show version information
+    doctor             Diagnose environment and configuration
+    update             Update claude-flake to latest version
+    status             Show current environment status
+
+SUPPORTED LANGUAGES:
+    rust               Rust development environment (cargo, clippy, rust-analyzer)
+    python             Python development environment (poetry, black, pytest, mypy)
+    nodejs             Node.js development environment (yarn, pnpm, eslint, prettier)
+    go                 Go development environment (go toolchain, gopls, golangci-lint)
+    nix                Nix development environment (nixfmt, statix, nil LSP)
+    universal          Universal development environment (git, neovim, modern CLI tools)
+
+ENVIRONMENT VARIABLES:
+    CLAUDE_FLAKE_SOURCE    Override flake source (default: github:smithclay/claude-flake)
+
+EXAMPLES:
+    cf                     # Auto-detect and enter appropriate shell
+    cf dev python          # Enter Python development shell
+    cf dev                 # Auto-detect and enter appropriate shell
+    cf doctor              # Check environment health
+    cf update              # Update to latest claude-flake version
+
+For more information, visit: https://github.com/smithclay/claude-flake
+EOF
+}
+
+cmd_version() {
+    echo "cf (Claude Flake) v${CF_VERSION}"
+    echo "Commit: ${CF_COMMIT}"
+    echo "Flake source: ${CLAUDE_FLAKE_SOURCE}"
+    echo ""
+    echo "Available environments:"
+    echo "  rust, python, nodejs, go, nix, universal"
+    echo ""
+    echo "Dependencies:"
+    if command -v nix >/dev/null 2>&1; then
+        echo "  nix: $(nix --version | head -n1)"
+    else
+        echo "  nix: not found"
+    fi
+    
+    if command -v claude >/dev/null 2>&1; then
+        echo "  claude: $(claude --version 2>/dev/null || echo "unknown version")"
+    else
+        echo "  claude: not found"
+    fi
+}
+
+cmd_doctor() {
+    echo "🔍 Claude Flake Environment Diagnostics"
+    echo "========================================"
+    echo ""
+    
+    local issues=0
+    
+    # Check Nix installation
+    echo "📦 Nix Installation:"
+    if command -v nix >/dev/null 2>&1; then
+        echo "  ✅ nix: $(nix --version | head -n1)"
+        
+        # Check flakes support
+        if nix eval --expr "1 + 1" >/dev/null 2>&1; then
+            echo "  ✅ Flakes: enabled"
+        else
+            echo "  ❌ Flakes: not enabled or not working"
+            ((issues++))
+        fi
+    else
+        echo "  ❌ nix: not found"
+        echo "     Install Nix from: https://nixos.org/download.html"
+        ((issues++))
+    fi
+    echo ""
+    
+    # Check Claude CLI
+    echo "🤖 Claude CLI:"
+    if command -v claude >/dev/null 2>&1; then
+        echo "  ✅ claude: $(claude --version 2>/dev/null || echo "found but version unknown")"
+    else
+        echo "  ❌ claude: not found"
+        echo "     Install from: https://docs.anthropic.com/en/docs/claude-code"
+        ((issues++))
+    fi
+    echo ""
+    
+    # Check project detection
+    echo "🔍 Project Detection:"
+    local detected_lang
+    detected_lang=$(detect_language)
+    echo "  📁 Current directory: $(pwd)"
+    echo "  🏷️  Detected language: ${detected_lang}"
+    echo ""
+    
+    # Check current shell status
+    echo "🐚 Shell Status:"
+    local current_shell
+    current_shell=$(get_current_shell)
+    if [[ "${current_shell}" == "none" ]]; then
+        echo "  📍 Currently in: system shell"
+    else
+        echo "  📍 Currently in: claude-flake ${current_shell} shell"
+    fi
+    echo ""
+    
+    # Check flake accessibility
+    echo "🔗 Flake Accessibility:"
+    echo "  📡 Source: ${CLAUDE_FLAKE_SOURCE}"
+    if timeout 15 nix flake show "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
+        echo "  ✅ Flake accessible and valid"
+    else
+        echo "  ❌ Flake not accessible or invalid"
+        echo "     Check network connection and flake source"
+        echo "     Timeout after 15 seconds - may indicate network issues"
+        ((issues++))
+    fi
+    echo ""
+    
+    # Summary
+    if [[ ${issues} -eq 0 ]]; then
+        echo "🎉 All checks passed! Claude Flake is ready to use."
+    else
+        echo "⚠️  Found ${issues} issue(s). Please address them before using Claude Flake."
+        return 1
+    fi
+}
+
+cmd_update() {
+    echo "🔄 Updating Claude Flake..."
+    echo ""
+    
+    if [[ "${CLAUDE_FLAKE_SOURCE}" == github:* ]]; then
+        echo "📡 Updating flake registry and inputs..."
+        # Update the flake registry entry and fetch latest
+        if nix registry add claude-flake "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null && \
+           nix flake prefetch "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
+            echo "✅ Flake updated successfully"
+            echo "   Latest version will be used on next shell entry"
+        else
+            echo "❌ Failed to update flake"
+            echo "   Check network connection and flake source: ${CLAUDE_FLAKE_SOURCE}"
+            return 1
+        fi
+    else
+        echo "ℹ️  Using local flake source: ${CLAUDE_FLAKE_SOURCE}"
+        echo "   No remote updates available for local sources."
+        echo "   If this is a git repository, run 'git pull' to update."
+    fi
+    
+    echo ""
+    echo "🔄 To use the updated environment, exit any active shells and run:"
+    echo "   cf dev [language]"
+}
+
+cmd_status() {
+    echo "📊 Claude Flake Status"
+    echo "====================="
+    echo ""
+    
+    echo "🔧 Configuration:"
+    echo "  Flake source: ${CLAUDE_FLAKE_SOURCE}"
+    echo "  Version: ${CF_VERSION} (${CF_COMMIT})"
+    echo ""
+    
+    echo "📁 Project:"
+    echo "  Directory: $(pwd)"
+    echo "  Detected language: $(detect_language)"
+    echo ""
+    
+    echo "🐚 Shell:"
+    local current_shell
+    current_shell=$(get_current_shell)
+    if [[ "${current_shell}" == "none" ]]; then
+        echo "  Status: system shell"
+        echo "  Run 'cf' or 'cf dev' to enter a development shell"
+    else
+        echo "  Status: claude-flake ${current_shell} shell"
+        echo "  Run 'exit' to return to system shell"
+    fi
+    echo ""
+    
+    echo "🛠️  Available commands: dev, help, version, doctor, update, status"
+}
+
+cmd_dev() {
+    local language="${1:-}"
+    
+    # If no language specified, auto-detect
+    if [[ -z "${language}" ]]; then
+        language=$(detect_language)
+        echo "🔍 Auto-detected language: ${language}"
+    fi
+    
+    # Trim whitespace and validate language is not empty
+    language=$(echo "${language}" | tr -d '[:space:]')
+    if [[ -z "${language}" ]]; then
+        echo "❌ Language cannot be empty"
+        echo "   Supported languages: rust, python, nodejs, go, nix, universal"
+        return 1
+    fi
+    
+    # Validate language
+    case "${language}" in
+        rust|python|nodejs|go|nix|universal)
+            ;;
+        *)
+            echo "❌ Unknown language: ${language}"
+            echo "   Supported languages: rust, python, nodejs, go, nix, universal"
+            return 1
+            ;;
+    esac
+    
+    # Check if already in a claude-flake shell
+    if is_in_cf_shell; then
+        local current_shell
+        current_shell=$(get_current_shell)
+        if [[ "${current_shell}" == "${language}" ]]; then
+            echo "ℹ️  Already in claude-flake ${language} shell"
+            return 0
+        else
+            echo "⚠️  Currently in claude-flake ${current_shell} shell"
+            echo "   Exit current shell before entering ${language} shell"
+            return 1
+        fi
+    fi
+    
+    echo "🚀 Entering claude-flake ${language} development shell..."
+    echo "   Source: ${CLAUDE_FLAKE_SOURCE}#${language}"
+    echo ""
+    
+    # Verify nix is available before attempting to enter shell
+    if ! command -v nix >/dev/null 2>&1; then
+        echo "❌ Error: nix command not found"
+        echo "   Install Nix from: https://nixos.org/download.html"
+        return 1
+    fi
+    
+    # Export shell type for nested shell detection
+    export CF_SHELL="${language}"
+    export CLAUDE_FLAKE_SHELL="${language}"
+    
+    # Enter the development shell with error handling
+    echo "📦 Loading development environment..."
+    if ! ${NIX_DEVELOP_CMD} "${CLAUDE_FLAKE_SOURCE}#${language}"; then
+        echo "❌ Failed to enter development shell"
+        echo "   This may indicate:"
+        echo "   - Network connectivity issues"
+        echo "   - Invalid flake source: ${CLAUDE_FLAKE_SOURCE}"
+        echo "   - Missing or invalid ${language} environment in flake"
+        echo ""
+        echo "   Try running 'cf doctor' to diagnose issues"
+        return 1
+    fi
+}
+
+# Main command dispatcher
+main() {
+    case "${1:-}" in
+        ""|dev)
+            shift
+            cmd_dev "$@"
+            ;;
+        help|--help|-h)
+            cmd_help
+            ;;
+        version|--version|-V)
+            cmd_version
+            ;;
+        doctor)
+            cmd_doctor
+            ;;
+        update)
+            cmd_update
+            ;;
+        status)
+            cmd_status
+            ;;
+        *)
+            echo "❌ Unknown command: $1" >&2
+            echo "   Run 'cf help' for usage information" >&2
+            return 1
+            ;;
+    esac
+}
+
+# Run main function with all arguments and preserve exit code
+main "$@"
+exit $?

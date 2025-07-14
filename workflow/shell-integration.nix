@@ -7,7 +7,7 @@ _:
 
   # Automatic bash configuration
   programs.bash = {
-    enable = false;
+    enable = true;
     enableCompletion = true;
 
     # Claude-Flake aliases
@@ -84,15 +84,10 @@ _:
       grep = "grep --color=auto";
       egrep = "egrep --color=auto";
       fgrep = "fgrep --color=auto";
-      make = "make -j$(nproc)";
+      make = "make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)";
 
-      # Claude-Flake shortcuts
-      cf-rust = "nix develop \"$(__claude_flake_source)#rust\"";
-      cf-python = "nix develop \"$(__claude_flake_source)#python\"";
-      cf-nodejs = "nix develop \"$(__claude_flake_source)#nodejs\"";
-      cf-go = "nix develop \"$(__claude_flake_source)#go\"";
-      cf-nix = "nix develop \"$(__claude_flake_source)#nix\"";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager' && echo '' && echo 'Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake'";
+      # Claude-Flake unified command
+      cf = "cf";
     };
 
     # Custom initialization for bash
@@ -149,7 +144,7 @@ _:
 
   # Automatic zsh configuration
   programs.zsh = {
-    enable = false;
+    enable = true;
     enableCompletion = true;
 
     # Same aliases as bash for consistency
@@ -172,13 +167,8 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude-Flake shortcuts
-      cf-rust = "nix develop \"$(__claude_flake_source)#rust\"";
-      cf-python = "nix develop \"$(__claude_flake_source)#python\"";
-      cf-nodejs = "nix develop \"$(__claude_flake_source)#nodejs\"";
-      cf-go = "nix develop \"$(__claude_flake_source)#go\"";
-      cf-nix = "nix develop \"$(__claude_flake_source)#nix\"";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager' && echo '' && echo 'Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake'";
+      # Claude-Flake unified command
+      cf = "cf";
     };
 
     # Custom initialization for zsh
@@ -361,15 +351,10 @@ _:
       alias grep="grep --color=auto"
       alias egrep="egrep --color=auto"
       alias fgrep="fgrep --color=auto"
-      alias make="make -j$(nproc)"
+      alias make="make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)"
 
-      # Claude-Flake shortcuts
-      alias cf-rust="nix develop \"$(__claude_flake_source)#rust\""
-      alias cf-python="nix develop \"$(__claude_flake_source)#python\""
-      alias cf-nodejs="nix develop \"$(__claude_flake_source)#nodejs\""
-      alias cf-go="nix develop \"$(__claude_flake_source)#go\""
-      alias cf-nix="nix develop \"$(__claude_flake_source)#nix\""
-      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-rust          - Rust development shell" && echo "  cf-python        - Python development shell" && echo "  cf-nodejs        - Node.js development shell" && echo "  cf-go            - Go development shell" && echo "  cf-nix           - Nix development shell" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager" && echo "" && echo "Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake"'
+      # Claude-Flake unified command
+      alias cf="cf"
 
       # Function to check if command exists
       command_exists() {

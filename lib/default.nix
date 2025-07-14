@@ -1,44 +1,29 @@
-# lib/default.nix - Shared utilities for claude-flake intelligent project detection
+# lib/default.nix - Shared utilities for claude-flake development shells
 { lib, pkgs, ... }:
 
-{
-  # Export language detection functions
-  languageDetection = import ./language-detection.nix { inherit lib; };
-
-  # Export language package sets
+let
+  # Import language packages once for better performance
   languagePackages = import ./language-packages.nix { inherit pkgs; };
-
-  # Utility function to get complete project configuration
-  getProjectConfig =
-    projectPath:
-    let
-      detection = import ./language-detection.nix { inherit lib; };
-      packages = import ./language-packages.nix { inherit pkgs; };
-
-      projectType = detection.getProjectType projectPath;
-      projectPackages = packages.getPackagesForType projectType;
-    in
-    {
-      inherit
-        projectType
-        projectPackages
-        ;
-      description = detection.getProjectDescription projectType;
-      markers = detection.listDetectedMarkers projectPath;
-      shellHook = packages.getShellHook projectType;
-    };
+in
+{
+  # Export language package sets
+  inherit languagePackages;
 
   # Helper function to create devShells for flake.nix
+  # Returns an attribute set of development shells for different project types
   createDevShells =
     pkgs:
     let
-      packages = import ./language-packages.nix { inherit pkgs; };
+      packages = languagePackages;
       supportedTypes = [
         "rust"
         "python"
         "nodejs"
         "go"
         "nix"
+        "java"
+        "cpp"
+        "shell"
         "universal"
       ];
 
@@ -49,7 +34,10 @@
           shellHook = packages.getShellHook projectType;
         in
         pkgs.mkShell {
-          buildInputs = shellPackages;
+          buildInputs = shellPackages ++ [
+            # Add cf script to all shells
+            (pkgs.writeShellScriptBin "cf" (builtins.readFile ../scripts/cf))
+          ];
           CLAUDE_FLAKE_SHELL_TYPE = projectType;
           shellHook = ''
             ${shellHook}

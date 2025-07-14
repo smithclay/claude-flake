@@ -41,8 +41,20 @@
 
 set -euo pipefail
 
-# Get the event type from the first argument
+# Get the event type from the first argument with validation
 EVENT_TYPE="${1:-notification}"
+
+# Validate event type
+case "$EVENT_TYPE" in
+    notification|stop)
+        # Valid event types
+        ;;
+    *)
+        echo "Error: Invalid event type: $EVENT_TYPE" >&2
+        echo "Usage: $0 {notification|stop}" >&2
+        exit 1
+        ;;
+esac
 
 # Check if notifications are enabled (allow easy disable)
 if [[ "${CLAUDE_HOOKS_NTFY_ENABLED:-true}" != "true" ]]; then

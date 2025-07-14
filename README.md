@@ -96,15 +96,18 @@ rg "TODO"   # Better 'grep' - faster searching with syntax highlighting
 **Step 4: Use language-specific development shells (optional)**
 ```bash
 # Enter a language-specific shell with appropriate tools
-cf-rust     # For Rust projects (alias for nix develop)
-cf-python   # For Python projects  
-cf-nodejs   # For Node.js projects
-cf-go       # For Go projects
-cf-nix      # For Nix projects
+cf dev rust     # For Rust projects
+cf dev python   # For Python projects  
+cf dev nodejs   # For Node.js projects
+cf dev go       # For Go projects
+cf dev nix      # For Nix projects
+
+# Auto-detect project type and enter appropriate shell
+cf              # Automatically detects and enters the right shell
 
 # Override flake source to use local development version:
 export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
-cf-rust     # Now uses your local flake instead of GitHub
+cf dev rust     # Now uses your local flake instead of GitHub
 ```
 
 ### Docker Workflow
@@ -143,19 +146,23 @@ cf-rust     # Now uses your local flake instead of GitHub
 
 3. **Use language-specific shells for your project**
    ```bash
-   # Use the cf-* aliases for quick access:
-   cf-python   # 🐍 Python development shell
-   cf-rust     # 🦀 Rust development shell
-   cf-nodejs   # 🟢 Node.js development shell
-   cf-go       # 🐹 Go development shell
-   cf-nix      # ❄️ Nix development shell
+   # Use the unified cf command for quick access:
+   cf dev python   # 🐍 Python development shell
+   cf dev rust     # 🦀 Rust development shell
+   cf dev nodejs   # 🟢 Node.js development shell
+   cf dev go       # 🐹 Go development shell
+   cf dev nix      # ❄️ Nix development shell
+   
+   # Auto-detect project type and enter appropriate shell
+   cf              # Automatically detects and enters the right shell
    
    # Override flake source for local development:
    export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
-   cf-python   # Now uses your local flake
+   cf dev python   # Now uses your local flake
    
    # Check available commands and current source:
-   cf-help     # Shows all commands and override instructions
+   cf help         # Shows all commands and usage information
+   cf status       # Shows current environment and project detection
    ```
 
 ### Daily Development Loop
@@ -254,19 +261,24 @@ This automatically:
 Once installed, you can enter development shells tailored for your project type:
 
 ```bash
-# Use shortcuts for quick access to language shells
-cf-rust    # Rust: cargo, clippy, rust-analyzer
-cf-python  # Python: poetry, black, pytest, mypy
-cf-nodejs  # Node.js: yarn, pnpm, eslint, prettier
-cf-go      # Go: gopls, golangci-lint, delve
-cf-nix     # Nix: nixfmt, statix, nil
+# Use the unified cf command for language shells
+cf dev rust     # Rust: cargo, clippy, rust-analyzer
+cf dev python   # Python: poetry, black, pytest, mypy
+cf dev nodejs   # Node.js: yarn, pnpm, eslint, prettier
+cf dev go       # Go: gopls, golangci-lint, delve
+cf dev nix      # Nix: nixfmt, statix, nil
+
+# Auto-detect project type and enter appropriate shell
+cf              # Automatically detects and enters the right shell
 
 # Override flake source for local development
 export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
-cf-rust    # Now uses your local flake
+cf dev rust     # Now uses your local flake
 
-# See all available commands and override help
-cf-help    # Shows all commands and usage instructions
+# See all available commands and system status
+cf help         # Shows all commands and usage instructions
+cf status       # Shows current environment and project detection
+cf doctor       # Diagnose environment and configuration issues
 ```
 
 Each shell includes:
@@ -275,6 +287,74 @@ Each shell includes:
 - Testing frameworks
 - Build tools
 - Security scanners
+
+## 🛠️ CF Command Reference
+
+The `cf` command is your unified interface to claude-flake functionality:
+
+### **Basic Usage**
+```bash
+cf                    # Auto-detect project type and enter development shell
+cf dev [language]     # Enter specific language development shell
+```
+
+### **Available Commands**
+```bash
+cf help              # Show comprehensive usage information
+cf version           # Show claude-flake version and components
+cf status            # Show current environment and project status
+cf doctor            # Diagnose environment and configuration issues
+cf update            # Update claude-flake to latest version
+```
+
+### **Supported Languages**
+- `rust` - Rust development environment (cargo, clippy, rust-analyzer)
+- `python` - Python development environment (poetry, black, pytest, mypy)
+- `nodejs` - Node.js development environment (yarn, pnpm, eslint, prettier)
+- `go` - Go development environment (go toolchain, gopls, golangci-lint)
+- `nix` - Nix development environment (nixfmt, statix, nil LSP)
+- `java` - Java development environment (maven, gradle, spotbugs)
+- `cpp` - C++ development environment (cmake, clang-tools, gdb)
+- `shell` - Shell scripting environment (shellcheck, shfmt)
+- `universal` - Universal development environment (git, neovim, modern CLI tools)
+
+### **Project Auto-Detection**
+The `cf` command automatically detects your project type based on files:
+- **Rust**: `Cargo.toml`, `Cargo.lock`
+- **Python**: `pyproject.toml`, `requirements.txt`, `poetry.lock`
+- **Node.js**: `package.json`, `yarn.lock`, `package-lock.json`
+- **Go**: `go.mod`, `go.sum`
+- **Nix**: `flake.nix`, `shell.nix`, `default.nix`
+- **Java**: `pom.xml`, `build.gradle`
+- **C++**: `CMakeLists.txt`, `Makefile`
+
+### **Environment Variables**
+- `CLAUDE_FLAKE_SOURCE` - Override flake source (default: `github:smithclay/claude-flake`)
+- `CF_SHELL` - Current shell type (set automatically when in a cf shell)
+
+### **Examples**
+```bash
+# Auto-detect and enter appropriate shell
+cf
+
+# Enter specific language shell
+cf dev python
+cf dev rust
+
+# Check environment health
+cf doctor
+
+# See current status
+cf status
+
+# Get help
+cf help
+
+# Use local development version
+export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
+cf dev nix
+```
+
 
 ## 🗑️ Uninstall
 
@@ -316,27 +396,74 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 
 Built upon the excellent work at [Veraticus/nix-config](https://github.com/Veraticus/nix-config/tree/main/home-manager/claude-code) - thank you for pioneering Claude Code configuration with Nix.
 
-## 💡 Need Help?
+## 💡 Troubleshooting
 
-**Common issues:**
+### **Quick Diagnostics**
+**First, always run the built-in diagnostics:**
+```bash
+cf doctor    # Comprehensive environment check
+cf status    # Current environment and project detection
+cf version   # Version information and dependencies
+```
+
+### **Common Issues and Solutions**
+
+**Installation Issues:**
 - `docker: command not found` → Install Docker Desktop from docker.com
-- `claude: command not found` → Restart your terminal after installation
+- `cf: command not found` → Restart your terminal after installation or check if you're in a cf shell
 - `Permission denied` on Docker → Add yourself to docker group: `sudo usermod -aG docker $USER` then restart terminal
-- API key not working → Make sure you have credits in your Anthropic account
 - "WSL not found" on Windows → Install from Microsoft Store, then restart
 
-**Need a specific language shell?** After installation, use the aliases:
+**Claude Code Issues:**
+- `claude: command not found` → Check `cf doctor` output and restart terminal after installation
+- API key not working → Make sure you have credits in your Anthropic account, verify with `cf doctor`
+- Claude hanging or slow → Check network connectivity with `cf doctor`
+
+**CF Command Issues:**
+- `cf` auto-detection wrong → Use explicit `cf dev [language]` or check project files
+- Can't enter shell → Check `cf doctor` for Nix installation and flake accessibility
+- Stuck in nested shell → Use `exit` to leave current shell, check `cf status`
+- Environment variables not working → Verify with `cf status` and restart shell
+
+**Network and Update Issues:**
+- Flake not accessible → Check `cf doctor` for network connectivity and flake validation
+- Update failing → Run `cf doctor` to diagnose, check internet connection
+- Slow Nix operations → Add cache volume in Docker or check substituters in `cf doctor`
+
+### **Diagnostic Workflow**
 ```bash
-cf-python   # 🐍 Enter Python development shell with poetry, black, pytest, etc.
-cf-rust     # 🦀 Enter Rust development shell with cargo, clippy, rust-analyzer, etc.
-cf-nodejs   # 🟢 Enter Node.js development shell with eslint, prettier, typescript, etc.
-cf-go       # 🐹 Enter Go development shell with gopls, golangci-lint, etc.
-cf-nix      # ❄️ Enter Nix development shell with nixfmt, statix, etc.
+# Step 1: Get overview
+cf doctor              # Shows all environment checks
+
+# Step 2: Check current state  
+cf status              # Shows project detection and current shell
+
+# Step 3: Get version info
+cf version             # Shows versions and available environments
+
+# Step 4: Test functionality
+cf help                # Verify cf command works
+cf dev universal       # Test entering a basic shell
+exit                   # Exit and try auto-detection
+cf                     # Test auto-detection
+```
+
+**Need a specific language shell?** After installation, use the unified cf command:
+```bash
+cf dev python   # 🐍 Enter Python development shell with poetry, black, pytest, etc.
+cf dev rust     # 🦀 Enter Rust development shell with cargo, clippy, rust-analyzer, etc.
+cf dev nodejs   # 🟢 Enter Node.js development shell with eslint, prettier, typescript, etc.
+cf dev go       # 🐹 Enter Go development shell with gopls, golangci-lint, etc.
+cf dev nix      # ❄️ Enter Nix development shell with nixfmt, statix, etc.
+
+# Auto-detect and enter appropriate shell for your project
+cf              # Automatically detects project type and enters right shell
 
 # For local development of claude-flake itself:
 export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
-cf-python   # Uses your local flake instead of GitHub
-cf-help     # Shows override instructions and all available commands
+cf dev python   # Uses your local flake instead of GitHub
+cf help         # Shows all commands and usage instructions
+cf doctor       # Diagnose environment and configuration
 ```
 
 **What's WSL?** On Windows, you need Windows Subsystem for Linux to run Docker and development tools. Install "Ubuntu" from Microsoft Store, then use that terminal.

@@ -1,4 +1,9 @@
 # lib/language-packages.nix - Language-specific package sets for project enhancement
+#
+# This module provides:
+# - languagePackages: Attribute set of package lists for different languages
+# - getPackagesForType: Function to get packages for a specific project type
+# - getShellHook: Function to get shell initialization for a project type
 { pkgs, ... }:
 
 let
@@ -85,7 +90,7 @@ let
       gradle # Build tool
       google-java-format # Code formatter
       checkstyle # Style checker
-      spotbugs # Bug finder
+      # Note: spotbugs not available in nixpkgs, use findbugs or other static analysis tools
       jdt-language-server # LSP server
     ];
 
@@ -131,14 +136,17 @@ let
   };
 
   # Get packages for a specific project type
+  # Returns: list of packages (universal packages + language-specific packages)
   getPackagesForType =
     projectType:
-    if builtins.hasAttr projectType languagePackages then
-      languagePackages.universal ++ languagePackages.${projectType}
-    else
-      languagePackages.universal;
+    let
+      basePackages = languagePackages.universal;
+      specificPackages = languagePackages.${projectType} or [ ];
+    in
+    basePackages ++ specificPackages;
 
   # Get shell hook commands for a specific language
+  # Returns: string containing shell initialization commands
   getShellHook =
     projectType:
       {
