@@ -125,7 +125,7 @@
 
       # Apps for easy activation
       apps = forAllSystems (
-        _system:
+        system:
         let
           # Get username from environment (requires --impure)
           username = builtins.getEnv "USER";

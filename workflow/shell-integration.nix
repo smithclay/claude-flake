@@ -7,7 +7,7 @@ _:
 
   # Automatic bash configuration
   programs.bash = {
-    enable = true;
+    enable = false;
     enableCompletion = true;
 
     # Claude-Flake aliases
@@ -144,7 +144,7 @@ _:
 
   # Automatic zsh configuration
   programs.zsh = {
-    enable = true;
+    enable = false;
     enableCompletion = true;
 
     # Same aliases as bash for consistency
@@ -278,7 +278,6 @@ _:
           export PROMPT='$(__claude_flake_prompt)'"$PROMPT"
         fi
       fi
-
       # Home-manager shortcuts
       alias hm="home-manager"
       alias hms="home-manager switch"
@@ -289,6 +288,10 @@ _:
       # Claude-Flake management
       alias claude-flake-update="nix flake update"
       alias claude-flake-switch="home-manager switch --flake \"$(__claude_flake_source)\""
+      alias claude-flake-local="home-manager switch --flake path:$HOME/.config/claude-flake"
+
+      # Development utilities (modern CLI tools)
+      alias grep="rg"
 
       # Git shortcuts
       alias gs="git status"
