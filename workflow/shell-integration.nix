@@ -16,9 +16,6 @@ _:
       hm = "home-manager";
       hms = "home-manager switch";
 
-      # Task Master shortcuts
-      tm = "task-master";
-
       # Claude-Flake management
       claude-flake-update = "nix flake update && home-manager switch --flake github:smithclay/claude-flake";
       claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
@@ -33,10 +30,6 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude-Flake project enhancement
-      claude-flake-init-project = "${../scripts/init-project.sh}";
-      cf-init = "${../scripts/init-project.sh}";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for bash
@@ -54,9 +47,6 @@ _:
         echo "✅ Claude CLI available"
       fi
 
-      if command_exists task-master; then
-        echo "✅ Task Master available"
-      fi
 
       # Source user customizations if they exist
       if [ -f "$HOME/.config/claude-flake/local.sh" ]; then
@@ -76,9 +66,6 @@ _:
       hm = "home-manager";
       hms = "home-manager switch";
 
-      # Task Master shortcuts
-      tm = "task-master";
-
       # Claude-Flake management
       claude-flake-update = "nix flake update && home-manager switch --flake github:smithclay/claude-flake";
       claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
@@ -93,10 +80,6 @@ _:
       gp = "git push";
       gl = "git log --oneline";
 
-      # Claude-Flake project enhancement
-      claude-flake-init-project = "${../scripts/init-project.sh}";
-      cf-init = "${../scripts/init-project.sh}";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-init [DIR]    - Initialize project with .envrc' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
     };
 
     # Custom initialization for zsh
@@ -114,9 +97,6 @@ _:
         echo "✅ Claude CLI available"
       fi
 
-      if command_exists task-master; then
-        echo "✅ Task Master available"
-      fi
 
       # Source user customizations if they exist
       if [ -f "$HOME/.config/claude-flake/local.sh" ]; then
@@ -149,8 +129,6 @@ _:
       alias hm="home-manager"
       alias hms="home-manager switch"
 
-      # Task Master shortcuts
-      alias tm="task-master"
 
       # Claude-Flake management
       alias claude-flake-update="nix flake update && home-manager switch --flake github:smithclay/claude-flake"
@@ -166,31 +144,20 @@ _:
       alias gp="git push"
       alias gl="git log --oneline"
 
-      # Claude-Flake project enhancement
-      alias claude-flake-init-project="${../scripts/init-project.sh}"
-      alias cf-init="${../scripts/init-project.sh}"
-      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-init [DIR]    - Initialize project with .envrc" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager"'
 
       # Function to check if command exists
       command_exists() {
         command -v "$1" >/dev/null 2>&1
       }
 
-      # Direnv integration
-      if command_exists direnv; then
-        eval "$(direnv hook bash)"
-        eval "$(direnv hook zsh)"
-        echo "✅ Direnv hooks enabled"
-      fi
+      # Claude-Flake uses direct nix develop instead of direnv
+      # For development environments, use: nix develop
 
       # Conditional loading based on available commands
       if command_exists claude; then
         echo "✅ Claude CLI available"
       fi
 
-      if command_exists task-master; then
-        echo "✅ Task Master available"
-      fi
 
       # Source user customizations if they exist
       if [ -f "$HOME/.config/claude-flake/local.sh" ]; then
