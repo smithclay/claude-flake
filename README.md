@@ -96,10 +96,15 @@ rg "TODO"   # Better 'grep' - faster searching with syntax highlighting
 **Step 4: Use language-specific development shells (optional)**
 ```bash
 # Enter a language-specific shell with appropriate tools
-nix develop github:smithclay/claude-flake#rust     # For Rust projects
-nix develop github:smithclay/claude-flake#python   # For Python projects
-nix develop github:smithclay/claude-flake#nodejs   # For Node.js projects
-# Tools are automatically available in the shell
+cf-rust     # For Rust projects (alias for nix develop)
+cf-python   # For Python projects  
+cf-nodejs   # For Node.js projects
+cf-go       # For Go projects
+cf-nix      # For Nix projects
+
+# Override flake source to use local development version:
+export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
+cf-rust     # Now uses your local flake instead of GitHub
 ```
 
 ### Docker Workflow
@@ -138,19 +143,19 @@ nix develop github:smithclay/claude-flake#nodejs   # For Node.js projects
 
 3. **Use language-specific shells for your project**
    ```bash
-   # Enter the appropriate development shell with all tools pre-installed
-   nix develop github:smithclay/claude-flake#python   # 🐍 Python development
-   nix develop github:smithclay/claude-flake#rust     # 🦀 Rust development
-   nix develop github:smithclay/claude-flake#nodejs   # 🟢 Node.js development
-   nix develop github:smithclay/claude-flake#go       # 🐹 Go development
-   nix develop github:smithclay/claude-flake#nix      # ❄️ Nix development
+   # Use the cf-* aliases for quick access:
+   cf-python   # 🐍 Python development shell
+   cf-rust     # 🦀 Rust development shell
+   cf-nodejs   # 🟢 Node.js development shell
+   cf-go       # 🐹 Go development shell
+   cf-nix      # ❄️ Nix development shell
    
-   # Or use the cf-* aliases after installation:
-   cf-python   # Quick access to Python shell
-   cf-rust     # Quick access to Rust shell
-   cf-nodejs   # Quick access to Node.js shell
-   cf-go       # Quick access to Go shell
-   cf-nix      # Quick access to Nix shell
+   # Override flake source for local development:
+   export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
+   cf-python   # Now uses your local flake
+   
+   # Check available commands and current source:
+   cf-help     # Shows all commands and override instructions
    ```
 
 ### Daily Development Loop
@@ -249,19 +254,19 @@ This automatically:
 Once installed, you can enter development shells tailored for your project type:
 
 ```bash
-# Enter a shell with all tools for your language
-nix develop github:smithclay/claude-flake#rust     # Rust: cargo, clippy, rust-analyzer
-nix develop github:smithclay/claude-flake#python   # Python: poetry, black, pytest, mypy
-nix develop github:smithclay/claude-flake#nodejs   # Node.js: yarn, pnpm, eslint, prettier
-nix develop github:smithclay/claude-flake#go       # Go: gopls, golangci-lint, delve
-nix develop github:smithclay/claude-flake#nix      # Nix: nixfmt, statix, nil
+# Use shortcuts for quick access to language shells
+cf-rust    # Rust: cargo, clippy, rust-analyzer
+cf-python  # Python: poetry, black, pytest, mypy
+cf-nodejs  # Node.js: yarn, pnpm, eslint, prettier
+cf-go      # Go: gopls, golangci-lint, delve
+cf-nix     # Nix: nixfmt, statix, nil
 
-# Or use shortcuts (after sourcing ~/.config/claude-flake/loader.sh)
-cf-rust    # Quick access to Rust shell
-cf-python  # Quick access to Python shell
-cf-nodejs  # Quick access to Node.js shell
-cf-go      # Quick access to Go shell
-cf-nix     # Quick access to Nix shell
+# Override flake source for local development
+export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
+cf-rust    # Now uses your local flake
+
+# See all available commands and override help
+cf-help    # Shows all commands and usage instructions
 ```
 
 Each shell includes:
@@ -327,6 +332,11 @@ cf-rust     # 🦀 Enter Rust development shell with cargo, clippy, rust-analyze
 cf-nodejs   # 🟢 Enter Node.js development shell with eslint, prettier, typescript, etc.
 cf-go       # 🐹 Enter Go development shell with gopls, golangci-lint, etc.
 cf-nix      # ❄️ Enter Nix development shell with nixfmt, statix, etc.
+
+# For local development of claude-flake itself:
+export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
+cf-python   # Uses your local flake instead of GitHub
+cf-help     # Shows override instructions and all available commands
 ```
 
 **What's WSL?** On Windows, you need Windows Subsystem for Linux to run Docker and development tools. Install "Ubuntu" from Microsoft Store, then use that terminal.

@@ -20,11 +20,8 @@ _:
       tm = "task-master";
 
       # Claude-Flake management
-      claude-flake-update = "nix flake update && home-manager switch --flake github:smithclay/claude-flake";
-      claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
-
-      # Development utilities (modern CLI tools)
-      grep = "rg";
+      claude-flake-update = "nix flake update";
+      claude-flake-switch = "home-manager switch --flake \"$(__claude_flake_source)\"";
 
       # Git shortcuts
       gs = "git status";
@@ -90,12 +87,12 @@ _:
       make = "make -j$(nproc)";
 
       # Claude-Flake shortcuts
-      cf-rust = "nix develop github:smithclay/claude-flake#rust";
-      cf-python = "nix develop github:smithclay/claude-flake#python";
-      cf-nodejs = "nix develop github:smithclay/claude-flake#nodejs";
-      cf-go = "nix develop github:smithclay/claude-flake#go";
-      cf-nix = "nix develop github:smithclay/claude-flake#nix";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
+      cf-rust = "nix develop \"$(__claude_flake_source)#rust\"";
+      cf-python = "nix develop \"$(__claude_flake_source)#python\"";
+      cf-nodejs = "nix develop \"$(__claude_flake_source)#nodejs\"";
+      cf-go = "nix develop \"$(__claude_flake_source)#go\"";
+      cf-nix = "nix develop \"$(__claude_flake_source)#nix\"";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager' && echo '' && echo 'Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake'";
     };
 
     # Custom initialization for bash
@@ -106,6 +103,11 @@ _:
       # Function to check if command exists
       command_exists() {
         command -v "$1" >/dev/null 2>&1
+      }
+
+      # Function to get flake source (GitHub by default, local via CLAUDE_FLAKE_SOURCE)
+      __claude_flake_source() {
+        echo "''${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
       }
 
       # Claude-Flake prompt function for nix shells
@@ -160,11 +162,8 @@ _:
       tm = "task-master";
 
       # Claude-Flake management
-      claude-flake-update = "nix flake update && home-manager switch --flake github:smithclay/claude-flake";
-      claude-flake-local = "home-manager switch --flake path:$HOME/.config/claude-flake";
-
-      # Development utilities (modern CLI tools)
-      grep = "rg";
+      claude-flake-update = "nix flake update";
+      claude-flake-switch = "home-manager switch --flake \"$(__claude_flake_source)\"";
 
       # Git shortcuts
       gs = "git status";
@@ -174,12 +173,12 @@ _:
       gl = "git log --oneline";
 
       # Claude-Flake shortcuts
-      cf-rust = "nix develop github:smithclay/claude-flake#rust";
-      cf-python = "nix develop github:smithclay/claude-flake#python";
-      cf-nodejs = "nix develop github:smithclay/claude-flake#nodejs";
-      cf-go = "nix develop github:smithclay/claude-flake#go";
-      cf-nix = "nix develop github:smithclay/claude-flake#nix";
-      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager'";
+      cf-rust = "nix develop \"$(__claude_flake_source)#rust\"";
+      cf-python = "nix develop \"$(__claude_flake_source)#python\"";
+      cf-nodejs = "nix develop \"$(__claude_flake_source)#nodejs\"";
+      cf-go = "nix develop \"$(__claude_flake_source)#go\"";
+      cf-nix = "nix develop \"$(__claude_flake_source)#nix\"";
+      cf-help = "echo 'Claude-Flake Commands:' && echo '  cf-rust          - Rust development shell' && echo '  cf-python        - Python development shell' && echo '  cf-nodejs        - Node.js development shell' && echo '  cf-go            - Go development shell' && echo '  cf-nix           - Nix development shell' && echo '  cf-help          - Show this help' && echo '  tm               - Task Master' && echo '  hm               - Home Manager' && echo '' && echo 'Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake'";
     };
 
     # Custom initialization for zsh
@@ -190,6 +189,11 @@ _:
       # Function to check if command exists
       command_exists() {
         command -v "$1" >/dev/null 2>&1
+      }
+
+      # Function to get flake source (GitHub by default, local via CLAUDE_FLAKE_SOURCE)
+      __claude_flake_source() {
+        echo "''${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
       }
 
       # Claude-Flake prompt function for nix shells
@@ -250,6 +254,11 @@ _:
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"
       export PATH="$HOME/.npm-global/bin:$PATH"
 
+      # Function to get flake source (GitHub by default, local via CLAUDE_FLAKE_SOURCE)
+      __claude_flake_source() {
+        echo "''${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
+      }
+
       # Claude-Flake prompt function for nix shells
       __claude_flake_prompt() {
         if [ -n "$IN_NIX_SHELL" ]; then
@@ -288,11 +297,8 @@ _:
       alias tm="task-master"
 
       # Claude-Flake management
-      alias claude-flake-update="nix flake update && home-manager switch --flake github:smithclay/claude-flake"
-      alias claude-flake-local="home-manager switch --flake path:$HOME/.config/claude-flake"
-
-      # Development utilities (modern CLI tools)
-      alias grep="rg"
+      alias claude-flake-update="nix flake update"
+      alias claude-flake-switch="home-manager switch --flake \"$(__claude_flake_source)\""
 
       # Git shortcuts
       alias gs="git status"
@@ -358,12 +364,12 @@ _:
       alias make="make -j$(nproc)"
 
       # Claude-Flake shortcuts
-      alias cf-rust="nix develop github:smithclay/claude-flake#rust"
-      alias cf-python="nix develop github:smithclay/claude-flake#python"
-      alias cf-nodejs="nix develop github:smithclay/claude-flake#nodejs"
-      alias cf-go="nix develop github:smithclay/claude-flake#go"
-      alias cf-nix="nix develop github:smithclay/claude-flake#nix"
-      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-rust          - Rust development shell" && echo "  cf-python        - Python development shell" && echo "  cf-nodejs        - Node.js development shell" && echo "  cf-go            - Go development shell" && echo "  cf-nix           - Nix development shell" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager"'
+      alias cf-rust="nix develop \"$(__claude_flake_source)#rust\""
+      alias cf-python="nix develop \"$(__claude_flake_source)#python\""
+      alias cf-nodejs="nix develop \"$(__claude_flake_source)#nodejs\""
+      alias cf-go="nix develop \"$(__claude_flake_source)#go\""
+      alias cf-nix="nix develop \"$(__claude_flake_source)#nix\""
+      alias cf-help='echo "Claude-Flake Commands:" && echo "  cf-rust          - Rust development shell" && echo "  cf-python        - Python development shell" && echo "  cf-nodejs        - Node.js development shell" && echo "  cf-go            - Go development shell" && echo "  cf-nix           - Nix development shell" && echo "  cf-help          - Show this help" && echo "  tm               - Task Master" && echo "  hm               - Home Manager" && echo "" && echo "Override flake source with: export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake"'
 
       # Function to check if command exists
       command_exists() {
