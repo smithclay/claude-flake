@@ -108,6 +108,7 @@ SUPPORTED LANGUAGES:
     nodejs             Node.js development environment (yarn, pnpm, eslint, prettier)
     go                 Go development environment (go toolchain, gopls, golangci-lint)
     nix                Nix development environment (nixfmt, statix, nil LSP)
+    shell              Shell development environment (shellcheck, shfmt, bash-language-server)
     universal          Universal development environment (git, neovim, modern CLI tools)
 
 ENVIRONMENT VARIABLES:
@@ -131,7 +132,7 @@ cmd_version() {
     echo "Flake source: ${CLAUDE_FLAKE_SOURCE}"
     echo ""
     echo "Available environments:"
-    echo "  rust, python, nodejs, go, nix, universal"
+    echo "  rust, python, nodejs, go, nix, shell, universal"
     echo ""
     echo "Dependencies:"
     if command -v nix >/dev/null 2>&1; then
@@ -351,17 +352,17 @@ cmd_dev() {
     language=$(echo "${language}" | tr -d '[:space:]')
     if [[ -z "${language}" ]]; then
         echo "❌ Language cannot be empty"
-        echo "   Supported languages: rust, python, nodejs, go, nix, universal"
+        echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
         return 1
     fi
     
     # Validate language
     case "${language}" in
-        rust|python|nodejs|go|nix|universal)
+        rust|python|nodejs|go|nix|shell|universal)
             ;;
         *)
             echo "❌ Unknown language: ${language}"
-            echo "   Supported languages: rust, python, nodejs, go, nix, universal"
+            echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
             return 1
             ;;
     esac
