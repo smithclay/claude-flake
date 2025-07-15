@@ -86,7 +86,7 @@ fi
 
 # Show available commands if Claude-Flake is loaded
 if command -v claude >/dev/null 2>&1; then
-    echo "🎯 Claude-Flake commands available: claude, task-master, tm"
+    echo "🎯 Claude-Flake commands available: claude"
     echo "💡 Run 'cf-help' to see all available aliases"
 fi
 

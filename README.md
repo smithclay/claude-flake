@@ -24,11 +24,6 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 - Helps debug errors and suggests fixes
 - Works in your terminal
 
-**Task Master** = Like a PM for AI agents - helps you:
-- Break big features into small tasks
-- Track what you've completed
-- Research solutions for complex problems
-
 **Plus:** Modern development tools that make terminal work actually enjoyable.
 
 ## 📋 Requirements & Setup
@@ -47,14 +42,29 @@ Claude Code is a powerful AI coding agent from Anthropic that works in your term
 - 🐹 Go: gopls, golangci-lint, gofumpt, delve
 - ❄️ Nix: nixfmt, statix, deadnix, nil
 
-## 🔑 Get Access First
+## ⚡ Quick Install (Recommended)
+
+**One command installs everything:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.sh | bash
+```
+
+This interactive installer will:
+- Check your system requirements
+- Let you choose Docker or Nix installation
+- Set up Claude Code with optimized configuration
+- Install modern development tools
+- Configure shell integration
+
+**Then get your API key:**
 
 1. Go to [console.anthropic.com](https://console.anthropic.com) for API key OR [claude.ai](https://claude.ai) for Pro subscription
 2. Sign up and choose: API credits ($20) or Claude Pro ($20/month)
 3. Create an API key (if using API) or note your Pro login
-4. Save it - you'll add it to Claude Code during setup
+4. Run `claude` to add your credentials
 
-## 🐳 Quick Start with Docker (Recommended)
+## 🐳 Manual Docker Setup (Alternative)
 
 **Step 1: Navigate to your project directory**
 ```bash
@@ -83,9 +93,6 @@ claude
 # You'll see something like this:
 # > Enter your message: help me understand this codebase
 # > Claude: I can see you have a Python project with Flask...
-
-# Task Master for simple todo lists
-task-master
 
 # All modern dev tools are available
 git status
@@ -177,13 +184,7 @@ cf dev rust     # Now uses your local flake instead of GitHub
    # "Write a function that validates email addresses"
    # "Review this code for security issues"
    ```
-3. **Manage tasks with Task Master**
-   ```bash
-   task-master init           # Set up project todos
-   task-master next          # Get next task to work on
-   task-master add-task "add user authentication"
-   ```
-4. **Use enhanced development tools**
+3. **Use enhanced development tools**
    ```bash
    # Modern CLI tools that are actually better:
    eza -la              # File listing with colors and icons
@@ -358,6 +359,20 @@ cf dev nix
 
 ## 🗑️ Uninstall
 
+Use the same installation script with the `--uninstall` flag:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.sh | bash -s -- --uninstall
+```
+
+This will:
+- Detect your installation method (Docker or Nix)
+- Safely remove all claude-flake components
+- Offer to restore configuration backups (Nix installations)
+- Clean up all associated files and packages
+
+**Manual removal (if needed):**
+
 ### Remove Docker setup
 ```bash
 # Remove containers and images
@@ -366,19 +381,21 @@ docker image rm ghcr.io/smithclay/claude-flake:latest
 
 # Remove cache volume (optional - improves Nix performance)
 docker volume rm claude-cache
+
+# Remove wrapper script
+rm ~/.local/bin/cf-docker
 ```
 
 ### Remove Nix installation
 ```bash
-# Revert shell configuration
-nix run home-manager -- generations  # Find previous generation
-nix run home-manager -- switch --flake /nix/store/xxx-home-manager-generation-X
-
 # Remove installed packages
-npm uninstall -g @anthropic-ai/claude-code task-master-ai
+npm uninstall -g @anthropic-ai/claude-code
 
 # Clean up directories
 rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
+
+# Remove shell integration
+sed -i '/claude-flake\/loader\.sh/d' ~/.bashrc ~/.zshrc
 ```
 
 ## 🎯 What's Included
@@ -386,7 +403,6 @@ rm -rf ~/.claude ~/.config/claude-flake ~/.npm-global
 | Tool | Purpose |
 |------|---------|
 | **Claude Code** | AI pair programming assistant |
-| **Task Master** | AI-powered project management |
 | **Modern CLI Tools** | bat, eza, fzf, ripgrep, jq for better terminal experience |
 | **Development Tools** | git, gh, neovim |
 | **Language Shells** | Dedicated environments for Python, Rust, Go, Node.js, Nix with all tools |

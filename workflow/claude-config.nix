@@ -40,7 +40,7 @@
       ".claude/commands/prompt.md".source = ../files/commands/prompt.md;
     };
 
-    # Automatic installation of Claude CLI and Task Master
+    # Automatic installation of Claude CLI
     activation.installClaudeTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       # Set up proper PATH including npm global directory
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"
@@ -55,11 +55,6 @@
         npm install -g @anthropic-ai/claude-code
       fi
 
-      # Install Task Master if not present
-      if ! command -v task-master >/dev/null 2>&1; then
-        echo "Installing Task Master..."
-        npm install -g task-master-ai
-      fi
 
       # Verify installations with updated PATH
       if command -v claude >/dev/null 2>&1; then
@@ -70,13 +65,6 @@
         ls -la "$HOME/.npm-global/bin/" 2>/dev/null || echo "   No .npm-global/bin directory found"
       fi
 
-      if command -v task-master >/dev/null 2>&1; then
-        echo "✅ Task Master installed: $(task-master --version 2>/dev/null || echo 'version check failed')"
-      else
-        echo "❌ Task Master installation failed - PATH: $PATH"
-        echo "   Debug: checking for task-master in npm global:"
-        ls -la "$HOME/.npm-global/bin/task-master"* 2>/dev/null || echo "   No task-master found in npm global bin"
-      fi
     '';
   };
 }

@@ -36,7 +36,7 @@
     Add to your .bashrc or .zshrc:
       source ~/.config/claude-flake/loader.sh
 
-    Then run: claude
+    Then run: claude or cf
 
     EOF
   '';

@@ -69,9 +69,6 @@ docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix clau
 # Test Claude CLI availability
 docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "claude --help || echo 'Claude CLI not yet available'"
 
-# Test Task Master availability
-docker run -it -v claude-cache:/home/claude/.cache/nix claude-flake-mvp bash -c "task-master --help || echo 'Task Master not yet available'"
-
 # Interactive session with workspace
 docker run -it -v $(pwd):/workspace -v claude-cache:/home/claude/.cache/nix claude-flake-mvp
 ```
