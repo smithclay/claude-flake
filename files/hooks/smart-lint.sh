@@ -77,6 +77,110 @@ command_exists() {
     command -v "$1" &> /dev/null
 }
 
+# Check if MegaLinter is available
+megalinter_available() {
+    command_exists npx && command_exists node && command_exists docker
+}
+
+# Run MegaLinter and parse results
+run_megalinter() {
+    local project_types="$1"
+    
+    if ! megalinter_available; then
+        log_error "MegaLinter requirements not met - need npx, node, and docker"
+        add_error "MegaLinter dependencies missing"
+        return 1
+    fi
+    
+    log_info "Running MegaLinter for languages: $project_types"
+    
+    # Set up MegaLinter environment variables
+    local megalinter_env=""
+    
+    # Enable only the languages we detected
+    case "$project_types" in
+        *go*) megalinter_env+="ENABLE_GO=true " ;;
+    esac
+    case "$project_types" in
+        *python*) megalinter_env+="ENABLE_PYTHON=true " ;;
+    esac
+    case "$project_types" in
+        *javascript*) megalinter_env+="ENABLE_JAVASCRIPT=true " ;;
+    esac
+    case "$project_types" in
+        *rust*) megalinter_env+="ENABLE_RUST=true " ;;
+    esac
+    
+    # Run MegaLinter with our configuration
+    local megalinter_output
+    local megalinter_exit_code
+    
+    if [[ "$CLAUDE_HOOKS_DEBUG" == "1" ]]; then
+        megalinter_env+="LOG_LEVEL=DEBUG "
+    fi
+    
+    # Run MegaLinter in the current directory
+    if ! megalinter_output=$(env "$megalinter_env" npx mega-linter-runner --path . 2>&1); then
+        megalinter_exit_code=$?
+        log_debug "MegaLinter exit code: $megalinter_exit_code"
+        
+        # Parse MegaLinter output for errors
+        if [[ $megalinter_exit_code -ne 0 ]]; then
+            # Check if there's a megalinter-reports directory with JSON output
+            if [[ -f "megalinter-reports/megalinter-report.json" ]]; then
+                parse_megalinter_json_report "megalinter-reports/megalinter-report.json"
+            else
+                # Fallback to parsing text output
+                parse_megalinter_text_output "$megalinter_output"
+            fi
+        fi
+        
+        return $megalinter_exit_code
+    fi
+    
+    return 0
+}
+
+# Parse MegaLinter JSON report for detailed error information
+parse_megalinter_json_report() {
+    local json_file="$1"
+    
+    if ! command_exists jq; then
+        log_debug "jq not available, falling back to text parsing"
+        return 1
+    fi
+    
+    # Parse linter results from JSON
+    local linter_results
+    if linter_results=$(jq -r '.linters[] | select(.status == "error") | "\(.linter_name): \(.total_number_errors) errors"' "$json_file" 2>/dev/null); then
+        if [[ -n "$linter_results" ]]; then
+            while IFS= read -r line; do
+                add_error "$line"
+            done <<< "$linter_results"
+        fi
+    fi
+}
+
+# Parse MegaLinter text output for errors (fallback)
+parse_megalinter_text_output() {
+    local output="$1"
+    
+    # Look for error patterns in MegaLinter output
+    if echo "$output" | grep -q "ERROR"; then
+        # Extract error lines and add them to our error tracking
+        local error_lines
+        error_lines=$(echo "$output" | grep "ERROR" | head -10)
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && add_error "MegaLinter: $line"
+        done <<< "$error_lines"
+    fi
+    
+    # Also check for linter-specific failure patterns
+    if echo "$output" | grep -q "❌"; then
+        add_error "MegaLinter found formatting or linting issues"
+    fi
+}
+
 # ============================================================================
 # PROJECT DETECTION
 # ============================================================================
@@ -232,9 +336,7 @@ lint_go() {
         return 0
     fi
     
-    log_info "Running Go formatting and linting..."
-    
-    # Check if Makefile exists with fmt and lint targets
+    # Check if Makefile exists with fmt and lint targets - prefer those over MegaLinter
     if [[ -f "Makefile" ]]; then
         local has_fmt
         has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || true)
@@ -242,7 +344,7 @@ lint_go() {
         has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || true)
         
         if [[ -n "$has_fmt" && -n "$has_lint" ]]; then
-            log_info "Using Makefile targets"
+            log_info "Using Makefile targets (preferred over MegaLinter)"
             
             local fmt_output
             if ! fmt_output=$(make fmt 2>&1); then
@@ -255,72 +357,13 @@ lint_go() {
                 add_error "Go linting failed (make lint)"
                 echo "$lint_output" >&2
             fi
-        else
-            # Fallback to direct commands
-            log_info "Using direct Go tools"
-            
-            # Format check
-            local unformatted_files
-            unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
-            
-            if [[ -n "$unformatted_files" ]]; then
-                local fmt_output
-                if ! fmt_output=$(gofmt -w . 2>&1); then
-                    add_error "Go formatting failed"
-                    echo "$fmt_output" >&2
-                fi
-            fi
-            
-            # Linting
-            if command_exists golangci-lint; then
-                local lint_output
-                if ! lint_output=$(golangci-lint run --timeout=2m 2>&1); then
-                    add_error "golangci-lint found issues"
-                    echo "$lint_output" >&2
-                fi
-            elif command_exists go; then
-                local vet_output
-                if ! vet_output=$(go vet ./... 2>&1); then
-                    add_error "go vet found issues"
-                    echo "$vet_output" >&2
-                fi
-            else
-                log_error "No Go linting tools available - install golangci-lint or go"
-            fi
-        fi
-    else
-        # No Makefile, use direct commands
-        log_info "Using direct Go tools"
-        
-        # Format check
-        local unformatted_files
-        unformatted_files=$(gofmt -l . 2>/dev/null | grep -v vendor/ || true)
-        
-        if [[ -n "$unformatted_files" ]]; then
-            local fmt_output
-            if ! fmt_output=$(gofmt -w . 2>&1); then
-                add_error "Go formatting failed"
-                echo "$fmt_output" >&2
-            fi
-        fi
-        
-        # Linting
-        if command_exists golangci-lint; then
-            local lint_output
-            if ! lint_output=$(golangci-lint run --timeout=2m 2>&1); then
-                add_error "golangci-lint found issues"
-                echo "$lint_output" >&2
-            fi
-        elif command_exists go; then
-            local vet_output
-            if ! vet_output=$(go vet ./... 2>&1); then
-                add_error "go vet found issues"
-                echo "$vet_output" >&2
-            fi
-        else
-            log_error "No Go linting tools available - install golangci-lint or go"
+            return 0
         fi
     fi
+    
+    # Use MegaLinter for Go linting
+    log_info "Running Go linting via MegaLinter..."
+    run_megalinter "go"
 }
 
 # ============================================================================
@@ -333,36 +376,9 @@ lint_python() {
         return 0
     fi
     
-    log_info "Running Python linters..."
-    
-    # Black formatting
-    if command_exists black; then
-        if ! black . --check >/dev/null 2>&1; then
-            # Apply formatting and capture any errors
-            local format_output
-            if ! format_output=$(black . 2>&1); then
-                add_error "Python formatting failed"
-                echo "$format_output" >&2
-            fi
-        fi
-    fi
-    
-    # Linting
-    if command_exists ruff; then
-        local ruff_output
-        if ! ruff_output=$(ruff check --fix . 2>&1); then
-            add_error "Ruff found issues"
-            echo "$ruff_output" >&2
-        fi
-    elif command_exists flake8; then
-        local flake8_output
-        if ! flake8_output=$(flake8 . 2>&1); then
-            add_error "Flake8 found issues"
-            echo "$flake8_output" >&2
-        fi
-    fi
-    
-    return 0
+    # Use MegaLinter for Python linting
+    log_info "Running Python linting via MegaLinter..."
+    run_megalinter "python"
 }
 
 lint_javascript() {
@@ -371,43 +387,9 @@ lint_javascript() {
         return 0
     fi
     
-    log_info "Running JavaScript/TypeScript linters..."
-    
-    # Check for ESLint
-    if [[ -f "package.json" ]] && grep -q "eslint" package.json 2>/dev/null; then
-        if command_exists npm; then
-            local eslint_output
-            if ! eslint_output=$(npm run lint --if-present 2>&1); then
-                add_error "ESLint found issues"
-                echo "$eslint_output" >&2
-            fi
-        fi
-    fi
-    
-    # Prettier
-    if [[ -f ".prettierrc" ]] || [[ -f "prettier.config.js" ]] || [[ -f ".prettierrc.json" ]]; then
-        if command_exists prettier; then
-            if ! prettier --check . >/dev/null 2>&1; then
-                # Apply formatting and capture any errors
-                local format_output
-                if ! format_output=$(prettier --write . 2>&1); then
-                    add_error "Prettier formatting failed"
-                    echo "$format_output" >&2
-                fi
-            fi
-        elif command_exists npx; then
-            if ! npx prettier --check . >/dev/null 2>&1; then
-                # Apply formatting and capture any errors
-                local format_output
-                if ! format_output=$(npx prettier --write . 2>&1); then
-                    add_error "Prettier formatting failed"
-                    echo "$format_output" >&2
-                fi
-            fi
-        fi
-    fi
-    
-    return 0
+    # Use MegaLinter for JavaScript/TypeScript linting
+    log_info "Running JavaScript/TypeScript linting via MegaLinter..."
+    run_megalinter "javascript"
 }
 
 lint_rust() {
@@ -416,29 +398,9 @@ lint_rust() {
         return 0
     fi
     
-    log_info "Running Rust linters..."
-    
-    if command_exists cargo; then
-        local fmt_output
-        if ! fmt_output=$(cargo fmt -- --check 2>&1); then
-            # Apply formatting and capture any errors
-            local format_output
-            if ! format_output=$(cargo fmt 2>&1); then
-                add_error "Rust formatting failed"
-                echo "$format_output" >&2
-            fi
-        fi
-        
-        local clippy_output
-        if ! clippy_output=$(cargo clippy --quiet -- -D warnings 2>&1); then
-            add_error "Clippy found issues"
-            echo "$clippy_output" >&2
-        fi
-    else
-        log_info "Cargo not found, skipping Rust checks"
-    fi
-    
-    return 0
+    # Use MegaLinter for Rust linting
+    log_info "Running Rust linting via MegaLinter..."
+    run_megalinter "rust"
 }
 
 lint_nix() {
@@ -458,35 +420,124 @@ lint_nix() {
         return 0
     fi
     
-    # Check formatting with nixpkgs-fmt or alejandra
-    if command_exists nixpkgs-fmt; then
-        local fmt_output
-        if ! fmt_output=$(echo "$nix_files" | xargs nixpkgs-fmt --check 2>&1); then
-            # Apply formatting and capture any errors
-            local format_output
-            if ! format_output=$(echo "$nix_files" | xargs nixpkgs-fmt 2>&1); then
-                add_error "Nix formatting failed"
-                echo "$format_output" >&2
+    # Check if we're already in a nix shell
+    local in_nix_shell="${IN_NIX_SHELL:-0}"
+    
+    # Helper function to run command in nix shell if needed
+    run_in_nix_shell() {
+        local cmd="$1"
+        local shell_type="${2:-nix}"
+        
+        if [[ "$in_nix_shell" != "0" ]] || command_exists "$cmd"; then
+            # Already in nix shell or command exists locally
+            return 0
+        else
+            # Try to run in nix shell
+            if [[ -f "flake.nix" ]]; then
+                log_info "Command '$cmd' not found, trying nix develop .#${shell_type}..."
+                if nix develop ".#${shell_type}" --command bash -c "command -v '$cmd' >/dev/null 2>&1"; then
+                    return 0
+                else
+                    return 1
+                fi
+            else
+                return 1
             fi
         fi
-    elif command_exists alejandra; then
-        local fmt_output
-        if ! fmt_output=$(echo "$nix_files" | xargs alejandra --check 2>&1); then
-            # Apply formatting and capture any errors
-            local format_output
-            if ! format_output=$(echo "$nix_files" | xargs alejandra 2>&1); then
-                add_error "Nix formatting failed"
-                echo "$format_output" >&2
+    }
+    
+    # Check formatting with nixfmt-rfc-style (official RFC 166 formatter)
+    if run_in_nix_shell nixfmt; then
+        local fmt_output format_output
+        if [[ "$in_nix_shell" != "0" ]] || command_exists nixfmt; then
+            # Run locally
+            if ! fmt_output=$(echo "$nix_files" | tr '\n' '\0' | xargs -0 nixfmt --check 2>&1); then
+                if ! format_output=$(echo "$nix_files" | tr '\n' '\0' | xargs -0 nixfmt 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        else
+            # Run in nix shell
+            if ! fmt_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | tr '\n' '\0' | xargs -0 nixfmt --check" 2>&1); then
+                if ! format_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | tr '\n' '\0' | xargs -0 nixfmt" 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        fi
+    elif run_in_nix_shell nixpkgs-fmt; then
+        local fmt_output format_output
+        if [[ "$in_nix_shell" != "0" ]] || command_exists nixpkgs-fmt; then
+            if ! fmt_output=$(echo "$nix_files" | xargs nixpkgs-fmt --check 2>&1); then
+                if ! format_output=$(echo "$nix_files" | xargs nixpkgs-fmt 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        else
+            if ! fmt_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | xargs nixpkgs-fmt --check" 2>&1); then
+                if ! format_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | xargs nixpkgs-fmt" 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        fi
+    elif run_in_nix_shell alejandra; then
+        local fmt_output format_output
+        if [[ "$in_nix_shell" != "0" ]] || command_exists alejandra; then
+            if ! fmt_output=$(echo "$nix_files" | xargs alejandra --check 2>&1); then
+                if ! format_output=$(echo "$nix_files" | xargs alejandra 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        else
+            if ! fmt_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | xargs alejandra --check" 2>&1); then
+                if ! format_output=$(nix develop .#nix --command bash -c "echo '$nix_files' | xargs alejandra" 2>&1); then
+                    add_error "Nix formatting failed"
+                    echo "$format_output" >&2
+                fi
+            fi
+        fi
+    else
+        add_error "No Nix formatter found (nixfmt, nixpkgs-fmt, or alejandra) - not available locally or in nix shell"
+    fi
+    
+    # Static analysis with statix
+    if run_in_nix_shell statix; then
+        local statix_output
+        if [[ "$in_nix_shell" != "0" ]] || command_exists statix; then
+            if ! statix_output=$(statix check 2>&1); then
+                add_error "Statix found issues"
+                echo "$statix_output" >&2
+            fi
+        else
+            if ! statix_output=$(nix develop .#nix --command statix check 2>&1); then
+                add_error "Statix found issues"
+                echo "$statix_output" >&2
             fi
         fi
     fi
     
-    # Static analysis with statix
-    if command_exists statix; then
-        local statix_output
-        if ! statix_output=$(statix check 2>&1); then
-            add_error "Statix found issues"
-            echo "$statix_output" >&2
+    # Shell script validation with shellcheck
+    local shell_files
+    shell_files=$(find . -name "*.sh" -type f | grep -v -E "(result/|/nix/store/)" | head -20)
+    
+    if [[ -n "$shell_files" ]]; then
+        if run_in_nix_shell shellcheck; then
+            local shellcheck_output
+            if [[ "$in_nix_shell" != "0" ]] || command_exists shellcheck; then
+                if ! shellcheck_output=$(echo "$shell_files" | xargs shellcheck 2>&1); then
+                    add_error "Shellcheck found issues in shell scripts"
+                    echo "$shellcheck_output" >&2
+                fi
+            else
+                if ! shellcheck_output=$(nix develop .#nix --command bash -c "echo '$shell_files' | xargs shellcheck" 2>&1); then
+                    add_error "Shellcheck found issues in shell scripts"
+                    echo "$shellcheck_output" >&2
+                fi
+            fi
         fi
     fi
     
@@ -532,37 +583,113 @@ log_info "Project type: $PROJECT_TYPE"
 
 # Main execution
 main() {
-    # Handle mixed project types
+    # Separate MegaLinter-supported languages from Nix
+    local megalinter_languages=""
+    local has_nix=false
+    local has_go_makefile=false
+    
+    # Check if Go has Makefile targets (prefer those over MegaLinter)
+    if [[ "$PROJECT_TYPE" == *"go"* ]] && [[ -f "Makefile" ]]; then
+        local has_fmt has_lint
+        has_fmt=$(grep -E "^fmt:" Makefile 2>/dev/null || true)
+        has_lint=$(grep -E "^lint:" Makefile 2>/dev/null || true)
+        if [[ -n "$has_fmt" && -n "$has_lint" ]]; then
+            has_go_makefile=true
+        fi
+    fi
+    
+    # Build list of languages for MegaLinter
     if [[ "$PROJECT_TYPE" == mixed:* ]]; then
         local project_types="${PROJECT_TYPE#mixed:}"
         IFS=',' read -ra TYPE_ARRAY <<< "$project_types"
         
         for type in "${TYPE_ARRAY[@]}"; do
             case "$type" in
-                "go") lint_go ;;
-                "python") lint_python ;;
-                "javascript") lint_javascript ;;
-                "rust") lint_rust ;;
-                "nix") lint_nix ;;
+                "go") 
+                    if [[ "$has_go_makefile" != "true" && "${CLAUDE_HOOKS_GO_ENABLED:-true}" == "true" ]]; then
+                        megalinter_languages+="go,"
+                    fi
+                    ;;
+                "python") 
+                    if [[ "${CLAUDE_HOOKS_PYTHON_ENABLED:-true}" == "true" ]]; then
+                        megalinter_languages+="python,"
+                    fi
+                    ;;
+                "javascript") 
+                    if [[ "${CLAUDE_HOOKS_JS_ENABLED:-true}" == "true" ]]; then
+                        megalinter_languages+="javascript,"
+                    fi
+                    ;;
+                "rust") 
+                    if [[ "${CLAUDE_HOOKS_RUST_ENABLED:-true}" == "true" ]]; then
+                        megalinter_languages+="rust,"
+                    fi
+                    ;;
+                "nix") 
+                    has_nix=true
+                    ;;
             esac
-            
-            # Fail fast if configured
-            if [[ "$CLAUDE_HOOKS_FAIL_FAST" == "true" && $CLAUDE_HOOKS_ERROR_COUNT -gt 0 ]]; then
-                break
-            fi
         done
     else
         # Single project type
         case "$PROJECT_TYPE" in
-            "go") lint_go ;;
-            "python") lint_python ;;
-            "javascript") lint_javascript ;;
-            "rust") lint_rust ;;
-            "nix") lint_nix ;;
+            "go") 
+                if [[ "$has_go_makefile" != "true" && "${CLAUDE_HOOKS_GO_ENABLED:-true}" == "true" ]]; then
+                    megalinter_languages="go"
+                fi
+                ;;
+            "python") 
+                if [[ "${CLAUDE_HOOKS_PYTHON_ENABLED:-true}" == "true" ]]; then
+                    megalinter_languages="python"
+                fi
+                ;;
+            "javascript") 
+                if [[ "${CLAUDE_HOOKS_JS_ENABLED:-true}" == "true" ]]; then
+                    megalinter_languages="javascript"
+                fi
+                ;;
+            "rust") 
+                if [[ "${CLAUDE_HOOKS_RUST_ENABLED:-true}" == "true" ]]; then
+                    megalinter_languages="rust"
+                fi
+                ;;
+            "nix") 
+                has_nix=true
+                ;;
             "unknown") 
                 log_info "No recognized project type, skipping checks"
                 ;;
         esac
+    fi
+    
+    # Run MegaLinter for supported languages (more efficient than individual calls)
+    if [[ -n "$megalinter_languages" ]]; then
+        # Remove trailing comma
+        megalinter_languages="${megalinter_languages%,}"
+        log_info "Running MegaLinter for languages: $megalinter_languages"
+        run_megalinter "$megalinter_languages"
+        
+        # Check for fail fast
+        if [[ "$CLAUDE_HOOKS_FAIL_FAST" == "true" && $CLAUDE_HOOKS_ERROR_COUNT -gt 0 ]]; then
+            time_end "$START_TIME"
+            print_summary
+            return 2
+        fi
+    fi
+    
+    # Handle Go with Makefile separately
+    if [[ "$has_go_makefile" == "true" ]]; then
+        lint_go
+        if [[ "$CLAUDE_HOOKS_FAIL_FAST" == "true" && $CLAUDE_HOOKS_ERROR_COUNT -gt 0 ]]; then
+            time_end "$START_TIME"
+            print_summary
+            return 2
+        fi
+    fi
+    
+    # Handle Nix separately (not supported by MegaLinter)
+    if [[ "$has_nix" == "true" ]]; then
+        lint_nix
     fi
     
     # Show timing if enabled

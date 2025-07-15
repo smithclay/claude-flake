@@ -81,6 +81,7 @@ let
       nix-output-monitor # Better build output
       nix-index # File database for nixpkgs
       comma # Run programs without installing
+      shellcheck # Shell script linter (for .sh files in nix projects)
     ];
 
     # Java development tools
