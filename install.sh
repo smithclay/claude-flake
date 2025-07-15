@@ -326,6 +326,7 @@ install_nix() {
 
 		# Source Nix in current session
 		if [[ -f "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]]; then
+			# shellcheck source=/dev/null
 			source "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 		fi
 	fi

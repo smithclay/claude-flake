@@ -51,7 +51,7 @@ This interactive installer will:
 
 **Then get your API key:**
 
-1. Go to [console.anthropic.com](https://console.anthropic.com) for API key OR [claude.ai](https://claude.ai) for Pro subscription
+1. Go to [console.anthropic.com](https://docs.anthropic.com/en/api/getting-started) for API key OR [claude.ai](https://docs.anthropic.com/en/docs/claude-code) for Pro subscription
 2. Sign up and choose: API credits ($20) or Claude Pro ($20/month)
 3. Create an API key (if using API) or note your Pro login
 4. Run `claude` to add your credentials

@@ -22,7 +22,6 @@ set +e
 
 # Color definitions
 RED='\033[0;31m'
-GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
@@ -97,9 +96,8 @@ ENABLE:
 # Apply fixes automatically (matches smart-lint.sh behavior)
 APPLY_FIXES: all
 
-# Output configuration for script parsing
-SARIF_REPORTER: true
-JSON_REPORTER: true
+# Output configuration for script parsing - disable file reports to avoid caching issues
+REPORT_OUTPUT_FOLDER: none
 SHOW_ELAPSED_TIME: true
 
 # File filtering - exclude common build/cache directories
@@ -117,6 +115,11 @@ PARALLEL: true
 SHOW_SKIPPED_LINTERS: false
 CLEAR_REPORT_FOLDER: true
 LOG_LEVEL: "INFO"
+
+# Force clear cache
+MEGALINTER_PRECOMMANDS:
+  - command: rm -rf /tmp/lint/megalinter-reports || true
+    description: "Clear previous reports"
 EOF
 }
 
@@ -176,45 +179,47 @@ run_megalinter() {
 	fi
 
 	if [[ "$has_errors" == "true" ]]; then
-		# Count and add specific errors from log files
+		# Parse errors from console output and count them
 		local error_count=0
-		if [[ -d "megalinter-reports/linters_logs" ]]; then
-			local error_logs
-			error_logs=$(find megalinter-reports/linters_logs -name "ERROR-*.log" 2>/dev/null)
-			for log_file in $error_logs; do
-				if [[ -f "$log_file" ]]; then
+		local error_lines
+		
+		# Extract error lines that show linter names and issues
+		error_lines=$(echo "$megalinter_output" | grep -E "❌.*Linted.*files.*with.*Found.*error" | head -10)
+		
+		if [[ -n "$error_lines" ]]; then
+			# Count and add specific errors from output
+			while IFS= read -r line; do
+				if [[ -n "$line" ]]; then
 					error_count=$((error_count + 1))
+					# Extract linter name from the line (e.g., "❌ Linted [BASH] files with [shellcheck]")
 					local linter_name
-					linter_name=$(basename "$log_file" .log | sed 's/ERROR-//')
-					add_error "$linter_name found issues"
+					linter_name=$(echo "$line" | sed -n 's/.*with \[\([^]]*\)\].*/\1/p')
+					if [[ -n "$linter_name" ]]; then
+						add_error "$linter_name found issues"
+					else
+						add_error "Linter found issues"
+					fi
 				fi
-			done
+			done <<< "$error_lines"
 		fi
 
-		# If no specific error logs found, add a generic error
+		# If no specific errors found in that format, try alternative parsing
 		if [[ $error_count -eq 0 ]]; then
-			add_error "MegaLinter found linting issues"
+			# Look for other error indicators
+			local generic_errors
+			generic_errors=$(echo "$megalinter_output" | grep -E "(ERROR|❌)" | grep -v "Error(s) have been found" | head -5)
+			if [[ -n "$generic_errors" ]]; then
+				add_error "MegaLinter found linting issues"
+				error_count=1
+			fi
 		fi
 
-		# Extract and show error details from output
-		local error_details
-		error_details=$(echo "$megalinter_output" | grep -E "(ERROR|❌)" | head -10)
-		if [[ -n "$error_details" ]]; then
-			echo -e "\n${YELLOW}📋 Issues found in output:${NC}" >&2
-			echo "$error_details" >&2
-		fi
-
-		# Show detailed error information from log files
-		if [[ -d "megalinter-reports/linters_logs" ]]; then
-			local error_logs
-			error_logs=$(find megalinter-reports/linters_logs -name "ERROR-*.log" 2>/dev/null)
-			for log_file in $error_logs; do
-				if [[ -f "$log_file" ]]; then
-					echo -e "\n${YELLOW}📄 Details from $(basename "$log_file"):${NC}" >&2
-					# Extract the actual error content, skipping headers
-					tail -n +5 "$log_file" | head -20 >&2
-				fi
-			done
+		# Show detailed error information from console output
+		local all_error_details
+		all_error_details=$(echo "$megalinter_output" | grep -E "(ERROR|❌)" | head -20)
+		if [[ -n "$all_error_details" ]]; then
+			echo -e "\n${YELLOW}📋 Issues found:${NC}" >&2
+			echo "$all_error_details" >&2
 		fi
 	elif [[ $exit_code -ne 0 ]]; then
 		add_error "MegaLinter execution failed with exit code $exit_code"
