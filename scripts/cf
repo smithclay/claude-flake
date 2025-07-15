@@ -99,7 +99,7 @@ COMMANDS:
     help               Show this help message
     version            Show version information
     doctor             Diagnose environment and configuration
-    update             Update claude-flake to latest version
+    update [--local]   Update claude-flake to latest version (--local: use current directory)
     status             Show current environment status
     sandbox [DIR]      Start docker container with mounted directory and credentials
 
@@ -122,6 +122,7 @@ EXAMPLES:
     cf config ntfy init    # Set up push notifications
     cf doctor              # Check environment health
     cf update              # Update to latest claude-flake version
+    cf update --local      # Update using local development version
     cf sandbox /path/to/project  # Start docker container with project mounted
 
 For more information, visit: https://github.com/smithclay/claude-flake
@@ -229,7 +230,39 @@ cmd_doctor() {
 }
 
 cmd_update() {
+    # Check for --local flag
+    local use_local=false
+    local local_path=""
+    
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --local)
+                use_local=true
+                local_path="$(pwd)"
+                shift
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                echo "Usage: cf update [--local]" >&2
+                return 1
+                ;;
+        esac
+    done
+    
+    # Override CLAUDE_FLAKE_SOURCE if --local is specified
+    if [[ "$use_local" == "true" ]]; then
+        if [[ -f "${local_path}/flake.nix" ]]; then
+            CLAUDE_FLAKE_SOURCE="path:${local_path}"
+            echo "🏠 Using local development path: ${local_path}"
+        else
+            echo "❌ No flake.nix found in current directory: ${local_path}"
+            echo "   Run 'cf update --local' from your claude-flake repository root"
+            return 1
+        fi
+    fi
+    
     echo "🔄 Updating Claude Flake..."
+    echo "   Source: ${CLAUDE_FLAKE_SOURCE}"
     echo ""
     
     if [[ "${CLAUDE_FLAKE_SOURCE}" == github:* ]]; then
@@ -843,7 +876,8 @@ main() {
             cmd_doctor
             ;;
         update)
-            cmd_update
+            shift
+            cmd_update "$@"
             ;;
         status)
             cmd_status
