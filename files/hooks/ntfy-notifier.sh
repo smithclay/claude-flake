@@ -6,11 +6,11 @@
 #
 # DESCRIPTION
 #   Sends push notifications via ntfy service when Claude Code events occur.
-#   Supports notification and stop events. Automatically detects terminal
-#   context and includes it in the notification for better identification.
+#   Supports notification, stop, and idle-notification events. Automatically 
+#   detects terminal context and includes it in the notification for better identification.
 #
 # ARGUMENTS
-#   event_type    Either "notification" or "stop"
+#   event_type    One of "notification", "stop", or "idle-notification"
 #
 # CONFIGURATION
 #   Requires ~/.config/claude-code/ntfy.yaml with:
@@ -34,6 +34,9 @@
 #   # Send stop notification
 #   ./ntfy-notifier.sh stop
 #
+#   # Send idle notification (triggered by Claude Code after 60s)
+#   ./ntfy-notifier.sh idle-notification
+#
 # ERROR HANDLING
 #   - Validates configuration file exists
 #   - Retries failed notifications
@@ -46,12 +49,12 @@ EVENT_TYPE="${1:-notification}"
 
 # Validate event type
 case "$EVENT_TYPE" in
-    notification|stop)
+    notification|stop|idle-notification)
         # Valid event types
         ;;
     *)
         echo "Error: Invalid event type: $EVENT_TYPE" >&2
-        echo "Usage: $0 {notification|stop}" >&2
+        echo "Usage: $0 {notification|stop|idle-notification}" >&2
         exit 1
         ;;
 esac
@@ -228,9 +231,21 @@ case "$EVENT_TYPE" in
         PRIORITY="low"
         ;;
     
+    "idle-notification")
+        # Claude has been waiting for user input for >60 seconds
+        TITLE="$CONTEXT"
+        if [[ -n "${CLAUDE_NOTIFICATION:-}" ]]; then
+            MESSAGE="Claude waiting for input: $CLAUDE_NOTIFICATION"
+        else
+            MESSAGE="Claude waiting for input (idle >60s)"
+        fi
+        TAGS="claude-code,idle,hourglass"
+        PRIORITY="default"
+        ;;
+    
     *)
         echo "Error: Unknown event type: $EVENT_TYPE" >&2
-        echo "Usage: $0 {notification|stop}" >&2
+        echo "Usage: $0 {notification|stop|idle-notification}" >&2
         exit 1
         ;;
 esac
