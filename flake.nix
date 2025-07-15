@@ -41,11 +41,10 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      ...
+    { self
+    , nixpkgs
+    , home-manager
+    , ...
     }:
     let
       # Support multiple systems
@@ -58,28 +57,28 @@
       # Function to create home configuration for any system/user
       mkHomeConfiguration =
         system: username: homeDirectory:
-        assert builtins.isString system;
-        assert builtins.isString username;
-        assert builtins.isString homeDirectory;
-        home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
-          modules = [
-            ./workflow/default.nix
-            {
-              home = {
-                inherit username homeDirectory;
-              };
-            }
-          ];
-          extraSpecialArgs = {
-            inherit
-              self
-              nixpkgs
-              username
-              homeDirectory
-              ;
+          assert builtins.isString system;
+          assert builtins.isString username;
+          assert builtins.isString homeDirectory;
+          home-manager.lib.homeManagerConfiguration {
+            pkgs = nixpkgs.legacyPackages.${system};
+            modules = [
+              ./workflow/default.nix
+              {
+                home = {
+                  inherit username homeDirectory;
+                };
+              }
+            ];
+            extraSpecialArgs = {
+              inherit
+                self
+                nixpkgs
+                username
+                homeDirectory
+                ;
+            };
           };
-        };
     in
     {
       # Home Manager configurations - dynamic with --impure
@@ -117,10 +116,10 @@
 
       # Function to create home configuration for any user (can be imported by other flakes)
       lib.mkHomeConfigurationForUser =
-        {
-          username,
-          system ? "x86_64-linux",
-          homeDirectory ? "/home/${username}",
+        { username
+        , system ? "x86_64-linux"
+        , homeDirectory ? "/home/${username}"
+        ,
         }:
         mkHomeConfiguration system username homeDirectory;
 

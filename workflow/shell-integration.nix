@@ -16,9 +16,6 @@ _:
       hm = "home-manager";
       hms = "home-manager switch";
 
-      # Task Master shortcuts
-      tm = "task-master";
-
       # Claude-Flake management
       claude-flake-update = "nix flake update";
       claude-flake-switch = "home-manager switch --flake \"$(__claude_flake_source)\"";
@@ -131,10 +128,6 @@ _:
         echo "✅ Claude CLI available"
       fi
 
-      if command_exists task-master; then
-        echo "✅ Task Master available"
-      fi
-
       # Source user customizations if they exist
       if [ -f "$HOME/.config/claude-flake/local.sh" ]; then
         source "$HOME/.config/claude-flake/local.sh"
@@ -152,9 +145,6 @@ _:
       # Home-manager shortcuts
       hm = "home-manager";
       hms = "home-manager switch";
-
-      # Task Master shortcuts
-      tm = "task-master";
 
       # Claude-Flake management
       claude-flake-update = "nix flake update";
@@ -211,10 +201,6 @@ _:
       # Conditional loading based on available commands
       if command_exists claude; then
         echo "✅ Claude CLI available"
-      fi
-
-      if command_exists task-master; then
-        echo "✅ Task Master available"
       fi
 
       # Source user customizations if they exist
@@ -281,9 +267,6 @@ _:
       # Home-manager shortcuts
       alias hm="home-manager"
       alias hms="home-manager switch"
-
-      # Task Master shortcuts
-      alias tm="task-master"
 
       # Claude-Flake management
       alias claude-flake-update="nix flake update"
@@ -367,10 +350,6 @@ _:
       # Conditional loading based on available commands
       if command_exists claude; then
         echo "✅ Claude CLI available"
-      fi
-
-      if command_exists task-master; then
-        echo "✅ Task Master available"
       fi
 
       # Source user customizations if they exist

@@ -392,7 +392,6 @@ install_nix() {
     log_info "Usage:"
     log_info "  claude                       # Start Claude CLI"
     log_info "  cf dev [language]           # Enter development shell"
-    log_info "  task-master                 # Project management"
 }
 
 # Restore backup
@@ -512,7 +511,7 @@ uninstall_nix() {
 
     # Remove NPM global packages
     if command_exists npm && [[ -d "$HOME/.npm-global" ]]; then
-        npm uninstall -g @anthropic-ai/claude-code task-master-ai >/dev/null 2>&1 || true
+        npm uninstall -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
         log_info "Removed NPM global packages"
     fi
 
