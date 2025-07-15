@@ -13,7 +13,7 @@
 #   event_type    Either "notification" or "stop"
 #
 # CONFIGURATION
-#   Requires ~/.config/claude-code-ntfy/config.yaml with:
+#   Requires ~/.config/claude-code/ntfy.yaml with:
 #     ntfy_topic: your-topic-name
 #     ntfy_server: https://ntfy.sh (optional, defaults to public server)
 #
@@ -62,12 +62,13 @@ if [[ "${CLAUDE_HOOKS_NTFY_ENABLED:-true}" != "true" ]]; then
 fi
 
 # Configuration file location
-CONFIG_FILE="${CLAUDE_HOOKS_NTFY_CONFIG:-$HOME/.config/claude-code-ntfy/config.yaml}"
+CONFIG_FILE="${CLAUDE_HOOKS_NTFY_CONFIG:-$HOME/.config/claude-code/ntfy.yaml}"
 
 # Check if config file exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Warning: Ntfy config not found at $CONFIG_FILE" >&2
-    echo "Create it with:" >&2
+    echo "Set it up with: cf config ntfy init" >&2
+    echo "Or create it manually with:" >&2
     echo "  ntfy_topic: your-topic-name" >&2
     echo "  ntfy_server: https://ntfy.sh" >&2
     exit 0  # Exit gracefully to not block Claude

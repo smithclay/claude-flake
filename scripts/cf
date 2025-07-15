@@ -95,6 +95,7 @@ USAGE:
 COMMANDS:
     (no command)        Auto-detect project type and enter development shell
     dev [LANGUAGE]      Enter development shell (auto-detect or specify language)
+    config             Manage Claude Flake configuration
     help               Show this help message
     version            Show version information
     doctor             Diagnose environment and configuration
@@ -118,6 +119,7 @@ EXAMPLES:
     cf                     # Auto-detect and enter appropriate shell
     cf dev python          # Enter Python development shell
     cf dev                 # Auto-detect and enter appropriate shell
+    cf config ntfy init    # Set up push notifications
     cf doctor              # Check environment health
     cf update              # Update to latest claude-flake version
     cf sandbox /path/to/project  # Start docker container with project mounted
@@ -388,7 +390,369 @@ cmd_status() {
     fi
     echo ""
     
-    echo "🛠️  Available commands: dev, help, version, doctor, update, status, sandbox"
+    echo "🛠️  Available commands: dev, help, version, doctor, update, status, sandbox, config"
+}
+
+cmd_config() {
+    local subcommand="${1:-}"
+    
+    case "${subcommand}" in
+        ntfy)
+            shift
+            cmd_config_ntfy "$@"
+            ;;
+        help|--help|-h|"")
+            cmd_config_help
+            ;;
+        *)
+            echo "❌ Unknown config subcommand: ${subcommand}" >&2
+            echo "   Run 'cf config help' for usage information" >&2
+            return 1
+            ;;
+    esac
+}
+
+cmd_config_help() {
+    cat << 'EOF'
+cf config - Manage Claude Flake configuration
+
+USAGE:
+    cf config [SUBCOMMAND] [OPTIONS]
+
+SUBCOMMANDS:
+    ntfy               Manage ntfy notification settings
+    help               Show this help message
+
+EXAMPLES:
+    cf config ntfy show         # Show current ntfy configuration
+    cf config ntfy set my-topic # Set ntfy topic to 'my-topic'
+    cf config ntfy test         # Send test notification
+
+For more help on a specific subcommand:
+    cf config ntfy help
+EOF
+}
+
+cmd_config_ntfy() {
+    local operation="${1:-help}"
+    
+    # Use new config directory location
+    local config_dir="${HOME}/.config/claude-code"
+    local config_file="${config_dir}/ntfy.yaml"
+    
+    case "${operation}" in
+        show)
+            cmd_config_ntfy_show "${config_file}"
+            ;;
+        set)
+            shift
+            cmd_config_ntfy_set "${config_file}" "$@"
+            ;;
+        test)
+            cmd_config_ntfy_test "${config_file}"
+            ;;
+        init)
+            cmd_config_ntfy_init "${config_file}"
+            ;;
+        help|--help|-h|"")
+            cmd_config_ntfy_help
+            ;;
+        *)
+            echo "❌ Unknown ntfy operation: ${operation}" >&2
+            echo "   Run 'cf config ntfy help' for usage information" >&2
+            return 1
+            ;;
+    esac
+}
+
+cmd_config_ntfy_help() {
+    cat << 'EOF'
+cf config ntfy - Manage ntfy notification configuration
+
+USAGE:
+    cf config ntfy [OPERATION] [OPTIONS]
+
+OPERATIONS:
+    show                       Show current ntfy configuration
+    set <topic> [server]       Set ntfy topic and optional server
+    test                       Send test notification to verify config
+    init                       Interactive setup wizard
+    help                       Show this help message
+
+EXAMPLES:
+    cf config ntfy show                           # Show current config
+    cf config ntfy set my-unique-topic           # Set topic (use default server)
+    cf config ntfy set my-topic https://ntfy.sh  # Set topic and server
+    cf config ntfy test                          # Send test notification
+    cf config ntfy init                          # Interactive setup
+
+CONFIGURATION:
+    Configuration file: ~/.config/claude-code/ntfy.yaml
+    
+    Required:
+      ntfy_topic: your-unique-topic-name
+      
+    Optional:
+      ntfy_server: https://ntfy.sh (defaults to public ntfy.sh)
+
+For more information about ntfy, visit: https://ntfy.sh
+EOF
+}
+
+cmd_config_ntfy_show() {
+    local config_file="$1"
+    
+    echo "📱 Ntfy Configuration"
+    echo "===================="
+    echo ""
+    echo "📍 Config file: ${config_file}"
+    
+    if [[ ! -f "${config_file}" ]]; then
+        echo "❌ Configuration file not found"
+        echo ""
+        echo "💡 Run 'cf config ntfy init' to create configuration"
+        return 1
+    fi
+    
+    # Check if yq is available
+    if ! command -v yq >/dev/null 2>&1; then
+        echo "❌ yq command not found (required for YAML parsing)"
+        echo "   Install yq or enter a claude-flake development shell"
+        return 1
+    fi
+    
+    echo "✅ Configuration found"
+    echo ""
+    
+    local topic
+    local server
+    topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+    server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
+    
+    echo "🏷️  Topic: ${topic:-"(not set)"}"
+    echo "🌐 Server: ${server:-"https://ntfy.sh (default)"}"
+    
+    if [[ -z "${topic}" ]]; then
+        echo ""
+        echo "⚠️  Topic not configured - notifications will not work"
+        echo "   Run 'cf config ntfy set <topic>' to configure"
+    fi
+}
+
+cmd_config_ntfy_set() {
+    local config_file="$1"
+    local topic="$2"
+    local server="${3:-https://ntfy.sh}"
+    
+    if [[ -z "${topic}" ]]; then
+        echo "❌ Topic is required"
+        echo "   Usage: cf config ntfy set <topic> [server]"
+        return 1
+    fi
+    
+    # Validate topic format (basic validation)
+    if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo "❌ Invalid topic format: ${topic}"
+        echo "   Topic should only contain letters, numbers, underscores, and hyphens"
+        return 1
+    fi
+    
+    # Create config directory if it doesn't exist
+    local config_dir
+    config_dir="$(dirname "${config_file}")"
+    if [[ ! -d "${config_dir}" ]]; then
+        echo "📁 Creating config directory: ${config_dir}"
+        mkdir -p "${config_dir}"
+    fi
+    
+    # Check if yq is available
+    if ! command -v yq >/dev/null 2>&1; then
+        echo "❌ yq command not found (required for YAML manipulation)"
+        echo "   Install yq or enter a claude-flake development shell"
+        return 1
+    fi
+    
+    echo "💾 Setting ntfy configuration..."
+    
+    # Create or update configuration
+    if cat > "${config_file}" << EOF
+ntfy_topic: ${topic}
+ntfy_server: ${server}
+EOF
+    then
+        echo "✅ Configuration saved to ${config_file}"
+        echo ""
+        echo "🏷️  Topic: ${topic}"
+        echo "🌐 Server: ${server}"
+        echo ""
+        echo "💡 Run 'cf config ntfy test' to verify configuration"
+    else
+        echo "❌ Failed to save configuration"
+        return 1
+    fi
+}
+
+cmd_config_ntfy_test() {
+    local config_file="$1"
+    
+    echo "🧪 Testing ntfy configuration..."
+    echo ""
+    
+    if [[ ! -f "${config_file}" ]]; then
+        echo "❌ Configuration file not found: ${config_file}"
+        echo "   Run 'cf config ntfy init' to create configuration"
+        return 1
+    fi
+    
+    # Check dependencies
+    local missing_deps=()
+    for dep in yq curl; do
+        if ! command -v "${dep}" >/dev/null 2>&1; then
+            missing_deps+=("${dep}")
+        fi
+    done
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        echo "❌ Missing required dependencies: ${missing_deps[*]}"
+        echo "   Install these tools or enter a claude-flake development shell"
+        return 1
+    fi
+    
+    local topic
+    local server
+    topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+    server=$(yq -r '.ntfy_server // "https://ntfy.sh"' "${config_file}" 2>/dev/null || echo "https://ntfy.sh")
+    
+    if [[ -z "${topic}" ]]; then
+        echo "❌ Topic not configured in ${config_file}"
+        echo "   Run 'cf config ntfy set <topic>' to configure"
+        return 1
+    fi
+    
+    echo "📤 Sending test notification..."
+    echo "🏷️  Topic: ${topic}"
+    echo "🌐 Server: ${server}"
+    echo ""
+    
+    # Send test notification
+    local response
+    response=$(curl -s -w "\n%{http_code}" \
+        -d "🧪 Claude Flake test notification - $(date)" \
+        -H "Title: Claude Flake Test" \
+        -H "Priority: default" \
+        -H "Tags: test,claude-flake" \
+        "${server}/${topic}")
+    
+    local body
+    local status_code
+    body=$(echo "${response}" | head -n -1)
+    status_code=$(echo "${response}" | tail -n 1)
+    
+    if [[ "${status_code}" -eq 200 ]]; then
+        echo "✅ Test notification sent successfully!"
+        echo "   Check your ntfy app or ${server}/${topic}"
+    else
+        echo "❌ Failed to send test notification"
+        echo "   HTTP status: ${status_code}"
+        echo "   Response: ${body}"
+        echo ""
+        echo "💡 Check your configuration and network connectivity"
+        return 1
+    fi
+}
+
+cmd_config_ntfy_init() {
+    local config_file="$1"
+    
+    echo "🚀 Ntfy Configuration Setup Wizard"
+    echo "=================================="
+    echo ""
+    
+    # Check if config already exists
+    if [[ -f "${config_file}" ]]; then
+        echo "📍 Existing configuration found at: ${config_file}"
+        
+        local topic
+        local server
+        topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+        server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
+        
+        if [[ -n "${topic}" ]]; then
+            echo "🏷️  Current topic: ${topic}"
+            echo "🌐 Current server: ${server:-"https://ntfy.sh (default)"}"
+            echo ""
+            
+            read -p "❓ Overwrite existing configuration? [y/N]: " -r overwrite
+            if [[ ! "${overwrite}" =~ ^[Yy]$ ]]; then
+                echo "   Setup cancelled"
+                return 0
+            fi
+        fi
+    fi
+    
+    echo "ℹ️  Ntfy allows you to receive push notifications when Claude finishes tasks."
+    echo "   You'll need to choose a unique topic name and install the ntfy app."
+    echo ""
+    
+    # Get topic
+    local topic
+    while true; do
+        read -p "🏷️  Enter a unique topic name (letters, numbers, -, _): " -r topic
+        
+        if [[ -z "${topic}" ]]; then
+            echo "   Topic cannot be empty"
+            continue
+        fi
+        
+        if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+            echo "   Invalid characters. Use only letters, numbers, underscores, and hyphens"
+            continue
+        fi
+        
+        break
+    done
+    
+    # Get server (optional)
+    echo ""
+    echo "🌐 Ntfy server (press Enter for default: https://ntfy.sh):"
+    read -p "   Server URL: " -r server
+    server="${server:-https://ntfy.sh}"
+    
+    # Validate server URL format
+    if [[ ! "${server}" =~ ^https?:// ]]; then
+        echo "   Adding https:// prefix to server URL"
+        server="https://${server}"
+    fi
+    
+    echo ""
+    echo "📋 Configuration Summary:"
+    echo "   Topic: ${topic}"
+    echo "   Server: ${server}"
+    echo "   File: ${config_file}"
+    echo ""
+    
+    read -p "❓ Save this configuration? [Y/n]: " -r confirm
+    if [[ "${confirm}" =~ ^[Nn]$ ]]; then
+        echo "   Setup cancelled"
+        return 0
+    fi
+    
+    # Save configuration using cmd_config_ntfy_set
+    if cmd_config_ntfy_set "${config_file}" "${topic}" "${server}"; then
+        echo ""
+        echo "🎉 Configuration saved successfully!"
+        echo ""
+        echo "📱 Next steps:"
+        echo "   1. Install the ntfy app on your phone or visit ${server}"
+        echo "   2. Subscribe to topic: ${topic}"
+        echo "   3. Run 'cf config ntfy test' to verify setup"
+        echo ""
+        echo "   Mobile apps: https://ntfy.sh/docs/subscribe/phone/"
+        echo "   Web interface: ${server}/${topic}"
+    else
+        echo "❌ Failed to save configuration"
+        return 1
+    fi
 }
 
 cmd_dev() {
@@ -487,6 +851,10 @@ main() {
         sandbox)
             shift
             cmd_sandbox "$@"
+            ;;
+        config)
+            shift
+            cmd_config "$@"
             ;;
         *)
             echo "❌ Unknown command: $1" >&2
