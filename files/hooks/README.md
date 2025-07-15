@@ -51,7 +51,7 @@ Features:
 
 ```
 > Task operation feedback:
-  - [~/.claude/hooks/smart-lint.sh]:
+- [~/.claude/hooks/smart-lint.sh]:
   🔍 Style Check - Validating code formatting...
   ────────────────────────────────────────────
   [INFO] Project type: go
@@ -100,7 +100,7 @@ CLAUDE_HOOKS_PYTHON_ENABLED=false
 ### Excluding Files
 Create `.claude-hooks-ignore` in your project root using gitignore syntax:
 
-```
+```gitignore
 vendor/**
 node_modules/**
 *.pb.go
@@ -127,7 +127,7 @@ Add `// claude-hooks-disable` to the top of any file to skip hooks.
 Hooks work best with these tools installed:
 - **Go**: `golangci-lint`
 - **Python**: `black`, `ruff`
-- **JavaScript**: `eslint`, `prettier` 
+- **JavaScript**: `eslint`, `prettier`
 - **Rust**: `cargo fmt`, `cargo clippy`
 - **Nix**: `nixpkgs-fmt`, `alejandra`, `statix`
 

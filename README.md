@@ -12,7 +12,7 @@ This project helps make [Claude Code](https://www.anthropic.com/claude-code), a 
 
 **Opinionated workflow**
 - Research → Plan → Implement process built into commands
-- Quality checks that run automatically 
+- Quality checks that run automatically
 - Proven patterns from the Claude Code community
 - Everything pre-configured to work together
 - Language-specific development shells with all tools included
