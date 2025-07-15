@@ -242,10 +242,62 @@ cmd_update() {
             echo "   Check network connection and flake source: ${CLAUDE_FLAKE_SOURCE}"
             return 1
         fi
+    elif [[ "${CLAUDE_FLAKE_SOURCE}" == path:* ]]; then
+        echo "🏠 Local source detected: ${CLAUDE_FLAKE_SOURCE}"
+        echo "📦 Updating local flake..."
+        
+        # Extract path from path: prefix
+        local flake_path="${CLAUDE_FLAKE_SOURCE#path:}"
+        
+        # Change to the flake directory and update inputs
+        if [[ -d "${flake_path}" ]] && [[ -f "${flake_path}/flake.nix" ]]; then
+            echo "   Updating flake dependencies..."
+            if (cd "${flake_path}" && nix flake update); then
+                echo "   ✅ Dependencies updated"
+            else
+                echo "   ⚠️  Warning: Could not update dependencies"
+            fi
+            
+            echo "   Refreshing flake evaluation cache..."
+            # Force Nix to refresh the local flake by checking it
+            if nix flake check "${CLAUDE_FLAKE_SOURCE}" --refresh >/dev/null 2>&1; then
+                echo "   ✅ Flake cache refreshed"
+            else
+                echo "   ⚠️  Warning: Could not refresh flake cache"
+            fi
+            
+            # Also clear any registry entries for this flake to ensure fresh evaluation
+            nix registry remove claude-flake 2>/dev/null || true
+            
+            echo "   Rebuilding home-manager configuration..."
+            # For local development, we need to rebuild and activate to deploy updated files
+            if nix run --impure --accept-flake-config "${CLAUDE_FLAKE_SOURCE}#apps.x86_64-linux.home" >/dev/null 2>&1; then
+                echo "   ✅ Configuration rebuilt and activated"
+            else
+                echo "   ⚠️  Warning: Could not rebuild configuration"
+            fi
+            
+            echo "✅ Local flake updated successfully"
+            echo "   Latest local changes deployed to ~/.config/claude-flake/"
+            echo ""
+            echo "💡 To apply shell integration changes to your current session:"
+            echo "   source ~/.config/claude-flake/loader.sh"
+        else
+            echo "❌ Invalid local flake path: ${flake_path}"
+            echo "   Ensure path exists and contains flake.nix"
+            return 1
+        fi
     else
-        echo "ℹ️  Using local flake source: ${CLAUDE_FLAKE_SOURCE}"
-        echo "   No remote updates available for local sources."
-        echo "   If this is a git repository, run 'git pull' to update."
+        echo "ℹ️  Using custom flake source: ${CLAUDE_FLAKE_SOURCE}"
+        echo "   Attempting to update inputs..."
+        
+        # For other sources, try a generic update approach
+        if nix flake update "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null; then
+            echo "✅ Flake inputs updated"
+        else
+            echo "⚠️  Could not update inputs for custom source"
+            echo "   This may be expected for some source types"
+        fi
     fi
     
     echo ""
