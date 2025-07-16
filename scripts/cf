@@ -294,8 +294,8 @@ cmd_update() {
 			fi
 
 			echo "   Refreshing flake evaluation cache..."
-			# Force Nix to refresh the local flake by checking it
-			if nix flake check "${CLAUDE_FLAKE_SOURCE}" --refresh >/dev/null 2>&1; then
+			# Force Nix to refresh the local flake by checking it (use relative path to avoid permission issues)
+			if (cd "${flake_path}" && nix flake check . --refresh) >/dev/null 2>&1; then
 				echo "   ✅ Flake cache refreshed"
 			else
 				echo "   ⚠️  Warning: Could not refresh flake cache"
@@ -305,8 +305,8 @@ cmd_update() {
 			nix registry remove claude-flake 2>/dev/null || true
 
 			echo "   Rebuilding home-manager configuration..."
-			# For local development, we need to rebuild and activate to deploy updated files
-			if nix run --impure --accept-flake-config "${CLAUDE_FLAKE_SOURCE}#apps.x86_64-linux.home" >/dev/null 2>&1; then
+			# For local development, we need to rebuild and activate to deploy updated files (use relative path)
+			if (cd "${flake_path}" && nix run --impure --accept-flake-config .#apps.x86_64-linux.home) >/dev/null 2>&1; then
 				echo "   ✅ Configuration rebuilt and activated"
 			else
 				echo "   ⚠️  Warning: Could not rebuild configuration"
