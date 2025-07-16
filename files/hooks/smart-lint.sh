@@ -161,7 +161,11 @@ run_megalinter() {
 
 	# Run MegaLinter and capture exit code
 	local megalinter_output
-	megalinter_output=$(timeout 600 env "$megalinter_env" npx mega-linter-runner --path . 2>&1)
+	if [[ -n "$megalinter_env" ]]; then
+		megalinter_output=$(timeout 600 env "$megalinter_env" npx mega-linter-runner --path . 2>&1)
+	else
+		megalinter_output=$(timeout 600 npx mega-linter-runner --path . 2>&1)
+	fi
 	local exit_code=$?
 	log_debug "MegaLinter exit code: $exit_code"
 
