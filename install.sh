@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
 # Claude-Flake Installation/Uninstallation Script
-# Supports macOS, Linux, and WSL with Docker or Nix installation methods
+# Supports macOS, Linux, and WSL with Nix installation
 
 set -euo pipefail
 
 # Script metadata
 SCRIPT_VERSION="1.0.0"
 GITHUB_REPO="smithclay/claude-flake"
-DOCKER_IMAGE="ghcr.io/smithclay/claude-flake:latest"
 
 # Global options
 DRY_RUN=false
@@ -122,14 +121,8 @@ check_prerequisites() {
 
 # Check for existing installation
 check_existing_installation() {
-	local docker_installed=false
 	local nix_installed=false
 	local version=""
-
-	# Check for Docker-based installation
-	if command_exists docker && docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "claude-flake:latest"; then
-		docker_installed=true
-	fi
 
 	# Check for Nix-based installation
 	if [[ -d "$HOME/.claude" ]] && [[ -f "$HOME/.config/claude-flake/loader.sh" ]]; then
@@ -139,16 +132,12 @@ check_existing_installation() {
 		fi
 	fi
 
-	if [[ "$docker_installed" == true ]] || [[ "$nix_installed" == true ]]; then
+	if [[ "$nix_installed" == true ]]; then
 		echo "existing"
 		if [[ -n "$version" ]]; then
 			echo "version:$version"
 		fi
-		if [[ "$docker_installed" == true ]]; then
-			echo "method:docker"
-		else
-			echo "method:nix"
-		fi
+		echo "method:nix"
 	else
 		echo "none"
 	fi
@@ -192,124 +181,6 @@ backup_existing_files() {
 	fi
 }
 
-# Install Docker method
-install_docker() {
-	log_step "Installing claude-flake via Docker..."
-
-	# Check if Docker is available
-	if ! command_exists docker; then
-		log_error "Docker is not installed."
-		case "$(detect_os)" in
-		macos)
-			log_info "Install Docker Desktop from: https://docs.docker.com/desktop/install/mac-install/"
-			;;
-		linux | wsl)
-			log_info "Install Docker from: https://docs.docker.com/engine/install/"
-			;;
-		esac
-		exit 1
-	fi
-
-	# Check if Docker daemon is running
-	if ! docker info >/dev/null 2>&1; then
-		log_error "Docker daemon is not running. Please start Docker and try again."
-		exit 1
-	fi
-
-	# Pull the latest image
-	log_step "Pulling claude-flake Docker image..."
-	if [[ "$DRY_RUN" == true ]]; then
-		log_dry_run "Would pull Docker image: $DOCKER_IMAGE"
-	else
-		if ! docker pull "$DOCKER_IMAGE"; then
-			log_error "Failed to pull Docker image"
-			exit 1
-		fi
-	fi
-
-	# Create wrapper script
-	local wrapper_dir="$HOME/.local/bin"
-	if [[ "$DRY_RUN" == true ]]; then
-		log_dry_run "Would create directory: $wrapper_dir"
-		log_dry_run "Would create wrapper script: $wrapper_dir/cf-docker"
-	else
-		mkdir -p "$wrapper_dir"
-
-		cat >"$wrapper_dir/cf-docker" <<'EOF'
-#!/usr/bin/env bash
-
-# Claude-Flake Docker wrapper script
-# Automatically mounts current directory and Claude credentials
-
-set -euo pipefail
-
-# Default to current directory if no directory specified
-WORKSPACE_DIR="${1:-$(pwd)}"
-
-# Validate workspace directory
-if [[ ! -d "$WORKSPACE_DIR" ]]; then
-    echo "❌ Directory not found: $WORKSPACE_DIR"
-    exit 1
-fi
-
-# Convert to absolute path
-WORKSPACE_DIR=$(cd "$WORKSPACE_DIR" && pwd)
-
-# Validate Claude credentials
-CREDENTIALS_FILE="$HOME/.claude/.credentials.json"
-if [[ ! -f "$CREDENTIALS_FILE" ]]; then
-    echo "❌ Claude credentials not found: $CREDENTIALS_FILE"
-    echo "   Please run 'claude auth' to set up credentials first"
-    exit 1
-fi
-
-echo "🚀 Starting claude-flake container..."
-echo "📁 Workspace: $WORKSPACE_DIR"
-
-# Run container with proper mounts
-exec docker run -it --rm \
-    -v "$WORKSPACE_DIR:/workspace" \
-    -v "$CREDENTIALS_FILE:/home/claude/.claude/.credentials.json:ro" \
-    -v claude-cache:/home/claude/.cache/nix \
-    ghcr.io/smithclay/claude-flake:latest
-EOF
-
-		chmod +x "$wrapper_dir/cf-docker"
-	fi
-
-	# Add to PATH if not already there
-	if [[ ":$PATH:" != *":$wrapper_dir:"* ]]; then
-		if [[ "$DRY_RUN" == true ]]; then
-			log_dry_run "Would add $wrapper_dir to PATH in shell configuration"
-			case "$(basename "$SHELL")" in
-			bash)
-				log_dry_run "Would append to $HOME/.bashrc"
-				;;
-			zsh)
-				log_dry_run "Would append to $HOME/.zshrc"
-				;;
-			esac
-		else
-			case "$(basename "$SHELL")" in
-			bash)
-				echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >>"$HOME/.bashrc"
-				;;
-			zsh)
-				echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >>"$HOME/.zshrc"
-				;;
-			esac
-			export PATH="$HOME/.local/bin:$PATH"
-		fi
-	fi
-
-	log_success "Docker installation completed!"
-	log_info "Usage:"
-	log_info "  cf-docker                    # Use current directory"
-	log_info "  cf-docker /path/to/project   # Use specific directory"
-	log_info ""
-	log_info "Note: You'll need Claude credentials. Run 'claude auth' if you haven't already."
-}
-
 # Install Nix method
 install_nix() {
 	local backup_result
@@ -327,6 +198,7 @@ install_nix() {
 		# Source Nix in current session
 		if [[ -f "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]]; then
 			# shellcheck source=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+			# shellcheck disable=SC1091
 			source "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 		fi
 	fi
@@ -445,31 +317,6 @@ restore_backup() {
 	log_success "Backup restored successfully"
 }
 
-# Uninstall Docker method
-uninstall_docker() {
-	log_step "Uninstalling Docker-based claude-flake..."
-
-	# Remove Docker image
-	if docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "claude-flake:latest"; then
-		docker rmi "$DOCKER_IMAGE" >/dev/null 2>&1 || true
-		log_info "Removed Docker image"
-	fi
-
-	# Remove volume
-	if docker volume ls --format "table {{.Name}}" | grep -q "claude-cache"; then
-		docker volume rm claude-cache >/dev/null 2>&1 || true
-		log_info "Removed Docker volume"
-	fi
-
-	# Remove wrapper script
-	if [[ -f "$HOME/.local/bin/cf-docker" ]]; then
-		rm "$HOME/.local/bin/cf-docker"
-		log_info "Removed wrapper script"
-	fi
-
-	log_success "Docker uninstallation completed"
-}
-
 # Uninstall Nix method
 uninstall_nix() {
 	log_step "Uninstalling Nix-based claude-flake..."
@@ -560,21 +407,10 @@ upgrade_installation() {
 
 	case "$installation_check" in
 	existing*)
-		local method
-		method=$(echo "$installation_check" | grep "^method:" | cut -d: -f2)
-		case "$method" in
-		docker)
-			log_step "Upgrading Docker installation..."
-			docker pull "$DOCKER_IMAGE"
-			log_success "Docker image upgraded"
-			;;
-		nix)
-			log_step "Upgrading Nix installation..."
-			nix flake update "github:$GITHUB_REPO" >/dev/null 2>&1 || true
-			nix run --impure --accept-flake-config "github:$GITHUB_REPO#apps.x86_64-linux.home"
-			log_success "Nix installation upgraded"
-			;;
-		esac
+		log_step "Upgrading Nix installation..."
+		nix flake update "github:$GITHUB_REPO" >/dev/null 2>&1 || true
+		nix run --impure --accept-flake-config "github:$GITHUB_REPO#apps.x86_64-linux.home"
+		log_success "Nix installation upgraded"
 		;;
 	none)
 		log_error "No existing installation found to upgrade"
@@ -583,79 +419,22 @@ upgrade_installation() {
 	esac
 }
 
-# Choose installation method
+# Choose installation method (Nix-only)
 choose_installation_method() {
-	local docker_available=false
-	local nix_available=false
-
-	# Check Docker availability
-	if command_exists docker && docker info >/dev/null 2>&1; then
-		docker_available=true
-	fi
-
 	# Check Nix availability
-	if command_exists nix || curl -s --connect-timeout 5 https://install.determinate.systems/nix >/dev/null; then
-		nix_available=true
-	fi
-
-	echo ""
-	echo "Choose installation method:"
-	echo ""
-
-	if [[ "$docker_available" == true ]]; then
-		echo "  1. 🐳 Docker (Recommended)"
-		echo "     ✅ Simple and isolated"
-		echo "     ✅ No system modifications"
-		echo "     ✅ Easy to remove"
-		echo ""
-	else
-		echo "  1. 🐳 Docker (Not Available)"
-		echo "     ❌ Docker not installed or running"
-		echo ""
-	fi
-
-	if [[ "$nix_available" == true ]]; then
-		echo "  2. ❄️  Nix"
-		echo "     ✅ Full system integration"
-		echo "     ✅ Powerful development environments"
-		echo "     ⚠️  Modifies shell configuration"
-		echo ""
-	else
-		echo "  2. ❄️  Nix (Limited)"
-		echo "     ⚠️  Will install Nix package manager"
-		echo ""
-	fi
-
-	local valid_choices=()
-	if [[ "$docker_available" == true ]]; then
-		valid_choices+=(1)
-	fi
-	if [[ "$nix_available" == true ]]; then
-		valid_choices+=(2)
-	fi
-
-	if [[ ${#valid_choices[@]} -eq 0 ]]; then
-		log_error "Neither Docker nor Nix installation methods are available"
+	if ! command_exists nix && ! curl -s --connect-timeout 5 https://install.determinate.systems/nix >/dev/null; then
+		log_error "Cannot access Nix installer. Please check your internet connection."
 		exit 1
 	fi
 
-	local choice
-	while true; do
-		read -r -p "Select installation method (${valid_choices[*]}): " choice
-		if [[ " ${valid_choices[*]} " == *" $choice "* ]]; then
-			break
-		fi
-		log_warning "Invalid choice. Please select from: ${valid_choices[*]}"
-	done
+	echo ""
+	log_info "Installing claude-flake via Nix package manager"
+	echo "     ✅ Full system integration"
+	echo "     ✅ Powerful development environments"
+	echo "     ⚠️  Modifies shell configuration"
+	echo ""
 
-	case "$choice" in
-	1)
-		echo "docker"
-		;;
-	2)
-		echo "nix"
-		;;
-	esac
+	echo "nix"
 }
 
 # Main installation function
@@ -676,11 +455,9 @@ install_claude_flake() {
 	case "$installation_check" in
 	existing*)
 		local version
-		local method
 		version=$(echo "$installation_check" | grep "^version:" | cut -d: -f2 || echo "unknown")
-		method=$(echo "$installation_check" | grep "^method:" | cut -d: -f2)
 
-		log_warning "Claude-flake is already installed ($method method)"
+		log_warning "Claude-flake is already installed"
 		if [[ "$version" != "unknown" ]]; then
 			log_info "Current version: $version"
 		fi
@@ -697,16 +474,8 @@ install_claude_flake() {
 			return 0
 			;;
 		2)
-			case "$method" in
-			docker)
-				uninstall_docker
-				install_docker
-				;;
-			nix)
-				uninstall_nix
-				install_nix
-				;;
-			esac
+			uninstall_nix
+			install_nix
 			return 0
 			;;
 		3)
@@ -721,17 +490,8 @@ install_claude_flake() {
 		;;
 	none)
 		# Fresh installation
-		local method
-		method=$(choose_installation_method)
-
-		case "$method" in
-		docker)
-			install_docker
-			;;
-		nix)
-			install_nix
-			;;
-		esac
+		choose_installation_method
+		install_nix
 		;;
 	esac
 }
@@ -746,21 +506,11 @@ uninstall_claude_flake() {
 
 	case "$installation_check" in
 	existing*)
-		local method
-		method=$(echo "$installation_check" | grep "^method:" | cut -d: -f2)
-
 		log_warning "This will completely remove claude-flake from your system"
 		read -r -p "Are you sure? (y/N): " confirm
 
 		if [[ "$confirm" =~ ^[Yy]$ ]]; then
-			case "$method" in
-			docker)
-				uninstall_docker
-				;;
-			nix)
-				uninstall_nix
-				;;
-			esac
+			uninstall_nix
 			log_success "Claude-flake has been uninstalled"
 		else
 			log_info "Uninstallation cancelled"
@@ -788,8 +538,7 @@ OPTIONS:
     --dry-run          Show what would be done without making changes
     --help             Show this help message
 
-INSTALLATION METHODS:
-    Docker            Containerized, isolated installation (recommended)
+INSTALLATION METHOD:
     Nix               Full system integration with development environments
 
 EXAMPLES:

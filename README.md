@@ -23,7 +23,7 @@ This project helps make [Claude Code](https://www.anthropic.com/claude-code), a 
 ## 📋 Requirements
 
 **You need:**
-- **Docker** (recommended) OR **Nix** (advanced)
+- **Nix** package manager (installed automatically)
 - **Anthropic API key** OR **Claude Pro subscription** ($20/month)
 - Any coding project where you want AI help
 
@@ -46,7 +46,7 @@ curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.
 
 This interactive installer will:
 - Check your system requirements
-- Let you choose Docker or Nix installation
+- Install Nix package manager (if needed)
 - Set up Claude Code with optimized configuration
 
 **Then get your API key:**
@@ -56,39 +56,19 @@ This interactive installer will:
 3. Create an API key (if using API) or note your Pro login
 4. Run `claude` to add your credentials
 
-## 🐳 Manual Docker Setup (Alternative)
+## 💻 Direct System Installation
 
-**Step 1: Navigate to your project directory**
+For direct installation on your system, the installer will set up Nix and claude-flake automatically:
+
 ```bash
-# On your computer, go to your project folder
-cd /path/to/your/project
-# For example: cd ~/my-python-app
+curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.sh | bash
 ```
 
-**Step 2: Run the container**
-```bash
-# This mounts your current directory and Claude credentials to the container
-# The ~/.claude mount will pick up and save your existing Claude Code credentials
-docker run -it \
-  -v $(pwd):/workspace \
-  -v ~/.claude/.credentials.json:/home/claude/.claude/.credentials.json:ro \
-  -v claude-cache:/home/claude/.cache/nix \
-  ghcr.io/smithclay/claude-flake:latest
-```
+After installation, you'll have access to:
+- `claude` - Claude Code CLI
+- `cf` - Claude-flake development environments
 
-**You're now inside the container with a bash shell. Your project files are at /workspace**
-
-**Step 3: Use language-specific development shell**
-```bash
-# Enter a language-specific shell with appropriate tools
-cf dev rust     # For Rust projects
-cf dev python   # For Python projects  
-cf dev nodejs   # For Node.js projects
-cf dev go       # For Go projects
-cf dev nix      # For Nix projects
-```
-
-**Step 4: Start using Claude Code**
+**Start using Claude Code:**
 ```bash
 # Start Claude Code (you'll be prompted for your API key on first run)
 claude
@@ -96,10 +76,6 @@ claude
 # Run the built in commands to help you write code. Validation hooks will run automatically.
 # > /next Let's add a new API endpoint to this project...
 ```
-
-**Step 4: Work normally with Claude Code**
-
-Use Claude Code, edit files, run tests - everything stays in sync with your local filesystem.
 
 ### 🎯 Real Example: Building a Simple API
 
@@ -140,9 +116,15 @@ When you enter a language-specific shell, you get appropriate tools:
 - **Node.js projects** 🟢: npm/yarn/pnpm, ESLint, Prettier, TypeScript, stylelint
 - **Nix projects** ❄️: nixfmt, statix, nil language server, deadnix, nix-tree
 
-## 💻 Installation without Docker
+## 🚀 Advanced Installation
 
-If you prefer to install directly on your system, run `curl -L https://install.determinate.systems/nix | sh -s -- install` and choose "nix" to install.
+The installer handles Nix setup automatically, but you can also install Nix manually first:
+
+```bash
+curl -L https://install.determinate.systems/nix | sh -s -- install
+```
+
+Then run the claude-flake installer.
 
 ## 🚀 Using Language-Specific Shells
 
@@ -229,27 +211,11 @@ curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.
 ```
 
 This will:
-- Detect your installation method (Docker or Nix)
 - Safely remove all claude-flake components
-- Offer to restore configuration backups (Nix installations)
+- Offer to restore configuration backups
 - Clean up all associated files and packages
 
 **Manual removal (if needed):**
-
-### Remove Docker setup
-```bash
-# Remove containers and images
-docker container prune
-docker image rm ghcr.io/smithclay/claude-flake:latest
-
-# Remove cache volume (optional - improves Nix performance)
-docker volume rm claude-cache
-
-# Remove wrapper script
-rm ~/.local/bin/cf-docker
-```
-
-### Remove Nix installation
 ```bash
 # Remove installed packages
 npm uninstall -g @anthropic-ai/claude-code
@@ -278,9 +244,8 @@ cf version   # Version information and dependencies
 ### **Common Issues and Solutions**
 
 **Installation Issues:**
-- `docker: command not found` → Install Docker Desktop from docker.com
 - `cf: command not found` → Restart your terminal after installation or check if you're in a cf shell
-- `Permission denied` on Docker → Add yourself to docker group: `sudo usermod -aG docker $USER` then restart terminal
+- `nix: command not found` → Installation may need terminal restart, check if Nix was installed correctly
 - "WSL not found" on Windows → Install from Microsoft Store, then restart
 
 **Claude Code Issues:**
@@ -297,7 +262,7 @@ cf version   # Version information and dependencies
 **Network and Update Issues:**
 - Flake not accessible → Check `cf doctor` for network connectivity and flake validation
 - Update failing → Run `cf doctor` to diagnose, check internet connection
-- Slow Nix operations → Add cache volume in Docker or check substituters in `cf doctor`
+- Slow Nix operations → Check substituters in `cf doctor`
 
 ### **Diagnostic Workflow**
 ```bash
