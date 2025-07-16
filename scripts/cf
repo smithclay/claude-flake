@@ -101,7 +101,7 @@ COMMANDS:
     doctor             Diagnose environment and configuration
     update [--local]   Update claude-flake to latest version (--local: use current directory)
     status             Show current environment status
-    sandbox [DIR]      Start docker container with mounted directory and credentials
+    sandbox [DIR]      Isolated development environment (coming soon)
 
 SUPPORTED LANGUAGES:
     rust               Rust development environment (cargo, clippy, rust-analyzer)
@@ -123,7 +123,7 @@ EXAMPLES:
     cf doctor              # Check environment health
     cf update              # Update to latest claude-flake version
     cf update --local      # Update using local development version
-    cf sandbox /path/to/project  # Start docker container with project mounted
+    cf sandbox /path/to/project  # Isolated development environment (coming soon)
 
 For more information, visit: https://github.com/smithclay/claude-flake
 EOF
@@ -341,59 +341,18 @@ cmd_update() {
 }
 
 cmd_sandbox() {
-	local directory="${1:-$(pwd)}"
-
-	# Validate directory
-	if [[ ! -d "${directory}" ]]; then
-		echo "❌ Directory not found: ${directory}"
-		echo "   Please provide a valid directory path"
-		return 1
-	fi
-
-	# Convert to absolute path
-	directory=$(cd "${directory}" && pwd)
-
-	# Validate Claude credentials file
-	local credentials_file="${HOME}/.claude/.credentials.json"
-	if [[ ! -f "${credentials_file}" ]]; then
-		echo "❌ Claude credentials file not found: ${credentials_file}"
-		echo "   Please ensure Claude CLI is properly configured"
-		echo "   Run 'claude auth' to set up credentials"
-		return 1
-	fi
-
-	# Check if Docker is available
-	if ! command -v docker >/dev/null 2>&1; then
-		echo "❌ Docker not found"
-		echo "   Please install Docker to use sandbox mode"
-		return 1
-	fi
-
-	# Check if Docker daemon is running
-	if ! docker info >/dev/null 2>&1; then
-		echo "❌ Docker daemon is not running"
-		echo "   Please start Docker daemon and try again"
-		return 1
-	fi
-
-	echo "🚀 Starting claude-flake sandbox container..."
-	echo "📁 Directory: ${directory}"
-	echo "🔑 Credentials: ${credentials_file}"
+	echo "🚧 Sandbox mode is currently unimplemented"
 	echo ""
-
-	# Pull latest image if not present
-	echo "📦 Ensuring latest claude-flake image..."
-	if ! docker pull ghcr.io/smithclay/claude-flake:latest >/dev/null 2>&1; then
-		echo "⚠️  Warning: Failed to pull latest image, using cached version"
-	fi
-
-	# Start container with proper mounts
-	echo "🐳 Starting container with mounted workspace and credentials..."
-	docker run -it --rm \
-		-v "${directory}:/workspace" \
-		-v "${credentials_file}:/home/claude/.claude/.credentials.json:ro" \
-		-v claude-cache:/home/claude/.cache/nix \
-		ghcr.io/smithclay/claude-flake:latest
+	echo "The sandbox feature is being redesigned to use Nix-based isolation"
+	echo "instead of Docker containers. This will provide better integration"
+	echo "with the existing claude-flake development environments."
+	echo ""
+	echo "For now, you can use the development shells directly:"
+	echo "  cf dev [language]  # Enter language-specific development shell"
+	echo "  cf                 # Auto-detect and enter appropriate shell"
+	echo ""
+	echo "Stay tuned for the new Nix-based sandbox implementation!"
+	return 1
 }
 
 cmd_status() {
