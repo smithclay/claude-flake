@@ -14,6 +14,12 @@ _:
 
       # NPM global directory setup  
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+
+      # Add Node.js and npm global bins to PATH (from claude-config.nix installation)
+      if [ -d "$HOME/.nvm/versions/node" ]; then
+        # Use nvm node if available
+        export PATH="$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node | tail -1)/bin:$PATH"
+      fi
       export PATH="$HOME/.npm-global/bin:$PATH"
 
       # Add claude-flake scripts to PATH
