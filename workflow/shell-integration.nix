@@ -4,6 +4,9 @@ _:
 {
   # Loader script with essential functionality
   home.file = {
+    # Version file with dynamic content from VERSION file
+    ".config/claude-flake/VERSION".text = builtins.readFile ../VERSION;
+
     # Minimal loader script
     ".config/claude-flake/loader.sh".text = ''
       #!/usr/bin/env bash
@@ -33,8 +36,8 @@ _:
       }
 
       # Show claude-flake version and loaded status
-      if command_exists cf; then
-        version=$(cf version 2>/dev/null | head -1 | sed 's/cf (Claude Flake) v//' || echo "2.0.0")
+      if [ -f "$HOME/.config/claude-flake/VERSION" ]; then
+        version=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "2.0.0")
         echo "claude-flake v$version loaded"
       else
         echo "claude-flake loaded"
