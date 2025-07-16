@@ -27,7 +27,12 @@ _:
       }
 
       # Show claude-flake version and loaded status
-      echo "claude-flake v2.0.0 loaded"
+      if command_exists cf; then
+        version=$(cf version 2>/dev/null | head -1 | sed 's/cf (Claude Flake) v//' || echo "2.0.0")
+        echo "claude-flake v$version loaded"
+      else
+        echo "claude-flake loaded"
+      fi
     '';
 
     # Copy cf script to config directory
