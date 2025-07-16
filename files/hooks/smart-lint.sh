@@ -124,11 +124,6 @@ PARALLEL: true
 SHOW_SKIPPED_LINTERS: false
 CLEAR_REPORT_FOLDER: true
 LOG_LEVEL: "INFO"
-
-# Force clear cache
-MEGALINTER_PRECOMMANDS:
-  - command: rm -rf /tmp/lint/megalinter-reports || true
-    description: "Clear previous reports"
 EOF
 }
 
