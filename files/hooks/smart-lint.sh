@@ -110,6 +110,9 @@ DISABLE_LINTERS:
   - COPYPASTE_JSCPD
   - REPOSITORY_SECRETLINT
 
+# Shellcheck configuration - disable SC1091 for missing external files
+BASH_SHELLCHECK_ARGUMENTS: "--exclude=SC1091"
+
 # Performance settings
 PARALLEL: true
 SHOW_SKIPPED_LINTERS: false
@@ -135,7 +138,7 @@ run_megalinter() {
 
 	# Create default config if none exists
 	local temp_config=false
-	if [[ ! -f ".mega-linter.yml" ]]; then
+	if [[ ! -f ".mega-linter.yml" ]] && [[ ! -f ".megalinter.yml" ]]; then
 		log_debug "No .mega-linter.yml found, creating temporary default config"
 		create_default_megalinter_config
 		temp_config=true
@@ -182,10 +185,10 @@ run_megalinter() {
 		# Parse errors from console output and count them
 		local error_count=0
 		local error_lines
-		
+
 		# Extract error lines that show linter names and issues
 		error_lines=$(echo "$megalinter_output" | grep -E "❌.*Linted.*files.*with.*Found.*error" | head -10)
-		
+
 		if [[ -n "$error_lines" ]]; then
 			# Count and add specific errors from output
 			while IFS= read -r line; do
@@ -200,7 +203,7 @@ run_megalinter() {
 						add_error "Linter found issues"
 					fi
 				fi
-			done <<< "$error_lines"
+			done <<<"$error_lines"
 		fi
 
 		# If no specific errors found in that format, try alternative parsing

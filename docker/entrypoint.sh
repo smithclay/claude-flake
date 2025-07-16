@@ -52,8 +52,8 @@ fi
 # Ensure home-manager profile is in PATH
 if [ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
 	echo "🔄 Loading home-manager session variables..."
-	# shellcheck source=/dev/null
 	set +u # Temporarily disable unbound variable checking
+	# shellcheck source=/dev/null
 	source "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" 2>/dev/null || echo "Warning: Session variables load had minor issues"
 	set -u # Re-enable unbound variable checking
 fi
