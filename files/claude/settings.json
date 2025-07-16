@@ -16,7 +16,7 @@
       "Bash(cargo clippy:*)",
       "Bash(rg:*)"
     ],
-    "deny": [] 
+    "deny": []
   },
   "hooks": {
     "PostToolUse": [

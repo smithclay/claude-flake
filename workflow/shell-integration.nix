@@ -26,9 +26,12 @@ _:
         command -v "$1" >/dev/null 2>&1
       }
 
-      # Conditional loading based on available commands
-      if command_exists claude; then
-        echo "✅ Claude CLI available"
+      # Show claude-flake version and loaded status
+      if command_exists cf; then
+        version=$(cf version 2>/dev/null | head -1 | sed 's/cf (Claude Flake) v//' || echo "2.0.0")
+        echo "claude-flake v$version loaded"
+      else
+        echo "claude-flake loaded"
       fi
     '';
 

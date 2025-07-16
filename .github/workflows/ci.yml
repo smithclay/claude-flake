@@ -2,36 +2,36 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
             accept-flake-config = true
-      
+
       - name: Check all flakes
         run: |
           set -euo pipefail
           echo "Checking main flake..."
           nix flake check
-      
+
       - name: Format check
         run: |
           set -euo pipefail
           nix develop .#nix --command bash -c "
             find . -name '*.nix' -type f | xargs nixfmt --check
           "
-      
+
       - name: Lint check
         run: |
           set -euo pipefail

@@ -9,16 +9,16 @@ set -euo pipefail
 CF_VERSION="2.0.0"
 # More robust git commit detection
 if [[ -n "${CF_COMMIT:-}" ]]; then
-    # CF_COMMIT already set in environment
-    :
+	# CF_COMMIT already set in environment
+	:
 else
-    # Try to get git commit from the script's parent directory
-    script_dir="${BASH_SOURCE[0]%/*}/.."
-    if [[ -d "${script_dir}/.git" ]] && command -v git >/dev/null 2>&1; then
-        CF_COMMIT="$(git -C "${script_dir}" rev-parse --short HEAD 2>/dev/null || echo "unknown")"
-    else
-        CF_COMMIT="unknown"
-    fi
+	# Try to get git commit from the script's parent directory
+	script_dir="${BASH_SOURCE[0]%/*}/.."
+	if [[ -d "${script_dir}/.git" ]] && command -v git >/dev/null 2>&1; then
+		CF_COMMIT="$(git -C "${script_dir}" rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+	else
+		CF_COMMIT="unknown"
+	fi
 fi
 
 # Configuration
@@ -27,66 +27,66 @@ NIX_DEVELOP_CMD="nix develop --accept-flake-config"
 
 # Language detection based on project files
 detect_language() {
-    local current_dir
-    current_dir="$(pwd)"
-    
-    # Check for language-specific files in order of specificity
-    # Rust
-    if [[ -f "${current_dir}/Cargo.toml" || -f "${current_dir}/Cargo.lock" ]]; then
-        echo "rust"
-        return 0
-    fi
-    
-    # Go
-    if [[ -f "${current_dir}/go.mod" || -f "${current_dir}/go.sum" ]]; then
-        echo "go"
-        return 0
-    fi
-    
-    # Python
-    if [[ -f "${current_dir}/pyproject.toml" || -f "${current_dir}/requirements.txt" || \
-          -f "${current_dir}/poetry.lock" || -f "${current_dir}/setup.py" || \
-          -f "${current_dir}/Pipfile" || -f "${current_dir}/environment.yml" ]]; then
-        echo "python"
-        return 0
-    fi
-    
-    # Node.js
-    if [[ -f "${current_dir}/package.json" || -f "${current_dir}/yarn.lock" || \
-          -f "${current_dir}/package-lock.json" || -f "${current_dir}/pnpm-lock.yaml" || \
-          -f "${current_dir}/bun.lockb" ]]; then
-        echo "nodejs"
-        return 0
-    fi
-    
-    # Nix
-    if [[ -f "${current_dir}/flake.nix" || -f "${current_dir}/shell.nix" || \
-          -f "${current_dir}/default.nix" ]]; then
-        echo "nix"
-        return 0
-    fi
-    
-    # Default to universal if no specific language detected
-    echo "universal"
+	local current_dir
+	current_dir="$(pwd)"
+
+	# Check for language-specific files in order of specificity
+	# Rust
+	if [[ -f "${current_dir}/Cargo.toml" || -f "${current_dir}/Cargo.lock" ]]; then
+		echo "rust"
+		return 0
+	fi
+
+	# Go
+	if [[ -f "${current_dir}/go.mod" || -f "${current_dir}/go.sum" ]]; then
+		echo "go"
+		return 0
+	fi
+
+	# Python
+	if [[ -f "${current_dir}/pyproject.toml" || -f "${current_dir}/requirements.txt" ||
+		-f "${current_dir}/poetry.lock" || -f "${current_dir}/setup.py" ||
+		-f "${current_dir}/Pipfile" || -f "${current_dir}/environment.yml" ]]; then
+		echo "python"
+		return 0
+	fi
+
+	# Node.js
+	if [[ -f "${current_dir}/package.json" || -f "${current_dir}/yarn.lock" ||
+		-f "${current_dir}/package-lock.json" || -f "${current_dir}/pnpm-lock.yaml" ||
+		-f "${current_dir}/bun.lockb" ]]; then
+		echo "nodejs"
+		return 0
+	fi
+
+	# Nix
+	if [[ -f "${current_dir}/flake.nix" || -f "${current_dir}/shell.nix" ||
+		-f "${current_dir}/default.nix" ]]; then
+		echo "nix"
+		return 0
+	fi
+
+	# Default to universal if no specific language detected
+	echo "universal"
 }
 
 # Check if we're currently in a claude-flake shell
 is_in_cf_shell() {
-    [[ -n "${CF_SHELL:-}" ]] || [[ -n "${CLAUDE_FLAKE_SHELL:-}" ]]
+	[[ -n "${CF_SHELL:-}" ]] || [[ -n "${CLAUDE_FLAKE_SHELL:-}" ]]
 }
 
 # Get current shell type
 get_current_shell() {
-    if is_in_cf_shell; then
-        echo "${CF_SHELL:-${CLAUDE_FLAKE_SHELL:-unknown}}"
-    else
-        echo "none"
-    fi
+	if is_in_cf_shell; then
+		echo "${CF_SHELL:-${CLAUDE_FLAKE_SHELL:-unknown}}"
+	else
+		echo "none"
+	fi
 }
 
 # Subcommand implementations
 cmd_help() {
-    cat << 'EOF'
+	cat <<'EOF'
 cf - Claude Flake unified command-line interface
 
 USAGE:
@@ -130,323 +130,323 @@ EOF
 }
 
 cmd_version() {
-    echo "cf (Claude Flake) v${CF_VERSION}"
-    echo "Commit: ${CF_COMMIT}"
-    echo "Flake source: ${CLAUDE_FLAKE_SOURCE}"
-    echo ""
-    echo "Available environments:"
-    echo "  rust, python, nodejs, go, nix, shell, universal"
-    echo ""
-    echo "Dependencies:"
-    if command -v nix >/dev/null 2>&1; then
-        echo "  nix: $(nix --version | head -n1)"
-    else
-        echo "  nix: not found"
-    fi
-    
-    if command -v claude >/dev/null 2>&1; then
-        echo "  claude: $(claude --version 2>/dev/null || echo "unknown version")"
-    else
-        echo "  claude: not found"
-    fi
+	echo "cf (Claude Flake) v${CF_VERSION}"
+	echo "Commit: ${CF_COMMIT}"
+	echo "Flake source: ${CLAUDE_FLAKE_SOURCE}"
+	echo ""
+	echo "Available environments:"
+	echo "  rust, python, nodejs, go, nix, shell, universal"
+	echo ""
+	echo "Dependencies:"
+	if command -v nix >/dev/null 2>&1; then
+		echo "  nix: $(nix --version | head -n1)"
+	else
+		echo "  nix: not found"
+	fi
+
+	if command -v claude >/dev/null 2>&1; then
+		echo "  claude: $(claude --version 2>/dev/null || echo "unknown version")"
+	else
+		echo "  claude: not found"
+	fi
 }
 
 cmd_doctor() {
-    echo "🔍 Claude Flake Environment Diagnostics"
-    echo "========================================"
-    echo ""
-    
-    local issues=0
-    
-    # Check Nix installation
-    echo "📦 Nix Installation:"
-    if command -v nix >/dev/null 2>&1; then
-        echo "  ✅ nix: $(nix --version | head -n1)"
-        
-        # Check flakes support
-        if nix eval --expr "1 + 1" >/dev/null 2>&1; then
-            echo "  ✅ Flakes: enabled"
-        else
-            echo "  ❌ Flakes: not enabled or not working"
-            ((issues++))
-        fi
-    else
-        echo "  ❌ nix: not found"
-        echo "     Install Nix from: https://nixos.org/download.html"
-        ((issues++))
-    fi
-    echo ""
-    
-    # Check Claude CLI
-    echo "🤖 Claude CLI:"
-    if command -v claude >/dev/null 2>&1; then
-        echo "  ✅ claude: $(claude --version 2>/dev/null || echo "found but version unknown")"
-    else
-        echo "  ❌ claude: not found"
-        echo "     Install from: https://docs.anthropic.com/en/docs/claude-code"
-        ((issues++))
-    fi
-    echo ""
-    
-    # Check project detection
-    echo "🔍 Project Detection:"
-    local detected_lang
-    detected_lang=$(detect_language)
-    echo "  📁 Current directory: $(pwd)"
-    echo "  🏷️  Detected language: ${detected_lang}"
-    echo ""
-    
-    # Check current shell status
-    echo "🐚 Shell Status:"
-    local current_shell
-    current_shell=$(get_current_shell)
-    if [[ "${current_shell}" == "none" ]]; then
-        echo "  📍 Currently in: system shell"
-    else
-        echo "  📍 Currently in: claude-flake ${current_shell} shell"
-    fi
-    echo ""
-    
-    # Check flake accessibility
-    echo "🔗 Flake Accessibility:"
-    echo "  📡 Source: ${CLAUDE_FLAKE_SOURCE}"
-    if timeout 15 nix flake show "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
-        echo "  ✅ Flake accessible and valid"
-    else
-        echo "  ❌ Flake not accessible or invalid"
-        echo "     Check network connection and flake source"
-        echo "     Timeout after 15 seconds - may indicate network issues"
-        ((issues++))
-    fi
-    echo ""
-    
-    # Summary
-    if [[ ${issues} -eq 0 ]]; then
-        echo "🎉 All checks passed! Claude Flake is ready to use."
-    else
-        echo "⚠️  Found ${issues} issue(s). Please address them before using Claude Flake."
-        return 1
-    fi
+	echo "🔍 Claude Flake Environment Diagnostics"
+	echo "========================================"
+	echo ""
+
+	local issues=0
+
+	# Check Nix installation
+	echo "📦 Nix Installation:"
+	if command -v nix >/dev/null 2>&1; then
+		echo "  ✅ nix: $(nix --version | head -n1)"
+
+		# Check flakes support
+		if nix eval --expr "1 + 1" >/dev/null 2>&1; then
+			echo "  ✅ Flakes: enabled"
+		else
+			echo "  ❌ Flakes: not enabled or not working"
+			((issues++))
+		fi
+	else
+		echo "  ❌ nix: not found"
+		echo "     Install Nix from: https://nixos.org/download.html"
+		((issues++))
+	fi
+	echo ""
+
+	# Check Claude CLI
+	echo "🤖 Claude CLI:"
+	if command -v claude >/dev/null 2>&1; then
+		echo "  ✅ claude: $(claude --version 2>/dev/null || echo "found but version unknown")"
+	else
+		echo "  ❌ claude: not found"
+		echo "     Install from: https://docs.anthropic.com/en/docs/claude-code"
+		((issues++))
+	fi
+	echo ""
+
+	# Check project detection
+	echo "🔍 Project Detection:"
+	local detected_lang
+	detected_lang=$(detect_language)
+	echo "  📁 Current directory: $(pwd)"
+	echo "  🏷️  Detected language: ${detected_lang}"
+	echo ""
+
+	# Check current shell status
+	echo "🐚 Shell Status:"
+	local current_shell
+	current_shell=$(get_current_shell)
+	if [[ "${current_shell}" == "none" ]]; then
+		echo "  📍 Currently in: system shell"
+	else
+		echo "  📍 Currently in: claude-flake ${current_shell} shell"
+	fi
+	echo ""
+
+	# Check flake accessibility
+	echo "🔗 Flake Accessibility:"
+	echo "  📡 Source: ${CLAUDE_FLAKE_SOURCE}"
+	if timeout 15 nix flake show "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
+		echo "  ✅ Flake accessible and valid"
+	else
+		echo "  ❌ Flake not accessible or invalid"
+		echo "     Check network connection and flake source"
+		echo "     Timeout after 15 seconds - may indicate network issues"
+		((issues++))
+	fi
+	echo ""
+
+	# Summary
+	if [[ ${issues} -eq 0 ]]; then
+		echo "🎉 All checks passed! Claude Flake is ready to use."
+	else
+		echo "⚠️  Found ${issues} issue(s). Please address them before using Claude Flake."
+		return 1
+	fi
 }
 
 cmd_update() {
-    # Check for --local flag
-    local use_local=false
-    local local_path=""
-    
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            --local)
-                use_local=true
-                local_path="$(pwd)"
-                shift
-                ;;
-            *)
-                echo "Unknown option: $1" >&2
-                echo "Usage: cf update [--local]" >&2
-                return 1
-                ;;
-        esac
-    done
-    
-    # Override CLAUDE_FLAKE_SOURCE if --local is specified
-    if [[ "$use_local" == "true" ]]; then
-        if [[ -f "${local_path}/flake.nix" ]]; then
-            CLAUDE_FLAKE_SOURCE="path:${local_path}"
-            echo "🏠 Using local development path: ${local_path}"
-        else
-            echo "❌ No flake.nix found in current directory: ${local_path}"
-            echo "   Run 'cf update --local' from your claude-flake repository root"
-            return 1
-        fi
-    fi
-    
-    echo "🔄 Updating Claude Flake..."
-    echo "   Source: ${CLAUDE_FLAKE_SOURCE}"
-    echo ""
-    
-    if [[ "${CLAUDE_FLAKE_SOURCE}" == github:* ]]; then
-        echo "📡 Updating flake registry and inputs..."
-        # Update the flake registry entry and fetch latest
-        if nix registry add claude-flake "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null && \
-           nix flake prefetch "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
-            echo "✅ Flake updated successfully"
-            echo "   Latest version will be used on next shell entry"
-        else
-            echo "❌ Failed to update flake"
-            echo "   Check network connection and flake source: ${CLAUDE_FLAKE_SOURCE}"
-            return 1
-        fi
-    elif [[ "${CLAUDE_FLAKE_SOURCE}" == path:* ]]; then
-        echo "🏠 Local source detected: ${CLAUDE_FLAKE_SOURCE}"
-        echo "📦 Updating local flake..."
-        
-        # Extract path from path: prefix
-        local flake_path="${CLAUDE_FLAKE_SOURCE#path:}"
-        
-        # Change to the flake directory and update inputs
-        if [[ -d "${flake_path}" ]] && [[ -f "${flake_path}/flake.nix" ]]; then
-            echo "   Updating flake dependencies..."
-            if (cd "${flake_path}" && nix flake update); then
-                echo "   ✅ Dependencies updated"
-            else
-                echo "   ⚠️  Warning: Could not update dependencies"
-            fi
-            
-            echo "   Refreshing flake evaluation cache..."
-            # Force Nix to refresh the local flake by checking it
-            if nix flake check "${CLAUDE_FLAKE_SOURCE}" --refresh >/dev/null 2>&1; then
-                echo "   ✅ Flake cache refreshed"
-            else
-                echo "   ⚠️  Warning: Could not refresh flake cache"
-            fi
-            
-            # Also clear any registry entries for this flake to ensure fresh evaluation
-            nix registry remove claude-flake 2>/dev/null || true
-            
-            echo "   Rebuilding home-manager configuration..."
-            # For local development, we need to rebuild and activate to deploy updated files
-            if nix run --impure --accept-flake-config "${CLAUDE_FLAKE_SOURCE}#apps.x86_64-linux.home" >/dev/null 2>&1; then
-                echo "   ✅ Configuration rebuilt and activated"
-            else
-                echo "   ⚠️  Warning: Could not rebuild configuration"
-            fi
-            
-            echo "✅ Local flake updated successfully"
-            echo "   Latest local changes deployed to ~/.config/claude-flake/"
-            echo ""
-            echo "💡 To apply shell integration changes to your current session:"
-            echo "   source ~/.config/claude-flake/loader.sh"
-        else
-            echo "❌ Invalid local flake path: ${flake_path}"
-            echo "   Ensure path exists and contains flake.nix"
-            return 1
-        fi
-    else
-        echo "ℹ️  Using custom flake source: ${CLAUDE_FLAKE_SOURCE}"
-        echo "   Attempting to update inputs..."
-        
-        # For other sources, try a generic update approach
-        if nix flake update "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null; then
-            echo "✅ Flake inputs updated"
-        else
-            echo "⚠️  Could not update inputs for custom source"
-            echo "   This may be expected for some source types"
-        fi
-    fi
-    
-    echo ""
-    echo "🔄 To use the updated environment, exit any active shells and run:"
-    echo "   cf dev [language]"
+	# Check for --local flag
+	local use_local=false
+	local local_path=""
+
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+		--local)
+			use_local=true
+			local_path="$(pwd)"
+			shift
+			;;
+		*)
+			echo "Unknown option: $1" >&2
+			echo "Usage: cf update [--local]" >&2
+			return 1
+			;;
+		esac
+	done
+
+	# Override CLAUDE_FLAKE_SOURCE if --local is specified
+	if [[ "$use_local" == "true" ]]; then
+		if [[ -f "${local_path}/flake.nix" ]]; then
+			CLAUDE_FLAKE_SOURCE="path:${local_path}"
+			echo "🏠 Using local development path: ${local_path}"
+		else
+			echo "❌ No flake.nix found in current directory: ${local_path}"
+			echo "   Run 'cf update --local' from your claude-flake repository root"
+			return 1
+		fi
+	fi
+
+	echo "🔄 Updating Claude Flake..."
+	echo "   Source: ${CLAUDE_FLAKE_SOURCE}"
+	echo ""
+
+	if [[ "${CLAUDE_FLAKE_SOURCE}" == github:* ]]; then
+		echo "📡 Updating flake registry and inputs..."
+		# Update the flake registry entry and fetch latest
+		if nix registry add claude-flake "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null &&
+			nix flake prefetch "${CLAUDE_FLAKE_SOURCE}" >/dev/null 2>&1; then
+			echo "✅ Flake updated successfully"
+			echo "   Latest version will be used on next shell entry"
+		else
+			echo "❌ Failed to update flake"
+			echo "   Check network connection and flake source: ${CLAUDE_FLAKE_SOURCE}"
+			return 1
+		fi
+	elif [[ "${CLAUDE_FLAKE_SOURCE}" == path:* ]]; then
+		echo "🏠 Local source detected: ${CLAUDE_FLAKE_SOURCE}"
+		echo "📦 Updating local flake..."
+
+		# Extract path from path: prefix
+		local flake_path="${CLAUDE_FLAKE_SOURCE#path:}"
+
+		# Change to the flake directory and update inputs
+		if [[ -d "${flake_path}" ]] && [[ -f "${flake_path}/flake.nix" ]]; then
+			echo "   Updating flake dependencies..."
+			if (cd "${flake_path}" && nix flake update); then
+				echo "   ✅ Dependencies updated"
+			else
+				echo "   ⚠️  Warning: Could not update dependencies"
+			fi
+
+			echo "   Refreshing flake evaluation cache..."
+			# Force Nix to refresh the local flake by checking it (use relative path to avoid permission issues)
+			if (cd "${flake_path}" && nix flake check . --refresh) >/dev/null 2>&1; then
+				echo "   ✅ Flake cache refreshed"
+			else
+				echo "   ⚠️  Warning: Could not refresh flake cache"
+			fi
+
+			# Also clear any registry entries for this flake to ensure fresh evaluation
+			nix registry remove claude-flake 2>/dev/null || true
+
+			echo "   Rebuilding home-manager configuration..."
+			# For local development, we need to rebuild and activate to deploy updated files (use relative path)
+			if (cd "${flake_path}" && nix run --impure --accept-flake-config .#apps.x86_64-linux.home) >/dev/null 2>&1; then
+				echo "   ✅ Configuration rebuilt and activated"
+			else
+				echo "   ⚠️  Warning: Could not rebuild configuration"
+			fi
+
+			echo "✅ Local flake updated successfully"
+			echo "   Latest local changes deployed to ~/.config/claude-flake/"
+			echo ""
+			echo "💡 To apply shell integration changes to your current session:"
+			echo "   source ~/.config/claude-flake/loader.sh"
+		else
+			echo "❌ Invalid local flake path: ${flake_path}"
+			echo "   Ensure path exists and contains flake.nix"
+			return 1
+		fi
+	else
+		echo "ℹ️  Using custom flake source: ${CLAUDE_FLAKE_SOURCE}"
+		echo "   Attempting to update inputs..."
+
+		# For other sources, try a generic update approach
+		if nix flake update "${CLAUDE_FLAKE_SOURCE}" 2>/dev/null; then
+			echo "✅ Flake inputs updated"
+		else
+			echo "⚠️  Could not update inputs for custom source"
+			echo "   This may be expected for some source types"
+		fi
+	fi
+
+	echo ""
+	echo "🔄 To use the updated environment, exit any active shells and run:"
+	echo "   cf dev [language]"
 }
 
 cmd_sandbox() {
-    local directory="${1:-$(pwd)}"
-    
-    # Validate directory
-    if [[ ! -d "${directory}" ]]; then
-        echo "❌ Directory not found: ${directory}"
-        echo "   Please provide a valid directory path"
-        return 1
-    fi
-    
-    # Convert to absolute path
-    directory=$(cd "${directory}" && pwd)
-    
-    # Validate Claude credentials file
-    local credentials_file="${HOME}/.claude/.credentials.json"
-    if [[ ! -f "${credentials_file}" ]]; then
-        echo "❌ Claude credentials file not found: ${credentials_file}"
-        echo "   Please ensure Claude CLI is properly configured"
-        echo "   Run 'claude auth' to set up credentials"
-        return 1
-    fi
-    
-    # Check if Docker is available
-    if ! command -v docker >/dev/null 2>&1; then
-        echo "❌ Docker not found"
-        echo "   Please install Docker to use sandbox mode"
-        return 1
-    fi
-    
-    # Check if Docker daemon is running
-    if ! docker info >/dev/null 2>&1; then
-        echo "❌ Docker daemon is not running"
-        echo "   Please start Docker daemon and try again"
-        return 1
-    fi
-    
-    echo "🚀 Starting claude-flake sandbox container..."
-    echo "📁 Directory: ${directory}"
-    echo "🔑 Credentials: ${credentials_file}"
-    echo ""
-    
-    # Pull latest image if not present
-    echo "📦 Ensuring latest claude-flake image..."
-    if ! docker pull ghcr.io/smithclay/claude-flake:latest >/dev/null 2>&1; then
-        echo "⚠️  Warning: Failed to pull latest image, using cached version"
-    fi
-    
-    # Start container with proper mounts
-    echo "🐳 Starting container with mounted workspace and credentials..."
-    docker run -it --rm \
-        -v "${directory}:/workspace" \
-        -v "${credentials_file}:/home/claude/.claude/.credentials.json:ro" \
-        -v claude-cache:/home/claude/.cache/nix \
-        ghcr.io/smithclay/claude-flake:latest
+	local directory="${1:-$(pwd)}"
+
+	# Validate directory
+	if [[ ! -d "${directory}" ]]; then
+		echo "❌ Directory not found: ${directory}"
+		echo "   Please provide a valid directory path"
+		return 1
+	fi
+
+	# Convert to absolute path
+	directory=$(cd "${directory}" && pwd)
+
+	# Validate Claude credentials file
+	local credentials_file="${HOME}/.claude/.credentials.json"
+	if [[ ! -f "${credentials_file}" ]]; then
+		echo "❌ Claude credentials file not found: ${credentials_file}"
+		echo "   Please ensure Claude CLI is properly configured"
+		echo "   Run 'claude auth' to set up credentials"
+		return 1
+	fi
+
+	# Check if Docker is available
+	if ! command -v docker >/dev/null 2>&1; then
+		echo "❌ Docker not found"
+		echo "   Please install Docker to use sandbox mode"
+		return 1
+	fi
+
+	# Check if Docker daemon is running
+	if ! docker info >/dev/null 2>&1; then
+		echo "❌ Docker daemon is not running"
+		echo "   Please start Docker daemon and try again"
+		return 1
+	fi
+
+	echo "🚀 Starting claude-flake sandbox container..."
+	echo "📁 Directory: ${directory}"
+	echo "🔑 Credentials: ${credentials_file}"
+	echo ""
+
+	# Pull latest image if not present
+	echo "📦 Ensuring latest claude-flake image..."
+	if ! docker pull ghcr.io/smithclay/claude-flake:latest >/dev/null 2>&1; then
+		echo "⚠️  Warning: Failed to pull latest image, using cached version"
+	fi
+
+	# Start container with proper mounts
+	echo "🐳 Starting container with mounted workspace and credentials..."
+	docker run -it --rm \
+		-v "${directory}:/workspace" \
+		-v "${credentials_file}:/home/claude/.claude/.credentials.json:ro" \
+		-v claude-cache:/home/claude/.cache/nix \
+		ghcr.io/smithclay/claude-flake:latest
 }
 
 cmd_status() {
-    echo "📊 Claude Flake Status"
-    echo "====================="
-    echo ""
-    
-    echo "🔧 Configuration:"
-    echo "  Flake source: ${CLAUDE_FLAKE_SOURCE}"
-    echo "  Version: ${CF_VERSION} (${CF_COMMIT})"
-    echo ""
-    
-    echo "📁 Project:"
-    echo "  Directory: $(pwd)"
-    echo "  Detected language: $(detect_language)"
-    echo ""
-    
-    echo "🐚 Shell:"
-    local current_shell
-    current_shell=$(get_current_shell)
-    if [[ "${current_shell}" == "none" ]]; then
-        echo "  Status: system shell"
-        echo "  Run 'cf' or 'cf dev' to enter a development shell"
-    else
-        echo "  Status: claude-flake ${current_shell} shell"
-        echo "  Run 'exit' to return to system shell"
-    fi
-    echo ""
-    
-    echo "🛠️  Available commands: dev, help, version, doctor, update, status, sandbox, config"
+	echo "📊 Claude Flake Status"
+	echo "====================="
+	echo ""
+
+	echo "🔧 Configuration:"
+	echo "  Flake source: ${CLAUDE_FLAKE_SOURCE}"
+	echo "  Version: ${CF_VERSION} (${CF_COMMIT})"
+	echo ""
+
+	echo "📁 Project:"
+	echo "  Directory: $(pwd)"
+	echo "  Detected language: $(detect_language)"
+	echo ""
+
+	echo "🐚 Shell:"
+	local current_shell
+	current_shell=$(get_current_shell)
+	if [[ "${current_shell}" == "none" ]]; then
+		echo "  Status: system shell"
+		echo "  Run 'cf' or 'cf dev' to enter a development shell"
+	else
+		echo "  Status: claude-flake ${current_shell} shell"
+		echo "  Run 'exit' to return to system shell"
+	fi
+	echo ""
+
+	echo "🛠️  Available commands: dev, help, version, doctor, update, status, sandbox, config"
 }
 
 cmd_config() {
-    local subcommand="${1:-}"
-    
-    case "${subcommand}" in
-        ntfy)
-            shift
-            cmd_config_ntfy "$@"
-            ;;
-        help|--help|-h|"")
-            cmd_config_help
-            ;;
-        *)
-            echo "❌ Unknown config subcommand: ${subcommand}" >&2
-            echo "   Run 'cf config help' for usage information" >&2
-            return 1
-            ;;
-    esac
+	local subcommand="${1:-}"
+
+	case "${subcommand}" in
+	ntfy)
+		shift
+		cmd_config_ntfy "$@"
+		;;
+	help | --help | -h | "")
+		cmd_config_help
+		;;
+	*)
+		echo "❌ Unknown config subcommand: ${subcommand}" >&2
+		echo "   Run 'cf config help' for usage information" >&2
+		return 1
+		;;
+	esac
 }
 
 cmd_config_help() {
-    cat << 'EOF'
+	cat <<'EOF'
 cf config - Manage Claude Flake configuration
 
 USAGE:
@@ -467,39 +467,39 @@ EOF
 }
 
 cmd_config_ntfy() {
-    local operation="${1:-help}"
-    
-    # Use new config directory location
-    local config_dir="${HOME}/.config/claude-code"
-    local config_file="${config_dir}/ntfy.yaml"
-    
-    case "${operation}" in
-        show)
-            cmd_config_ntfy_show "${config_file}"
-            ;;
-        set)
-            shift
-            cmd_config_ntfy_set "${config_file}" "$@"
-            ;;
-        test)
-            cmd_config_ntfy_test "${config_file}"
-            ;;
-        init)
-            cmd_config_ntfy_init "${config_file}"
-            ;;
-        help|--help|-h|"")
-            cmd_config_ntfy_help
-            ;;
-        *)
-            echo "❌ Unknown ntfy operation: ${operation}" >&2
-            echo "   Run 'cf config ntfy help' for usage information" >&2
-            return 1
-            ;;
-    esac
+	local operation="${1:-help}"
+
+	# Use new config directory location
+	local config_dir="${HOME}/.config/claude-code"
+	local config_file="${config_dir}/ntfy.yaml"
+
+	case "${operation}" in
+	show)
+		cmd_config_ntfy_show "${config_file}"
+		;;
+	set)
+		shift
+		cmd_config_ntfy_set "${config_file}" "$@"
+		;;
+	test)
+		cmd_config_ntfy_test "${config_file}"
+		;;
+	init)
+		cmd_config_ntfy_init "${config_file}"
+		;;
+	help | --help | -h | "")
+		cmd_config_ntfy_help
+		;;
+	*)
+		echo "❌ Unknown ntfy operation: ${operation}" >&2
+		echo "   Run 'cf config ntfy help' for usage information" >&2
+		return 1
+		;;
+	esac
 }
 
 cmd_config_ntfy_help() {
-    cat << 'EOF'
+	cat <<'EOF'
 cf config ntfy - Manage ntfy notification configuration
 
 USAGE:
@@ -533,369 +533,367 @@ EOF
 }
 
 cmd_config_ntfy_show() {
-    local config_file="$1"
-    
-    echo "📱 Ntfy Configuration"
-    echo "===================="
-    echo ""
-    echo "📍 Config file: ${config_file}"
-    
-    if [[ ! -f "${config_file}" ]]; then
-        echo "❌ Configuration file not found"
-        echo ""
-        echo "💡 Run 'cf config ntfy init' to create configuration"
-        return 1
-    fi
-    
-    # Check if yq is available
-    if ! command -v yq >/dev/null 2>&1; then
-        echo "❌ yq command not found (required for YAML parsing)"
-        echo "   Install yq or enter a claude-flake development shell"
-        return 1
-    fi
-    
-    echo "✅ Configuration found"
-    echo ""
-    
-    local topic
-    local server
-    topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
-    server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
-    
-    echo "🏷️  Topic: ${topic:-"(not set)"}"
-    echo "🌐 Server: ${server:-"https://ntfy.sh (default)"}"
-    
-    if [[ -z "${topic}" ]]; then
-        echo ""
-        echo "⚠️  Topic not configured - notifications will not work"
-        echo "   Run 'cf config ntfy set <topic>' to configure"
-    fi
+	local config_file="$1"
+
+	echo "📱 Ntfy Configuration"
+	echo "===================="
+	echo ""
+	echo "📍 Config file: ${config_file}"
+
+	if [[ ! -f "${config_file}" ]]; then
+		echo "❌ Configuration file not found"
+		echo ""
+		echo "💡 Run 'cf config ntfy init' to create configuration"
+		return 1
+	fi
+
+	# Check if yq is available
+	if ! command -v yq >/dev/null 2>&1; then
+		echo "❌ yq command not found (required for YAML parsing)"
+		echo "   Install yq or enter a claude-flake development shell"
+		return 1
+	fi
+
+	echo "✅ Configuration found"
+	echo ""
+
+	local topic
+	local server
+	topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+	server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
+
+	echo "🏷️  Topic: ${topic:-"(not set)"}"
+	echo "🌐 Server: ${server:-"https://ntfy.sh (default)"}"
+
+	if [[ -z "${topic}" ]]; then
+		echo ""
+		echo "⚠️  Topic not configured - notifications will not work"
+		echo "   Run 'cf config ntfy set <topic>' to configure"
+	fi
 }
 
 cmd_config_ntfy_set() {
-    local config_file="$1"
-    local topic="$2"
-    local server="${3:-https://ntfy.sh}"
-    
-    if [[ -z "${topic}" ]]; then
-        echo "❌ Topic is required"
-        echo "   Usage: cf config ntfy set <topic> [server]"
-        return 1
-    fi
-    
-    # Validate topic format (basic validation)
-    if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-        echo "❌ Invalid topic format: ${topic}"
-        echo "   Topic should only contain letters, numbers, underscores, and hyphens"
-        return 1
-    fi
-    
-    # Create config directory if it doesn't exist
-    local config_dir
-    config_dir="$(dirname "${config_file}")"
-    if [[ ! -d "${config_dir}" ]]; then
-        echo "📁 Creating config directory: ${config_dir}"
-        mkdir -p "${config_dir}"
-    fi
-    
-    # Check if yq is available
-    if ! command -v yq >/dev/null 2>&1; then
-        echo "❌ yq command not found (required for YAML manipulation)"
-        echo "   Install yq or enter a claude-flake development shell"
-        return 1
-    fi
-    
-    echo "💾 Setting ntfy configuration..."
-    
-    # Create or update configuration
-    if cat > "${config_file}" << EOF
+	local config_file="$1"
+	local topic="$2"
+	local server="${3:-https://ntfy.sh}"
+
+	if [[ -z "${topic}" ]]; then
+		echo "❌ Topic is required"
+		echo "   Usage: cf config ntfy set <topic> [server]"
+		return 1
+	fi
+
+	# Validate topic format (basic validation)
+	if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+		echo "❌ Invalid topic format: ${topic}"
+		echo "   Topic should only contain letters, numbers, underscores, and hyphens"
+		return 1
+	fi
+
+	# Create config directory if it doesn't exist
+	local config_dir
+	config_dir="$(dirname "${config_file}")"
+	if [[ ! -d "${config_dir}" ]]; then
+		echo "📁 Creating config directory: ${config_dir}"
+		mkdir -p "${config_dir}"
+	fi
+
+	# Check if yq is available
+	if ! command -v yq >/dev/null 2>&1; then
+		echo "❌ yq command not found (required for YAML manipulation)"
+		echo "   Install yq or enter a claude-flake development shell"
+		return 1
+	fi
+
+	echo "💾 Setting ntfy configuration..."
+
+	# Create or update configuration
+	if cat >"${config_file}" <<EOF; then
 ntfy_topic: ${topic}
 ntfy_server: ${server}
 EOF
-    then
-        echo "✅ Configuration saved to ${config_file}"
-        echo ""
-        echo "🏷️  Topic: ${topic}"
-        echo "🌐 Server: ${server}"
-        echo ""
-        echo "💡 Run 'cf config ntfy test' to verify configuration"
-    else
-        echo "❌ Failed to save configuration"
-        return 1
-    fi
+		echo "✅ Configuration saved to ${config_file}"
+		echo ""
+		echo "🏷️  Topic: ${topic}"
+		echo "🌐 Server: ${server}"
+		echo ""
+		echo "💡 Run 'cf config ntfy test' to verify configuration"
+	else
+		echo "❌ Failed to save configuration"
+		return 1
+	fi
 }
 
 cmd_config_ntfy_test() {
-    local config_file="$1"
-    
-    echo "🧪 Testing ntfy configuration..."
-    echo ""
-    
-    if [[ ! -f "${config_file}" ]]; then
-        echo "❌ Configuration file not found: ${config_file}"
-        echo "   Run 'cf config ntfy init' to create configuration"
-        return 1
-    fi
-    
-    # Check dependencies
-    local missing_deps=()
-    for dep in yq curl; do
-        if ! command -v "${dep}" >/dev/null 2>&1; then
-            missing_deps+=("${dep}")
-        fi
-    done
-    
-    if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        echo "❌ Missing required dependencies: ${missing_deps[*]}"
-        echo "   Install these tools or enter a claude-flake development shell"
-        return 1
-    fi
-    
-    local topic
-    local server
-    topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
-    server=$(yq -r '.ntfy_server // "https://ntfy.sh"' "${config_file}" 2>/dev/null || echo "https://ntfy.sh")
-    
-    if [[ -z "${topic}" ]]; then
-        echo "❌ Topic not configured in ${config_file}"
-        echo "   Run 'cf config ntfy set <topic>' to configure"
-        return 1
-    fi
-    
-    echo "📤 Sending test notification..."
-    echo "🏷️  Topic: ${topic}"
-    echo "🌐 Server: ${server}"
-    echo ""
-    
-    # Send test notification
-    local response
-    response=$(curl -s -w "\n%{http_code}" \
-        -d "🧪 Claude Flake test notification - $(date)" \
-        -H "Title: Claude Flake Test" \
-        -H "Priority: default" \
-        -H "Tags: test,claude-flake" \
-        "${server}/${topic}")
-    
-    local body
-    local status_code
-    body=$(echo "${response}" | head -n -1)
-    status_code=$(echo "${response}" | tail -n 1)
-    
-    if [[ "${status_code}" -eq 200 ]]; then
-        echo "✅ Test notification sent successfully!"
-        echo "   Check your ntfy app or ${server}/${topic}"
-    else
-        echo "❌ Failed to send test notification"
-        echo "   HTTP status: ${status_code}"
-        echo "   Response: ${body}"
-        echo ""
-        echo "💡 Check your configuration and network connectivity"
-        return 1
-    fi
+	local config_file="$1"
+
+	echo "🧪 Testing ntfy configuration..."
+	echo ""
+
+	if [[ ! -f "${config_file}" ]]; then
+		echo "❌ Configuration file not found: ${config_file}"
+		echo "   Run 'cf config ntfy init' to create configuration"
+		return 1
+	fi
+
+	# Check dependencies
+	local missing_deps=()
+	for dep in yq curl; do
+		if ! command -v "${dep}" >/dev/null 2>&1; then
+			missing_deps+=("${dep}")
+		fi
+	done
+
+	if [[ ${#missing_deps[@]} -gt 0 ]]; then
+		echo "❌ Missing required dependencies: ${missing_deps[*]}"
+		echo "   Install these tools or enter a claude-flake development shell"
+		return 1
+	fi
+
+	local topic
+	local server
+	topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+	server=$(yq -r '.ntfy_server // "https://ntfy.sh"' "${config_file}" 2>/dev/null || echo "https://ntfy.sh")
+
+	if [[ -z "${topic}" ]]; then
+		echo "❌ Topic not configured in ${config_file}"
+		echo "   Run 'cf config ntfy set <topic>' to configure"
+		return 1
+	fi
+
+	echo "📤 Sending test notification..."
+	echo "🏷️  Topic: ${topic}"
+	echo "🌐 Server: ${server}"
+	echo ""
+
+	# Send test notification
+	local response
+	response=$(curl -s -w "\n%{http_code}" \
+		-d "🧪 Claude Flake test notification - $(date)" \
+		-H "Title: Claude Flake Test" \
+		-H "Priority: default" \
+		-H "Tags: test,claude-flake" \
+		"${server}/${topic}")
+
+	local body
+	local status_code
+	body=$(echo "${response}" | head -n -1)
+	status_code=$(echo "${response}" | tail -n 1)
+
+	if [[ "${status_code}" -eq 200 ]]; then
+		echo "✅ Test notification sent successfully!"
+		echo "   Check your ntfy app or ${server}/${topic}"
+	else
+		echo "❌ Failed to send test notification"
+		echo "   HTTP status: ${status_code}"
+		echo "   Response: ${body}"
+		echo ""
+		echo "💡 Check your configuration and network connectivity"
+		return 1
+	fi
 }
 
 cmd_config_ntfy_init() {
-    local config_file="$1"
-    
-    echo "🚀 Ntfy Configuration Setup Wizard"
-    echo "=================================="
-    echo ""
-    
-    # Check if config already exists
-    if [[ -f "${config_file}" ]]; then
-        echo "📍 Existing configuration found at: ${config_file}"
-        
-        local topic
-        local server
-        topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
-        server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
-        
-        if [[ -n "${topic}" ]]; then
-            echo "🏷️  Current topic: ${topic}"
-            echo "🌐 Current server: ${server:-"https://ntfy.sh (default)"}"
-            echo ""
-            
-            read -p "❓ Overwrite existing configuration? [y/N]: " -r overwrite
-            if [[ ! "${overwrite}" =~ ^[Yy]$ ]]; then
-                echo "   Setup cancelled"
-                return 0
-            fi
-        fi
-    fi
-    
-    echo "ℹ️  Ntfy allows you to receive push notifications when Claude finishes tasks."
-    echo "   You'll need to choose a unique topic name and install the ntfy app."
-    echo ""
-    
-    # Get topic
-    local topic
-    while true; do
-        read -p "🏷️  Enter a unique topic name (letters, numbers, -, _): " -r topic
-        
-        if [[ -z "${topic}" ]]; then
-            echo "   Topic cannot be empty"
-            continue
-        fi
-        
-        if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            echo "   Invalid characters. Use only letters, numbers, underscores, and hyphens"
-            continue
-        fi
-        
-        break
-    done
-    
-    # Get server (optional)
-    echo ""
-    echo "🌐 Ntfy server (press Enter for default: https://ntfy.sh):"
-    read -p "   Server URL: " -r server
-    server="${server:-https://ntfy.sh}"
-    
-    # Validate server URL format
-    if [[ ! "${server}" =~ ^https?:// ]]; then
-        echo "   Adding https:// prefix to server URL"
-        server="https://${server}"
-    fi
-    
-    echo ""
-    echo "📋 Configuration Summary:"
-    echo "   Topic: ${topic}"
-    echo "   Server: ${server}"
-    echo "   File: ${config_file}"
-    echo ""
-    
-    read -p "❓ Save this configuration? [Y/n]: " -r confirm
-    if [[ "${confirm}" =~ ^[Nn]$ ]]; then
-        echo "   Setup cancelled"
-        return 0
-    fi
-    
-    # Save configuration using cmd_config_ntfy_set
-    if cmd_config_ntfy_set "${config_file}" "${topic}" "${server}"; then
-        echo ""
-        echo "🎉 Configuration saved successfully!"
-        echo ""
-        echo "📱 Next steps:"
-        echo "   1. Install the ntfy app on your phone or visit ${server}"
-        echo "   2. Subscribe to topic: ${topic}"
-        echo "   3. Run 'cf config ntfy test' to verify setup"
-        echo ""
-        echo "   Mobile apps: https://ntfy.sh/docs/subscribe/phone/"
-        echo "   Web interface: ${server}/${topic}"
-    else
-        echo "❌ Failed to save configuration"
-        return 1
-    fi
+	local config_file="$1"
+
+	echo "🚀 Ntfy Configuration Setup Wizard"
+	echo "=================================="
+	echo ""
+
+	# Check if config already exists
+	if [[ -f "${config_file}" ]]; then
+		echo "📍 Existing configuration found at: ${config_file}"
+
+		local topic
+		local server
+		topic=$(yq -r '.ntfy_topic // empty' "${config_file}" 2>/dev/null || echo "")
+		server=$(yq -r '.ntfy_server // empty' "${config_file}" 2>/dev/null || echo "")
+
+		if [[ -n "${topic}" ]]; then
+			echo "🏷️  Current topic: ${topic}"
+			echo "🌐 Current server: ${server:-"https://ntfy.sh (default)"}"
+			echo ""
+
+			read -p "❓ Overwrite existing configuration? [y/N]: " -r overwrite
+			if [[ ! "${overwrite}" =~ ^[Yy]$ ]]; then
+				echo "   Setup cancelled"
+				return 0
+			fi
+		fi
+	fi
+
+	echo "ℹ️  Ntfy allows you to receive push notifications when Claude finishes tasks."
+	echo "   You'll need to choose a unique topic name and install the ntfy app."
+	echo ""
+
+	# Get topic
+	local topic
+	while true; do
+		read -p "🏷️  Enter a unique topic name (letters, numbers, -, _): " -r topic
+
+		if [[ -z "${topic}" ]]; then
+			echo "   Topic cannot be empty"
+			continue
+		fi
+
+		if [[ ! "${topic}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+			echo "   Invalid characters. Use only letters, numbers, underscores, and hyphens"
+			continue
+		fi
+
+		break
+	done
+
+	# Get server (optional)
+	echo ""
+	echo "🌐 Ntfy server (press Enter for default: https://ntfy.sh):"
+	read -p "   Server URL: " -r server
+	server="${server:-https://ntfy.sh}"
+
+	# Validate server URL format
+	if [[ ! "${server}" =~ ^https?:// ]]; then
+		echo "   Adding https:// prefix to server URL"
+		server="https://${server}"
+	fi
+
+	echo ""
+	echo "📋 Configuration Summary:"
+	echo "   Topic: ${topic}"
+	echo "   Server: ${server}"
+	echo "   File: ${config_file}"
+	echo ""
+
+	read -p "❓ Save this configuration? [Y/n]: " -r confirm
+	if [[ "${confirm}" =~ ^[Nn]$ ]]; then
+		echo "   Setup cancelled"
+		return 0
+	fi
+
+	# Save configuration using cmd_config_ntfy_set
+	if cmd_config_ntfy_set "${config_file}" "${topic}" "${server}"; then
+		echo ""
+		echo "🎉 Configuration saved successfully!"
+		echo ""
+		echo "📱 Next steps:"
+		echo "   1. Install the ntfy app on your phone or visit ${server}"
+		echo "   2. Subscribe to topic: ${topic}"
+		echo "   3. Run 'cf config ntfy test' to verify setup"
+		echo ""
+		echo "   Mobile apps: https://ntfy.sh/docs/subscribe/phone/"
+		echo "   Web interface: ${server}/${topic}"
+	else
+		echo "❌ Failed to save configuration"
+		return 1
+	fi
 }
 
 cmd_dev() {
-    local language="${1:-}"
-    
-    # If no language specified, auto-detect
-    if [[ -z "${language}" ]]; then
-        language=$(detect_language)
-        echo "🔍 Auto-detected language: ${language}"
-    fi
-    
-    # Trim whitespace and validate language is not empty
-    language=$(echo "${language}" | tr -d '[:space:]')
-    if [[ -z "${language}" ]]; then
-        echo "❌ Language cannot be empty"
-        echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
-        return 1
-    fi
-    
-    # Validate language
-    case "${language}" in
-        rust|python|nodejs|go|nix|shell|universal)
-            ;;
-        *)
-            echo "❌ Unknown language: ${language}"
-            echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
-            return 1
-            ;;
-    esac
-    
-    # Check if already in a claude-flake shell
-    if is_in_cf_shell; then
-        local current_shell
-        current_shell=$(get_current_shell)
-        if [[ "${current_shell}" == "${language}" ]]; then
-            echo "ℹ️  Already in claude-flake ${language} shell"
-            return 0
-        else
-            echo "⚠️  Currently in claude-flake ${current_shell} shell"
-            echo "   Exit current shell before entering ${language} shell"
-            return 1
-        fi
-    fi
-    
-    echo "🚀 Entering claude-flake ${language} development shell..."
-    echo "   Source: ${CLAUDE_FLAKE_SOURCE}#${language}"
-    echo ""
-    
-    # Verify nix is available before attempting to enter shell
-    if ! command -v nix >/dev/null 2>&1; then
-        echo "❌ Error: nix command not found"
-        echo "   Install Nix from: https://nixos.org/download.html"
-        return 1
-    fi
-    
-    # Export shell type for nested shell detection
-    export CF_SHELL="${language}"
-    export CLAUDE_FLAKE_SHELL="${language}"
-    
-    # Enter the development shell with error handling
-    echo "📦 Loading development environment..."
-    if ! ${NIX_DEVELOP_CMD} "${CLAUDE_FLAKE_SOURCE}#${language}"; then
-        echo "❌ Failed to enter development shell"
-        echo "   This may indicate:"
-        echo "   - Network connectivity issues"
-        echo "   - Invalid flake source: ${CLAUDE_FLAKE_SOURCE}"
-        echo "   - Missing or invalid ${language} environment in flake"
-        echo ""
-        echo "   Try running 'cf doctor' to diagnose issues"
-        return 1
-    fi
+	local language="${1:-}"
+
+	# If no language specified, auto-detect
+	if [[ -z "${language}" ]]; then
+		language=$(detect_language)
+		echo "🔍 Auto-detected language: ${language}"
+	fi
+
+	# Trim whitespace and validate language is not empty
+	language=$(echo "${language}" | tr -d '[:space:]')
+	if [[ -z "${language}" ]]; then
+		echo "❌ Language cannot be empty"
+		echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
+		return 1
+	fi
+
+	# Validate language
+	case "${language}" in
+	rust | python | nodejs | go | nix | shell | universal) ;;
+	*)
+		echo "❌ Unknown language: ${language}"
+		echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
+		return 1
+		;;
+	esac
+
+	# Check if already in a claude-flake shell
+	if is_in_cf_shell; then
+		local current_shell
+		current_shell=$(get_current_shell)
+		if [[ "${current_shell}" == "${language}" ]]; then
+			echo "ℹ️  Already in claude-flake ${language} shell"
+			return 0
+		else
+			echo "⚠️  Currently in claude-flake ${current_shell} shell"
+			echo "   Exit current shell before entering ${language} shell"
+			return 1
+		fi
+	fi
+
+	echo "🚀 Entering claude-flake ${language} development shell..."
+	echo "   Source: ${CLAUDE_FLAKE_SOURCE}#${language}"
+	echo ""
+
+	# Verify nix is available before attempting to enter shell
+	if ! command -v nix >/dev/null 2>&1; then
+		echo "❌ Error: nix command not found"
+		echo "   Install Nix from: https://nixos.org/download.html"
+		return 1
+	fi
+
+	# Export shell type for nested shell detection
+	export CF_SHELL="${language}"
+	export CLAUDE_FLAKE_SHELL="${language}"
+
+	# Enter the development shell with error handling
+	echo "📦 Loading development environment..."
+	if ! ${NIX_DEVELOP_CMD} "${CLAUDE_FLAKE_SOURCE}#${language}"; then
+		echo "❌ Failed to enter development shell"
+		echo "   This may indicate:"
+		echo "   - Network connectivity issues"
+		echo "   - Invalid flake source: ${CLAUDE_FLAKE_SOURCE}"
+		echo "   - Missing or invalid ${language} environment in flake"
+		echo ""
+		echo "   Try running 'cf doctor' to diagnose issues"
+		return 1
+	fi
 }
 
 # Main command dispatcher
 main() {
-    case "${1:-}" in
-        ""|dev)
-            shift
-            cmd_dev "$@"
-            ;;
-        help|--help|-h)
-            cmd_help
-            ;;
-        version|--version|-V)
-            cmd_version
-            ;;
-        doctor)
-            cmd_doctor
-            ;;
-        update)
-            shift
-            cmd_update "$@"
-            ;;
-        status)
-            cmd_status
-            ;;
-        sandbox)
-            shift
-            cmd_sandbox "$@"
-            ;;
-        config)
-            shift
-            cmd_config "$@"
-            ;;
-        *)
-            echo "❌ Unknown command: $1" >&2
-            echo "   Run 'cf help' for usage information" >&2
-            return 1
-            ;;
-    esac
+	case "${1:-}" in
+	"" | dev)
+		shift
+		cmd_dev "$@"
+		;;
+	help | --help | -h)
+		cmd_help
+		;;
+	version | --version | -V)
+		cmd_version
+		;;
+	doctor)
+		cmd_doctor
+		;;
+	update)
+		shift
+		cmd_update "$@"
+		;;
+	status)
+		cmd_status
+		;;
+	sandbox)
+		shift
+		cmd_sandbox "$@"
+		;;
+	config)
+		shift
+		cmd_config "$@"
+		;;
+	*)
+		echo "❌ Unknown command: $1" >&2
+		echo "   Run 'cf help' for usage information" >&2
+		return 1
+		;;
+	esac
 }
 
 # Run main function with all arguments and preserve exit code
