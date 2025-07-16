@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # smart-lint.sh - Minimal MegaLinter + Nix wrapper for Claude Code
+
+# Ensure claude-flake environment is loaded for MegaLinter access
+if [[ -f "$HOME/.config/claude-flake/loader.sh" ]] && [[ -z "${CLAUDE_FLAKE_LOADED:-}" ]]; then
+	# shellcheck source=/dev/null
+	source "$HOME/.config/claude-flake/loader.sh" >/dev/null 2>&1 || true
+fi
 #
 # SYNOPSIS
 #   smart-lint.sh [options]
