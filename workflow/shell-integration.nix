@@ -26,10 +26,8 @@ _:
         command -v "$1" >/dev/null 2>&1
       }
 
-      # Conditional loading based on available commands
-      if command_exists claude; then
-        echo "✅ Claude CLI available"
-      fi
+      # Show claude-flake version and loaded status
+      echo "claude-flake v2.0.0 loaded"
     '';
 
     # Copy cf script to config directory
