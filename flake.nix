@@ -40,6 +40,11 @@
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
+      # Helper function to determine home directory based on system
+      getHomeDirectory =
+        system: username:
+        if nixpkgs.lib.hasSuffix "darwin" system then "/Users/${username}" else "/home/${username}";
+
       # Function to create home configuration for any system/user
       mkHomeConfiguration =
         system: username: homeDirectory:
@@ -68,21 +73,24 @@
     in
     {
       # Home Manager configurations - dynamic with --impure
-      homeConfigurations =
+      homeConfigurations = forAllSystems (
+        system:
         let
           # Pull in $USER from environment (requires --impure)
           username = builtins.getEnv "USER";
 
-          # Compute home directory based on system
-          homeDir = if username != "" then "/home/${username}" else "/home/user";
-
           # Use the detected user or fallback
           finalUsername = if username != "" then username else "user";
+
+          # Compute home directory based on system
+          homeDir =
+            if username != "" then getHomeDirectory system username else getHomeDirectory system "user";
         in
         {
           # Single dynamic configuration based on current user
-          "${finalUsername}" = mkHomeConfiguration "x86_64-linux" finalUsername homeDir;
-        };
+          "${finalUsername}" = mkHomeConfiguration system finalUsername homeDir;
+        }
+      );
 
       # DevShells for project-specific environments
       devShells = forAllSystems (
@@ -105,9 +113,13 @@
         {
           username,
           system ? "x86_64-linux",
-          homeDirectory ? "/home/${username}",
+          homeDirectory ? null,
         }:
-        mkHomeConfiguration system username homeDirectory;
+        let
+          finalHomeDirectory =
+            if homeDirectory != null then homeDirectory else getHomeDirectory system username;
+        in
+        mkHomeConfiguration system username finalHomeDirectory;
 
       # Apps for easy activation
       apps = forAllSystems (
@@ -121,7 +133,7 @@
           # Define a run-target called "home" that points at the activationPackage
           home = {
             type = "app";
-            program = "${self.homeConfigurations.${finalUsername}.activationPackage}/activate";
+            program = "${self.homeConfigurations.${system}.${finalUsername}.activationPackage}/activate";
             meta = {
               description = "Activate claude-flake home configuration for current user";
               maintainers = [ "claude-flake" ];
