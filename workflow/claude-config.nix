@@ -38,6 +38,7 @@
       ".claude/commands/check.md".source = ../files/commands/check.md;
       ".claude/commands/next.md".source = ../files/commands/next.md;
       ".claude/commands/prompt.md".source = ../files/commands/prompt.md;
+      ".claude/commands/commit.md".source = ../files/commands/commit.md;
     };
 
     # Automatic installation of Claude CLI
@@ -54,7 +55,6 @@
         echo "Installing Claude CLI..."
         npm install -g @anthropic-ai/claude-code
       fi
-
 
       # Verify installations with updated PATH
       if command -v claude >/dev/null 2>&1; then

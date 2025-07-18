@@ -4,7 +4,11 @@
 # - languagePackages: Attribute set of package lists for different languages
 # - getPackagesForType: Function to get packages for a specific project type
 # - getShellHook: Function to get shell initialization for a project type
-{ pkgs, ... }:
+{
+  pkgs,
+  system ? pkgs.system,
+  ...
+}:
 
 let
   # Language-specific package collections for enhanced development environments
@@ -96,18 +100,25 @@ let
     ];
 
     # C/C++ development tools
-    cpp = with pkgs; [
-      gcc # Compiler
-      clang # Alternative compiler
-      cmake # Build system
-      ninja # Build system
-      gdb # Debugger
-      lldb # LLVM debugger
-      clang-tools # clang-format, clang-tidy
-      cppcheck # Static analyzer
-      valgrind # Memory debugger
-      ccls # LSP server
-    ];
+    cpp =
+      with pkgs;
+      [
+        gcc # Compiler
+        clang # Alternative compiler
+        cmake # Build system
+        ninja # Build system
+        gdb # Debugger
+        lldb # LLVM debugger
+        clang-tools # clang-format, clang-tidy
+        cppcheck # Static analyzer
+        ccls # LSP server
+      ]
+      ++
+        pkgs.lib.optionals
+          (pkgs.lib.hasPrefix "x86_64-linux" system || pkgs.lib.hasPrefix "aarch64-linux" system)
+          [
+            valgrind # Memory debugger (Linux only - not supported on macOS)
+          ];
 
     # Shell scripting tools
     shell = with pkgs; [
@@ -206,6 +217,12 @@ let
       cpp = ''
         echo "⚡ C/C++ development environment loaded"
         echo "Available: gcc, clang, cmake, ninja, clang-format, cppcheck"
+        ${
+          if (pkgs.lib.hasPrefix "x86_64-linux" system || pkgs.lib.hasPrefix "aarch64-linux" system) then
+            ''echo "Available (Linux): valgrind"''
+          else
+            ""
+        }
         if [ -f CMakeLists.txt ]; then
           echo "📦 CMake project detected"
         elif [ -f Makefile ]; then
