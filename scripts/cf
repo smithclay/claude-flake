@@ -305,7 +305,10 @@ cmd_update() {
 
 			echo "   Rebuilding home-manager configuration..."
 			# For local development, we need to rebuild and activate to deploy updated files (use relative path)
-			if (cd "${flake_path}" && nix run --impure --accept-flake-config .#apps.x86_64-linux.home) >/dev/null 2>&1; then
+			# Detect current system architecture for os-agnostic operation
+			local current_system
+			current_system=$(nix eval --impure --expr 'builtins.currentSystem' 2>/dev/null | tr -d '"' || echo "x86_64-linux")
+			if (cd "${flake_path}" && nix run --impure --accept-flake-config ".#apps.${current_system}.home") >/dev/null 2>&1; then
 				echo "   ✅ Configuration rebuilt and activated"
 			else
 				echo "   ⚠️  Warning: Could not rebuild configuration"

@@ -10,6 +10,7 @@
       git
       gh
       neovim
+      gitui
 
       # Modern CLI tools
       bat
