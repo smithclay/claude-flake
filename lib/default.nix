@@ -3,7 +3,10 @@
 
 let
   # Import language packages once for better performance
-  languagePackages = import ./language-packages.nix { inherit pkgs; };
+  languagePackages = import ./language-packages.nix {
+    inherit pkgs;
+    inherit (pkgs) system;
+  };
 in
 {
   # Export language package sets

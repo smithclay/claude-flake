@@ -93,8 +93,7 @@ USAGE:
     cf [COMMAND] [OPTIONS]
 
 COMMANDS:
-    (no command)        Auto-detect project type and enter development shell
-    dev [LANGUAGE]      Enter development shell (auto-detect or specify language)
+    dev [LANGUAGE]     Enter development shell (auto-detect or specify language)
     config             Manage Claude Flake configuration
     help               Show this help message
     version            Show version information
@@ -116,7 +115,7 @@ ENVIRONMENT VARIABLES:
     CLAUDE_FLAKE_SOURCE    Override flake source (default: github:smithclay/claude-flake)
 
 EXAMPLES:
-    cf                     # Auto-detect and enter appropriate shell
+    cf                     # Print help
     cf dev python          # Enter Python development shell
     cf dev                 # Auto-detect and enter appropriate shell
     cf config ntfy init    # Set up push notifications
@@ -429,7 +428,7 @@ cmd_config_ntfy() {
 	local operation="${1:-help}"
 
 	# Use new config directory location
-	local config_dir="${HOME}/.config/claude-code"
+	local config_dir="${HOME}/.config/claude-flake"
 	local config_file="${config_dir}/ntfy.yaml"
 
 	case "${operation}" in
@@ -819,7 +818,10 @@ cmd_dev() {
 # Main command dispatcher
 main() {
 	case "${1:-}" in
-	"" | dev)
+	"")
+		cmd_help
+		;;
+	dev)
 		shift
 		cmd_dev "$@"
 		;;

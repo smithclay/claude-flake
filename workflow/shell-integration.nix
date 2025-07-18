@@ -38,7 +38,7 @@ _:
       # Show claude-flake version and loaded status
       if [ -f "$HOME/.config/claude-flake/VERSION" ]; then
         version=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "2.0.0")
-        echo "claude-flake v$version loaded"
+        echo "claude-flake $version loaded"
       else
         echo "claude-flake loaded"
       fi

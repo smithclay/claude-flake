@@ -13,7 +13,7 @@
 #   event_type    One of "notification", "stop", or "idle-notification"
 #
 # CONFIGURATION
-#   Requires ~/.config/claude-code/ntfy.yaml with:
+#   Requires ~/.config/claude-flake/ntfy.yaml with:
 #     ntfy_topic: your-topic-name
 #     ntfy_server: https://ntfy.sh (optional, defaults to public server)
 #
@@ -65,7 +65,7 @@ if [[ "${CLAUDE_HOOKS_NTFY_ENABLED:-true}" != "true" ]]; then
 fi
 
 # Configuration file location
-CONFIG_FILE="${CLAUDE_HOOKS_NTFY_CONFIG:-$HOME/.config/claude-code/ntfy.yaml}"
+CONFIG_FILE="${CLAUDE_HOOKS_NTFY_CONFIG:-$HOME/.config/claude-flake/ntfy.yaml}"
 
 # Check if config file exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -84,7 +84,7 @@ if ! command -v yq >/dev/null 2>&1; then
 fi
 
 # Extract configuration with error handling
-NTFY_TOPIC=$(yq -r '.ntfy_topic // empty' "$CONFIG_FILE" 2>/dev/null || echo "")
+NTFY_TOPIC=$(yq -r '.ntfy_topic // ""' "$CONFIG_FILE" 2>/dev/null || echo "")
 NTFY_SERVER=$(yq -r '.ntfy_server // "https://ntfy.sh"' "$CONFIG_FILE" 2>/dev/null || echo "https://ntfy.sh")
 
 # Validate required configuration
@@ -191,7 +191,7 @@ send_notification() {
 			"$NTFY_SERVER/$NTFY_TOPIC" >/dev/null 2>&1; then
 			return 0
 		fi
-
+		echo "Error: Failed to send notification, retrying..." >&2
 		retry_count=$((retry_count + 1))
 		[[ $retry_count -lt $max_retries ]] && sleep 1
 	done
