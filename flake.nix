@@ -36,6 +36,7 @@
       systems = [
         "x86_64-linux"
         "aarch64-linux"
+        "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
@@ -122,7 +123,7 @@
             type = "app";
             program = "${self.homeConfigurations.${finalUsername}.activationPackage}/activate";
             meta = {
-              description = "Activate Claude-Flake home configuration for current user";
+              description = "Activate claude-flake home configuration for current user";
               maintainers = [ "claude-flake" ];
             };
           };

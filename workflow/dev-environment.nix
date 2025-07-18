@@ -25,11 +25,7 @@
 
       # Language runtimes (minimal essential)
       nodejs_22 # Required for Claude CLI
-      python3 # Most common development language
-
-      # Development utilities
-      nixfmt-rfc-style
-      statix
+      python3
     ];
 
     # PATH configuration
