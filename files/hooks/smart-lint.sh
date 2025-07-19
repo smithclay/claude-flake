@@ -201,6 +201,7 @@ megalinter_available() {
 
 # Run MegaLinter
 run_megalinter() {
+
 	# Detect project language first
 	local detected_language
 	detected_language=$(detect_project_language)
@@ -223,7 +224,7 @@ run_megalinter() {
 	local megalinter_language
 	megalinter_language=$(map_language_to_megalinter_name "$detected_language")
 
-	log_info "Running MegaLinter with ${flavor} flavor (detected: ${detected_language})..."
+	log_info "Running MegaLinter with ${flavor} flavor (detected: ${detected_language}) - claude-flake ${VERSION}..."
 	log_debug "Language detection: ${detected_language} → flavor: ${flavor}"
 
 	# Set up environment variables for MegaLinter using -e flags
@@ -393,17 +394,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Print header with version
-local version=""
+VERSION=""
 if [[ -f "$HOME/.config/claude-flake/VERSION" ]]; then
-	version=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
+	VERSION=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
 elif [[ -f "VERSION" ]]; then
-	version=$(cat "VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
+	VERSION=$(cat "VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
 else
-	version="unknown"
+	VERSION="unknown"
 fi
 
 echo "" >&2
-echo "🔍 Style Check - Validating code formatting... (claude-flake $version)" >&2
+echo "🔍 Style Check - Validating code formatting... (claude-flake $VERSION)" >&2
 echo "─────────────────────────────────────────────────────────────────────" >&2
 
 # Main execution
