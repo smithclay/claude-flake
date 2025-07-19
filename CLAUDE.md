@@ -46,16 +46,19 @@ bash install.sh --uninstall   # Remove installation
 
 ### Cachix Binary Cache Usage
 ```bash
-# Enable Cachix cache for faster builds (recommended)
+# Build with Cachix cache for faster builds (recommended)
+nix build --impure --accept-flake-config
+
+# Alternative: explicit home configuration target
 nix build --impure --accept-flake-config .#homeConfigurations.x86_64-linux.${USER}.activationPackage
 
 # Without cache (slower, builds from source)
-nix build --impure .#homeConfigurations.x86_64-linux.${USER}.activationPackage
+nix build --impure
 
-# Configure cache manually (alternative)
+# Configure cache manually (alternative to --accept-flake-config)
 mkdir -p ~/.config/nix
-echo "substituters = https://cache.nixos.org/ https://claude-code.cachix.org" >> ~/.config/nix/nix.conf
-echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >> ~/.config/nix/nix.conf
+echo "extra-substituters = https://claude-code.cachix.org" >> ~/.config/nix/nix.conf
+echo "extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >> ~/.config/nix/nix.conf
 ```
 
 ### GitHub CLI Operations

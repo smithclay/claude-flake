@@ -123,6 +123,22 @@
         in
         mkHomeConfiguration system username finalHomeDirectory;
 
+      # Default packages for easy building
+      packages = forAllSystems (
+        system:
+        let
+          # Get username from environment (requires --impure)
+          username = builtins.getEnv "USER";
+          finalUsername = if username != "" then username else "user";
+        in
+        {
+          # Default package is the home configuration activation package
+          default = self.homeConfigurations.${system}.${finalUsername}.activationPackage;
+          # Also provide explicit home package
+          home = self.homeConfigurations.${system}.${finalUsername}.activationPackage;
+        }
+      );
+
       # Apps for easy activation
       apps = forAllSystems (
         system:
