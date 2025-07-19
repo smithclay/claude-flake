@@ -392,10 +392,19 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Print header
+# Print header with version
+local version=""
+if [[ -f "$HOME/.config/claude-flake/VERSION" ]]; then
+	version=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
+elif [[ -f "VERSION" ]]; then
+	version=$(cat "VERSION" 2>/dev/null | tr -d '\n\r' || echo "unknown")
+else
+	version="unknown"
+fi
+
 echo "" >&2
-echo "🔍 Style Check - Validating code formatting..." >&2
-echo "────────────────────────────────────────────" >&2
+echo "🔍 Style Check - Validating code formatting... (claude-flake $version)" >&2
+echo "─────────────────────────────────────────────────────────────────────" >&2
 
 # Main execution
 main() {

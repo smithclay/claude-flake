@@ -76,10 +76,8 @@ Let me ultrathink about validating this codebase against our exceptional standar
 - Check for any outstanding TODOs or temporary code
 
 **Step 2: Language-Agnostic Linting**
-Run appropriate linters for ALL languages in the project:
-- `make lint` if Makefile exists
 - `~/.claude/hooks/smart-lint.sh` for automatic detection
-- Manual linter runs if needed
+- ALWAYS run lint checks with smart-lint unless told otherwise.
 
 **Universal Requirements:**
 - ZERO warnings across ALL linters
@@ -97,7 +95,6 @@ Run appropriate linters for ALL languages in the project:
 - Consistent naming following language conventions
 
 **Step 3: Test Verification**
-Run `make test` and ensure:
 - ALL tests pass without flakiness
 - Test coverage is meaningful (not just high numbers)
 - Table-driven tests for complex logic
@@ -129,7 +126,6 @@ Run `make test` and ensure:
 **Security Audit:**
 - [ ] Input validation on all external data
 - [ ] SQL queries use prepared statements
-- [ ] Crypto operations use crypto/rand
 - [ ] No hardcoded secrets or credentials
 - [ ] Proper permission checks
 - [ ] Rate limiting where appropriate
