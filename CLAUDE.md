@@ -44,6 +44,15 @@ bash install.sh --dry-run     # Show what would be installed
 bash install.sh --uninstall   # Remove installation
 ```
 
+### GitHub CLI Operations
+```bash
+# Create and manage pull requests (use TERM=dumb to prevent ANSI color codes)
+TERM=dumb gh pr create --title "feat: description" --body-file pr_body.txt
+TERM=dumb gh pr edit 123 --body-file clean_body.txt
+gh pr view 123                 # View pull request details
+gh pr merge 123                # Merge pull request
+```
+
 ## Architecture Overview
 
 ### Core Components
