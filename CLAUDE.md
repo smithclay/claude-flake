@@ -28,37 +28,21 @@ mega-linter --flavor all       # Full linting suite (if MegaLinter installed)
 
 ### Build and Test
 ```bash
-# Nix flake operations (use --accept-flake-config to enable Cachix)
-nix flake check                                    # Validate flake structure
-nix flake show                                     # Show available outputs
-nix build --accept-flake-config                    # Build all packages with cache
-nix develop --accept-flake-config                  # Enter development shell with cache
-nix run --impure --accept-flake-config .#apps.x86_64-linux.home  # Deploy home-manager configuration
+# Nix flake operations
+nix flake check                # Validate flake structure
+nix flake show                 # Show available outputs
+nix build                      # Build all packages
+nix develop                    # Enter development shell
+nix run --impure .#apps.x86_64-linux.home  # Deploy home-manager configuration
 ```
 
 ### Installation Testing
 ```bash
 # Test installation script
 bash install.sh               # Full installation
-bash install.sh --dry-run     # Show what would be identified
+bash install.sh --local       # Install using local development version
+bash install.sh --dry-run     # Show what would be installed
 bash install.sh --uninstall   # Remove installation
-```
-
-### Cachix Binary Cache Usage
-```bash
-# Build with Cachix cache for faster builds (recommended)
-nix build --impure --accept-flake-config
-
-# Alternative: explicit home configuration target
-nix build --impure --accept-flake-config .#homeConfigurations.x86_64-linux.${USER}.activationPackage
-
-# Without cache (slower, builds from source)
-nix build --impure
-
-# Configure cache manually (alternative to --accept-flake-config)
-mkdir -p ~/.config/nix
-echo "extra-substituters = https://claude-code.cachix.org" >> ~/.config/nix/nix.conf
-echo "extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >> ~/.config/nix/nix.conf
 ```
 
 ### GitHub CLI Operations
@@ -68,6 +52,86 @@ TERM=dumb gh pr create --title "feat: description" --body-file pr_body.txt
 TERM=dumb gh pr edit 123 --body-file clean_body.txt
 gh pr view 123                 # View pull request details
 gh pr merge 123                # Merge pull request
+```
+
+### Git and Commit Best Practices
+
+#### Clean Commit Messages
+Always use `TERM=dumb` when tools might inject terminal color codes into commit messages:
+
+```bash
+# ✅ Correct: Clean commit without color codes
+TERM=dumb git commit -m "feat: add local installer support
+
+- Add --local flag for development builds
+- Implement Cachix cache configuration
+- Support Determinate Systems Nix setup"
+
+# ❌ Incorrect: May include ANSI escape sequences
+git commit -m "$(some-tool-with-colors --output)"
+
+# ✅ Correct: Use TERM=dumb with command substitution
+TERM=dumb git commit -m "$(TERM=dumb tool --generate-message)"
+```
+
+#### Commit Message Format
+Follow conventional commit format with clear, actionable descriptions:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+**Scope**: Component being modified (optional)
+**Description**: Imperative mood, lowercase, no period
+
+```bash
+# Examples of well-formed commit messages
+git commit -m "feat(installer): add --local flag for development builds"
+git commit -m "fix(cachix): resolve untrusted substituter warnings"
+git commit -m "docs(readme): update installation instructions"
+git commit -m "refactor(nix): simplify flake configuration structure"
+```
+
+#### Avoiding Color Code Contamination
+Common sources of ANSI escape sequences in commits:
+
+1. **Tool output**: Linters, formatters, test runners with colored output
+2. **Shell prompts**: Complex PS1 configurations
+3. **Piped commands**: Tools that detect TTY and add colors
+4. **Environment variables**: FORCE_COLOR, NO_COLOR settings
+
+**Prevention strategies**:
+```bash
+# Set environment for clean output
+export TERM=dumb
+export NO_COLOR=1
+unset FORCE_COLOR
+
+# Use in git hooks and automated scripts
+#!/usr/bin/env bash
+export TERM=dumb
+git commit -m "automated: update dependencies"
+
+# Clean existing contaminated commits (if needed)
+git log --oneline | grep -E '\[[0-9;]+m' # Find contaminated commits
+git rebase -i HEAD~N # Interactive rebase to clean up
+```
+
+#### Integration with Development Tools
+```bash
+# MegaLinter with clean output
+TERM=dumb mega-linter --flavor all > lint-report.txt
+
+# GitHub CLI operations
+TERM=dumb gh pr create --title "$(git log -1 --pretty=%s)"
+
+# Automated deployment
+TERM=dumb nix run --impure .#apps.x86_64-linux.home 2>&1 | tee deploy.log
 ```
 
 ## Architecture Overview
@@ -118,13 +182,7 @@ gh pr merge 123                # Merge pull request
 - Bundled Node.js runtime eliminating version conflicts
 - Automatic daily updates from upstream repository
 - Stable binary paths and persistent configuration
-- Pre-built binaries via `claude-code` Cachix cache for faster installation
-
-**Cachix Binary Cache**: Configured to use the `claude-code` cache for instant Claude CLI installation:
-- Cache URL: `https://claude-code.cachix.org`
-- Automatically enabled when using `--accept-flake-config` flag
-- Eliminates 5+ minute build times by downloading pre-built binaries
-- No authentication required for public cache access
+- Pre-built binaries via Cachix for faster installation
 
 ## Development Workflow
 
@@ -179,3 +237,8 @@ This project enforces a structured development methodology through Claude Code i
 - Use `cf doctor` to diagnose environment issues
 - Use `cf update --local` for local development testing
 - Home-manager configuration is rebuilt automatically on updates
+
+## Known Limitations and Workarounds
+
+- **Bad Commit Messages**: 
+  - Handle bad commit messages that include terminal color codes
