@@ -274,7 +274,7 @@ cmd_update() {
 
 	echo ""
 	echo "🔄 To use the updated environment, exit any active shells and run:"
-	echo "   cf dev [language]"
+	echo "   cf [language]  # Enter development shell"
 }
 
 cmd_sandbox() {
@@ -285,7 +285,7 @@ cmd_sandbox() {
 	echo "with the existing claude-flake development environments."
 	echo ""
 	echo "For now, you can use the development shells directly:"
-	echo "  cf dev [language]  # Enter language-specific development shell"
+	echo "  cf [language]      # Enter language-specific development shell"
 	echo "  cf                 # Auto-detect and enter appropriate shell"
 	echo ""
 	echo "Stay tuned for the new Nix-based sandbox implementation!"

@@ -424,7 +424,7 @@ install_nix() {
 
 	log_info "Usage:"
 	log_info "  claude                       # Start Claude CLI"
-	log_info "  cf dev [language]           # Enter development shell"
+	log_info "  cf [language]               # Enter language environment"
 }
 
 # Restore backup
@@ -606,7 +606,7 @@ choose_installation_method() {
 	echo ""
 	log_info "Installing claude-flake via Nix package manager"
 	echo "     ✅ Full system integration"
-	echo "     ✅ Powerful development environments"
+	echo "     ✅ Powerful language environments"
 	echo "     ⚠️  Modifies shell configuration"
 	echo ""
 

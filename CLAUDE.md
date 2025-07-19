@@ -258,3 +258,8 @@ This project enforces a structured development methodology through Claude Code i
    ```
 
 **Current Git Version**: 2.50.0 (includes ANSI vulnerability patches)
+
+**Hook Update Required**: After updating the source file, reinstall hooks with:
+```bash
+./scripts/cf update --local  # Updates installed hooks with NO_COLOR support
+```
