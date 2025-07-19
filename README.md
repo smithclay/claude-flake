@@ -4,9 +4,9 @@
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat&logo=nixos&logoColor=white)](https://nixos.org)
 [![Flakes](https://img.shields.io/badge/Nix-Flakes-blue)](https://nixos.wiki/wiki/Flakes)
 
-**Opinionated Claude Code workflow with built-in config, hooks, dev environments, and commands.**
+**Opinionated Claude Code workflow with built-in configuration, hooks, and handy tools.**
 
-This project helps make [Claude Code](https://www.anthropic.com/claude-code), a powerful AI coding agent from Anthropic, more effective.
+This project helps make [Claude Code](https://www.anthropic.com/claude-code), a powerful AI coding agent from Anthropic, more effective by providing essential configuration and workflow tools.
 
 ## 🤖 What you get
 
@@ -15,10 +15,10 @@ This project helps make [Claude Code](https://www.anthropic.com/claude-code), a 
 - Quality checks that run automatically
 - Proven patterns from the Claude Code community
 - Everything pre-configured to work together
-- Language-specific development shells with all tools included
-- Notifications to your iOS/macOS devices with [nfty](https://ntfy.sh/) for long-running tasks.
+- Notifications to your iOS/macOS devices with [ntfy](https://ntfy.sh/) for long-running tasks
+- Handy configuration and management tools
 
-**Plus:** Management of everything is orchestrated using a [nix flake](https://nixos.wiki/wiki/flakes), if you're into that.
+**Plus:** Everything is managed using a [nix flake](https://nixos.wiki/wiki/flakes) for reproducible configuration.
 
 ## 📋 Requirements
 
@@ -28,13 +28,6 @@ This project helps make [Claude Code](https://www.anthropic.com/claude-code), a 
 - Any coding project where you want AI help
 
 **Supported systems:** Linux, macOS, Windows (via WSL - Windows Subsystem for Linux)
-
-**Language Shells:** Dedicated development environments with all the tools you need (optional):
-- 🦀 Rust: cargo, clippy, rust-analyzer, rustfmt, cargo-watch
-- 🐍 Python: poetry, black, pytest, mypy, ruff
-- 🟢 Node.js: yarn, pnpm, eslint, prettier, typescript
-- 🐹 Go: gopls, golangci-lint, gofumpt, delve
-- ❄️ Nix: nixfmt, statix, deadnix, nil
 
 ## ⚡ Quick Install (Recommended)
 
@@ -65,8 +58,8 @@ curl -sSL https://raw.githubusercontent.com/smithclay/claude-flake/main/install.
 ```
 
 After installation, you'll have access to:
-- `claude` - Claude Code CLI
-- `cf` - Claude-flake development environments
+- `claude` - Claude Code CLI  
+- `cf` - Claude-flake configuration tools
 
 **Start using Claude Code:**
 ```bash
@@ -75,6 +68,9 @@ claude
 
 # Run the built in commands to help you write code. Validation hooks will run automatically.
 # > /next Let's add a new API endpoint to this project...
+
+# Configure notifications for long-running tasks
+cf config ntfy init
 ```
 
 ### 🎯 Real Example: Building a Simple API
@@ -106,15 +102,6 @@ claude
 # Claude explains virtual environments and gives exact commands
 ```
 
-### Language-Specific Enhancements
-
-When you enter a language-specific shell, you get appropriate tools:
-
-- **Python projects** 🐍: Poetry, Black, pytest, mypy, ruff, bandit, isort
-- **Rust projects** 🦀: Cargo, Clippy, rust-analyzer, rustfmt, cargo-watch, cargo-audit
-- **Go projects** 🐹: Go toolchain, gopls, golangci-lint, delve, gosec, gofumpt
-- **Node.js projects** 🟢: npm/yarn/pnpm, ESLint, Prettier, TypeScript, stylelint
-- **Nix projects** ❄️: nixfmt, statix, nil language server, deadnix, nix-tree
 
 ## 🚀 Advanced Installation
 
@@ -126,47 +113,33 @@ curl -L https://install.determinate.systems/nix | sh -s -- install
 
 Then run the claude-flake installer.
 
-## 🚀 Using Language-Specific Shells
+## 🛠️ Using Claude-Flake Tools
 
-Once installed, you can enter development shells tailored for your project type:
+Once installed, you can use the `cf` command for configuration and management:
 
 ```bash
-# Use the unified cf command for language shells
-cf dev rust     # Rust: cargo, clippy, rust-analyzer
-cf dev python   # Python: poetry, black, pytest, mypy
-cf dev nodejs   # Node.js: yarn, pnpm, eslint, prettier
-cf dev go       # Go: gopls, golangci-lint, delve
-cf dev nix      # Nix: nixfmt, statix, nil
+# View available commands
+cf help         # Shows all commands and usage instructions
 
-# Auto-detect project type and enter appropriate shell
-cf              # Automatically detects and enters the right shell
+# Check system status
+cf status       # Shows current environment and configuration
+cf doctor       # Diagnose environment and configuration issues
+
+# Configure notifications for long-running tasks
+cf config ntfy init    # Set up push notifications
+cf config ntfy test    # Test notification setup
+
+# Update claude-flake
+cf update              # Update to latest version
+cf update --local      # Use local development version
 
 # Override flake source for local development
 export CLAUDE_FLAKE_SOURCE=path:/path/to/local/claude-flake
-cf dev rust     # Now uses your local flake
-
-# See all available commands and system status
-cf help         # Shows all commands and usage instructions
-cf status       # Shows current environment and project detection
-cf doctor       # Diagnose environment and configuration issues
 ```
-
-Each shell includes:
-- Language-specific linters and formatters
-- LSP servers for editor integration
-- Testing frameworks
-- Build tools
-- Security scanners
 
 ## 🛠️ `cf` Command Reference
 
-The `cf` command is your unified interface to claude-flake functionality:
-
-### **Basic Usage**
-```bash
-cf                    # Auto-detect project type and enter development shell
-cf dev [language]     # Enter specific language development shell
-```
+The `cf` command provides configuration and management tools for claude-flake:
 
 ### **Available Commands**
 ```bash
@@ -175,32 +148,19 @@ cf version           # Show claude-flake version and components
 cf status            # Show current environment and project status
 cf doctor            # Diagnose environment and configuration issues
 cf update            # Update claude-flake to latest version
+cf config            # Manage claude-flake configuration
 ```
 
-### **Supported Languages**
-- `rust` - Rust development environment (cargo, clippy, rust-analyzer)
-- `python` - Python development environment (poetry, black, pytest, mypy)
-- `nodejs` - Node.js development environment (yarn, pnpm, eslint, prettier)
-- `go` - Go development environment (go toolchain, gopls, golangci-lint)
-- `nix` - Nix development environment (nixfmt, statix, nil LSP)
-- `java` - Java development environment (maven, gradle, spotbugs)
-- `cpp` - C++ development environment (cmake, clang-tools, gdb)
-- `shell` - Shell scripting environment (shellcheck, shfmt)
-- `universal` - Universal development environment (git, neovim, modern CLI tools)
-
-### **Project Auto-Detection**
-The `cf` command automatically detects your project type based on files:
-- **Rust**: `Cargo.toml`, `Cargo.lock`
-- **Python**: `pyproject.toml`, `requirements.txt`, `poetry.lock`
-- **Node.js**: `package.json`, `yarn.lock`, `package-lock.json`
-- **Go**: `go.mod`, `go.sum`
-- **Nix**: `flake.nix`, `shell.nix`, `default.nix`
-- **Java**: `pom.xml`, `build.gradle`
-- **C++**: `CMakeLists.txt`, `Makefile`
+### **Configuration Commands**
+```bash
+cf config ntfy init     # Interactive setup for push notifications
+cf config ntfy show     # Show current notification configuration
+cf config ntfy set      # Set notification topic and server
+cf config ntfy test     # Send test notification
+```
 
 ### **Environment Variables**
 - `CLAUDE_FLAKE_SOURCE` - Override flake source (default: `github:smithclay/claude-flake`)
-- `CF_SHELL` - Current shell type (set automatically when in a cf shell)
 
 ## 🗑️ Uninstall
 
@@ -254,10 +214,9 @@ cf version   # Version information and dependencies
 - Claude hanging or slow → Check network connectivity with `cf doctor`
 
 **cf Command Issues:**
-- `cf` auto-detection wrong → Use explicit `cf dev [language]` or check project files
-- Can't enter shell → Check `cf doctor` for Nix installation and flake accessibility
-- Stuck in nested shell → Use `exit` to leave current shell, check `cf status`
-- Environment variables not working → Verify with `cf status` and restart shell
+- `cf: command not found` → Restart your terminal after installation
+- Configuration not saved → Check permissions on `~/.config/claude-flake/`
+- Commands not working → Run `cf doctor` to diagnose issues
 
 **Network and Update Issues:**
 - Flake not accessible → Check `cf doctor` for network connectivity and flake validation
@@ -270,14 +229,12 @@ cf version   # Version information and dependencies
 cf doctor              # Shows all environment checks
 
 # Step 2: Check current state  
-cf status              # Shows project detection and current shell
+cf status              # Shows current configuration and environment
 
 # Step 3: Get version info
-cf version             # Shows versions and available environments
+cf version             # Shows versions and dependencies
 
 # Step 4: Test functionality
 cf help                # Verify cf command works
-cf dev universal       # Test entering a basic shell
-exit                   # Exit and try auto-detection
-cf                     # Test auto-detection
+cf config ntfy test    # Test notification setup (if configured)
 ```

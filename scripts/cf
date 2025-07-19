@@ -25,50 +25,6 @@ fi
 CLAUDE_FLAKE_SOURCE="${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
 NIX_DEVELOP_CMD="nix develop --accept-flake-config"
 
-# Language detection based on project files
-detect_language() {
-	local current_dir
-	current_dir="$(pwd)"
-
-	# Check for language-specific files in order of specificity
-	# Rust
-	if [[ -f "${current_dir}/Cargo.toml" || -f "${current_dir}/Cargo.lock" ]]; then
-		echo "rust"
-		return 0
-	fi
-
-	# Go
-	if [[ -f "${current_dir}/go.mod" || -f "${current_dir}/go.sum" ]]; then
-		echo "go"
-		return 0
-	fi
-
-	# Python
-	if [[ -f "${current_dir}/pyproject.toml" || -f "${current_dir}/requirements.txt" ||
-		-f "${current_dir}/poetry.lock" || -f "${current_dir}/setup.py" ||
-		-f "${current_dir}/Pipfile" || -f "${current_dir}/environment.yml" ]]; then
-		echo "python"
-		return 0
-	fi
-
-	# Node.js
-	if [[ -f "${current_dir}/package.json" || -f "${current_dir}/yarn.lock" ||
-		-f "${current_dir}/package-lock.json" || -f "${current_dir}/pnpm-lock.yaml" ||
-		-f "${current_dir}/bun.lockb" ]]; then
-		echo "nodejs"
-		return 0
-	fi
-
-	# Nix
-	if [[ -f "${current_dir}/flake.nix" || -f "${current_dir}/shell.nix" ||
-		-f "${current_dir}/default.nix" ]]; then
-		echo "nix"
-		return 0
-	fi
-
-	# Default to universal if no specific language detected
-	echo "universal"
-}
 
 # Check if we're currently in a claude-flake shell
 is_in_cf_shell() {
@@ -87,42 +43,28 @@ get_current_shell() {
 # Subcommand implementations
 cmd_help() {
 	cat <<'EOF'
-cf - Claude Flake unified command-line interface
+cf - Claude Flake command-line interface
 
 USAGE:
     cf [COMMAND] [OPTIONS]
 
 COMMANDS:
-    dev [LANGUAGE]     Enter development shell (auto-detect or specify language)
     config             Manage Claude Flake configuration
     help               Show this help message
     version            Show version information
     doctor             Diagnose environment and configuration
     update [--local]   Update claude-flake to latest version (--local: use current directory)
     status             Show current environment status
-    sandbox [DIR]      Isolated development environment (coming soon)
-
-SUPPORTED LANGUAGES:
-    rust               Rust development environment (cargo, clippy, rust-analyzer)
-    python             Python development environment (poetry, black, pytest, mypy)
-    nodejs             Node.js development environment (yarn, pnpm, eslint, prettier)
-    go                 Go development environment (go toolchain, gopls, golangci-lint)
-    nix                Nix development environment (nixfmt, statix, nil LSP)
-    shell              Shell development environment (shellcheck, shfmt, bash-language-server)
-    universal          Universal development environment (git, neovim, modern CLI tools)
 
 ENVIRONMENT VARIABLES:
     CLAUDE_FLAKE_SOURCE    Override flake source (default: github:smithclay/claude-flake)
 
 EXAMPLES:
     cf                     # Print help
-    cf dev python          # Enter Python development shell
-    cf dev                 # Auto-detect and enter appropriate shell
     cf config ntfy init    # Set up push notifications
     cf doctor              # Check environment health
     cf update              # Update to latest claude-flake version
     cf update --local      # Update using local development version
-    cf sandbox /path/to/project  # Isolated development environment (coming soon)
 
 For more information, visit: https://github.com/smithclay/claude-flake
 EOF
@@ -132,9 +74,6 @@ cmd_version() {
 	echo "cf (Claude Flake) v${CF_VERSION}"
 	echo "Commit: ${CF_COMMIT}"
 	echo "Flake source: ${CLAUDE_FLAKE_SOURCE}"
-	echo ""
-	echo "Available environments:"
-	echo "  rust, python, nodejs, go, nix, shell, universal"
 	echo ""
 	echo "Dependencies:"
 	if command -v nix >/dev/null 2>&1; then
@@ -187,12 +126,9 @@ cmd_doctor() {
 	fi
 	echo ""
 
-	# Check project detection
-	echo "🔍 Project Detection:"
-	local detected_lang
-	detected_lang=$(detect_language)
+	# Check current directory
+	echo "🔍 Current Directory:"
 	echo "  📁 Current directory: $(pwd)"
-	echo "  🏷️  Detected language: ${detected_lang}"
 	echo ""
 
 	# Check current shell status
@@ -369,22 +305,9 @@ cmd_status() {
 
 	echo "📁 Project:"
 	echo "  Directory: $(pwd)"
-	echo "  Detected language: $(detect_language)"
 	echo ""
 
-	echo "🐚 Shell:"
-	local current_shell
-	current_shell=$(get_current_shell)
-	if [[ "${current_shell}" == "none" ]]; then
-		echo "  Status: system shell"
-		echo "  Run 'cf' or 'cf dev' to enter a development shell"
-	else
-		echo "  Status: claude-flake ${current_shell} shell"
-		echo "  Run 'exit' to return to system shell"
-	fi
-	echo ""
-
-	echo "🛠️  Available commands: dev, help, version, doctor, update, status, sandbox, config"
+	echo "🛠️  Available commands: help, version, doctor, update, status, config"
 }
 
 cmd_config() {
@@ -748,85 +671,12 @@ cmd_config_ntfy_init() {
 	fi
 }
 
-cmd_dev() {
-	local language="${1:-}"
-
-	# If no language specified, auto-detect
-	if [[ -z "${language}" ]]; then
-		language=$(detect_language)
-		echo "🔍 Auto-detected language: ${language}"
-	fi
-
-	# Trim whitespace and validate language is not empty
-	language=$(echo "${language}" | tr -d '[:space:]')
-	if [[ -z "${language}" ]]; then
-		echo "❌ Language cannot be empty"
-		echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
-		return 1
-	fi
-
-	# Validate language
-	case "${language}" in
-	rust | python | nodejs | go | nix | shell | universal) ;;
-	*)
-		echo "❌ Unknown language: ${language}"
-		echo "   Supported languages: rust, python, nodejs, go, nix, shell, universal"
-		return 1
-		;;
-	esac
-
-	# Check if already in a claude-flake shell
-	if is_in_cf_shell; then
-		local current_shell
-		current_shell=$(get_current_shell)
-		if [[ "${current_shell}" == "${language}" ]]; then
-			echo "ℹ️  Already in claude-flake ${language} shell"
-			return 0
-		else
-			echo "⚠️  Currently in claude-flake ${current_shell} shell"
-			echo "   Exit current shell before entering ${language} shell"
-			return 1
-		fi
-	fi
-
-	echo "🚀 Entering claude-flake ${language} development shell..."
-	echo "   Source: ${CLAUDE_FLAKE_SOURCE}#${language}"
-	echo ""
-
-	# Verify nix is available before attempting to enter shell
-	if ! command -v nix >/dev/null 2>&1; then
-		echo "❌ Error: nix command not found"
-		echo "   Install Nix from: https://nixos.org/download.html"
-		return 1
-	fi
-
-	# Export shell type for nested shell detection
-	export CF_SHELL="${language}"
-	export CLAUDE_FLAKE_SHELL="${language}"
-
-	# Enter the development shell with error handling
-	echo "📦 Loading development environment..."
-	if ! ${NIX_DEVELOP_CMD} "${CLAUDE_FLAKE_SOURCE}#${language}"; then
-		echo "❌ Failed to enter development shell"
-		echo "   This may indicate:"
-		echo "   - Network connectivity issues"
-		echo "   - Invalid flake source: ${CLAUDE_FLAKE_SOURCE}"
-		echo "   - Missing or invalid ${language} environment in flake"
-		echo ""
-		echo "   Try running 'cf doctor' to diagnose issues"
-		return 1
-	fi
-}
 
 # Main command dispatcher
 main() {
 	case "${1:-}" in
 	"")
 		cmd_help
-		;;
-	dev)
-		shift
-		cmd_dev "$@"
 		;;
 	help | --help | -h)
 		cmd_help

@@ -4,22 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude-flake is a **Nix-based development environment orchestrator** that enhances the Claude Code AI coding assistant experience. It provides opinionated workflows, multi-language development environments, and automated code quality enforcement.
+Claude-flake is a **Claude Code environment configurator** that enhances the Claude Code AI coding assistant experience. It provides opinionated workflows, essential configuration tools, and automated code quality enforcement.
 
 ## Essential Commands
 
-### Development Environment
+### Configuration Management
 ```bash
-# Primary CLI for development environment management
-./scripts/cf                    # Auto-detect project type and enter development shell
-./scripts/cf dev rust          # Enter specific language development shell
-./scripts/cf dev python        # Python: poetry, black, pytest, mypy, ruff
-./scripts/cf dev nodejs        # Node.js: npm/yarn/pnpm, eslint, prettier, typescript
-./scripts/cf dev go            # Go: gopls, golangci-lint, gofumpt, delve
-./scripts/cf dev nix           # Nix: nixfmt, statix, nil, deadnix
+# Primary CLI for configuration and management
+./scripts/cf                    # Show help and available commands
 ./scripts/cf doctor            # Diagnose environment and configuration issues
 ./scripts/cf update            # Update claude-flake to latest version
 ./scripts/cf update --local    # Update using local development version
+./scripts/cf config ntfy init  # Set up push notifications
+./scripts/cf status            # Show current environment status
 ```
 
 ### Quality Assurance

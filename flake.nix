@@ -93,21 +93,6 @@
         }
       );
 
-      # DevShells for project-specific environments
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          inherit (nixpkgs) lib;
-          claudeFlakeLib = import ./lib { inherit lib pkgs; };
-          shells = claudeFlakeLib.createDevShells pkgs;
-        in
-        shells
-        // {
-          # Default devShell points to universal for maximum compatibility
-          default = shells.universal;
-        }
-      );
 
       # Function to create home configuration for any user (can be imported by other flakes)
       lib.mkHomeConfigurationForUser =
