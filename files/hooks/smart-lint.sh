@@ -246,7 +246,10 @@ run_megalinter() {
 		"-e" "PARALLEL=true"
 		"-e" "PARALLEL_COUNT=4"
 		"-e" "APPLY_FIXES=all"
-		"-e" "DISABLE_LINTERS=PYTHON_BANDIT"
+		# Disabled due to limitations with running MegaLinter in Docker
+		"-e" "PYTHON_PYLINT_ARGUMENTS=--disable=import-error"
+		"-e" "'DISABLE_LINTERS=PYTHON_BANDIT,PYTHON_PYRIGHT'"
+		# Ignore the usual directories
 		"-e" "FILTER_REGEX_EXCLUDE=(result/|/nix/store/|\.git/|node_modules/|\.venv/|target/|\.mypy_cache/)"
 	)
 

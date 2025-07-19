@@ -35,6 +35,14 @@ _:
         command -v "$1" >/dev/null 2>&1
       }
 
+      # Alias for tiny mobile keyboards
+      alias gs="git status"
+      alias gl="git log --oneline --graph --decorate"
+      alias gd="git diff"
+      alias ls="eza --icons --group-directories-first"
+      alias ll="eza --icons --long --group-directories-first"
+      alias cat="bat --style=plain --color=always"
+
       # Show claude-flake version and loaded status
       if [ -f "$HOME/.config/claude-flake/VERSION" ]; then
         version=$(cat "$HOME/.config/claude-flake/VERSION" 2>/dev/null | tr -d '\n\r' || echo "2.0.0")
