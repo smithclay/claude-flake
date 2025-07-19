@@ -240,5 +240,21 @@ This project enforces a structured development methodology through Claude Code i
 
 ## Known Limitations and Workarounds
 
-- **Bad Commit Messages**: 
-  - Handle bad commit messages that include terminal color codes
+### ANSI Escape Sequence Contamination
+
+**Problem**: Git commit messages may contain ANSI escape sequences (`[38;5;231m`, `[0m`) despite using `TERM=dumb`, due to recent Git vulnerabilities (CVE-2024-50349, CVE-2024-52005) and tool chain contamination.
+
+**Solution**: Multi-layer prevention strategy implemented:
+
+1. **Git Configuration** (Already configured globally):
+   ```bash
+   git config --global color.ui never
+   git config --global core.pager ""
+   ```
+
+2. **Environment Variables** (Set only during commits):
+   ```bash
+   NO_COLOR=1 TERM=dumb git commit -m "clean message"
+   ```
+
+**Current Git Version**: 2.50.0 (includes ANSI vulnerability patches)
