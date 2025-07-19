@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude-flake is a **Claude Code environment configurator** that enhances the Claude Code AI coding assistant experience. It provides opinionated workflows, essential configuration tools, and automated code quality enforcement.
+Claude-flake is a **production-quality Claude Code environment configurator** that enhances the Claude Code AI coding assistant experience. It provides sophisticated workflows, comprehensive command systems, and zero-tolerance automated code quality enforcement via MegaLinter integration.
 
 ## Essential Commands
 
@@ -21,9 +21,10 @@ Claude-flake is a **Claude Code environment configurator** that enhances the Cla
 
 ### Quality Assurance
 ```bash
-# MegaLinter for multi-language linting (requires Docker)
-./files/hooks/smart-lint.sh    # Smart linting hook with auto-fixes
-mega-linter --flavor all       # Full linting suite (if MegaLinter installed)
+# MegaLinter-powered comprehensive linting (Docker-based)
+./files/hooks/smart-lint.sh    # Intelligent project-aware linting with auto-fixes
+mega-linter --flavor rust      # Language-specific MegaLinter flavors
+mega-linter --flavor python    # Optimized for detected project types
 ```
 
 ### Build and Test
@@ -34,6 +35,12 @@ nix flake show                 # Show available outputs
 nix build                      # Build all packages
 nix develop                    # Enter development shell
 nix run --impure .#apps.x86_64-linux.home  # Deploy home-manager configuration
+
+# Claude Code slash commands (integrated workflows)
+/check                         # Zero-tolerance quality verification with mandatory fixes
+/next                          # Research → Plan → Implement workflow with ultrathink mode
+/commit                        # Conventional commits with emoji integration
+/prompt                        # Dynamic prompt synthesis with template system
 ```
 
 ### Installation Testing
@@ -139,9 +146,10 @@ TERM=dumb nix run --impure .#apps.x86_64-linux.home 2>&1 | tee deploy.log
 ### Core Components
 
 1. **Nix Flake System** (`flake.nix`)
-   - Multi-system support (x86_64-linux, aarch64-linux)
+   - Multi-system support (x86_64-linux, aarch64-linux, aarch64-darwin, x86_64-darwin)
    - Home-manager integration for declarative user environments
-   - Claude Code AI assistant integration
+   - Claude Code AI assistant integration via `claude-code-nix`
+   - Cachix binary cache integration for optimized builds
 
 2. **CLI Interface** (`scripts/cf`)
    - Auto-detects project types based on configuration files
@@ -154,13 +162,20 @@ TERM=dumb nix run --impure .#apps.x86_64-linux.home 2>&1 | tee deploy.log
 
 4. **Workflow Integration** (`workflow/`)
    - `default.nix`: Main workflow orchestration
-   - `claude-config.nix`: Claude Code specific configuration
-   - `shell-integration.nix`: Shell environment integration
+   - `claude-config.nix`: Claude Code specific configuration and package management
+   - `shell-integration.nix`: Shell environment integration with loader script
 
-5. **Quality Assurance** (`files/hooks/`)
-   - `smart-lint.sh`: Automated linting with MegaLinter
-   - Git hooks for code quality enforcement
-   - Notification system via ntfy
+5. **Sophisticated Command System** (`files/commands/`)
+   - `/check`: Zero-tolerance quality verification with parallel agent resolution
+   - `/next`: Research-first implementation with ultrathink mode
+   - `/commit`: Conventional commits with 115+ emoji mappings
+   - `/prompt`: Template-based prompt synthesis system
+
+6. **Advanced Quality Assurance** (`files/hooks/`)
+   - `smart-lint.sh`: MegaLinter-powered multi-language linting with auto-detection
+   - `ntfy-notifier.sh`: Production notification system with terminal context detection
+   - Blocking hooks with exit code 2 enforcement
+   - Language-specific flavor mapping (rust, python, javascript, go, java, c_cpp, cupcake)
 
 ### Key Design Patterns
 
@@ -168,12 +183,14 @@ TERM=dumb nix run --impure .#apps.x86_64-linux.home 2>&1 | tee deploy.log
 
 **Quality-First Development**: Zero-tolerance policy for linting violations with blocking hooks that prevent progression until issues are resolved.
 
-**Language Auto-Detection**: The `cf` command automatically detects project types based on:
-- Rust: `Cargo.toml`/`Cargo.lock`
-- Python: `pyproject.toml`/`requirements.txt`/`poetry.lock`
-- Node.js: `package.json`/`yarn.lock`/`package-lock.json`
-- Go: `go.mod`/`go.sum`
-- Nix: `flake.nix`/`shell.nix`/`default.nix`
+**Language Auto-Detection**: The `cf` command and `smart-lint.sh` automatically detect project types based on:
+- Rust: `Cargo.toml`/`Cargo.lock` → MegaLinter `rust` flavor
+- Python: `pyproject.toml`/`requirements.txt`/`poetry.lock` → MegaLinter `python` flavor
+- Node.js: `package.json`/`yarn.lock`/`package-lock.json` → MegaLinter `javascript` flavor
+- Go: `go.mod`/`go.sum` → MegaLinter `go` flavor
+- Java: `pom.xml`/`build.gradle` → MegaLinter `java` flavor
+- C/C++: `CMakeLists.txt`/`Makefile` → MegaLinter `c_cpp` flavor
+- Nix: `flake.nix`/`shell.nix`/`default.nix` → MegaLinter `cupcake` flavor with treefmt fallback
 
 **Nix-First Philosophy**: Everything is declaratively defined using Nix expressions, ensuring reproducible environments across different systems.
 
@@ -193,15 +210,17 @@ This project enforces a structured development methodology through Claude Code i
 3. **Implement**: Execute plan with automated quality checks
 
 ### Quality Enforcement
-- **MegaLinter Integration**: Comprehensive multi-language linting via Docker
-- **Comprehensive Linting**: MegaLinter provides language-specific tools (rustfmt, black, eslint, gofmt, etc.)
-- **Blocking Hooks**: `smart-lint.sh` prevents commits until all issues are resolved
-- **Auto-Fixing**: Many linting issues are automatically corrected
+- **Zero-Tolerance Policy**: Exit code 2 enforcement with blocking operations until ALL issues resolved
+- **MegaLinter Integration**: Docker-based comprehensive multi-language linting with optimized flavors
+- **Auto-Detection & Auto-Fixing**: Project type identification with automatic code corrections (`APPLY_FIXES=all`)
+- **Advanced Command Workflows**: `/check` command with parallel agent spawning for issue resolution
+- **Production Standards**: Comprehensive quality checklist including security audits and performance verification
 
 ### Configuration Management
-- **Home-Manager**: Declarative user environment configuration
-- **Claude Code Integration**: Custom commands and workflow enforcement
-- **Notification System**: Push notifications via ntfy for long-running tasks
+- **Home-Manager**: Declarative user environment configuration with automatic rebuilding
+- **Sophisticated Command System**: Metadata-driven slash commands with strict quality requirements
+- **Advanced Notification System**: Multi-terminal detection with rate limiting and retry logic
+- **CI/CD Integration**: GitHub Actions with Cachix optimization and multi-system testing
 
 ## File Structure Significance
 
@@ -223,11 +242,12 @@ This project enforces a structured development methodology through Claude Code i
 
 ## Key Dependencies
 
-- **Nix**: Primary package manager with flakes support
-- **Home-Manager**: User environment management
-- **MegaLinter**: Multi-language linting (Docker-based)
-- **Claude Code CLI**: AI assistant integration via `claude-code-nix`
-- **Language Toolchains**: Rust, Python, Node.js, Go, etc.
+- **Nix**: Primary package manager with flakes support and multi-system architecture
+- **Home-Manager**: Declarative user environment management with automatic configuration deployment
+- **MegaLinter**: Comprehensive Docker-based linting with language-specific flavors and auto-fixing
+- **Claude Code CLI**: Reliable AI assistant integration via `claude-code-nix` with bundled Node.js runtime
+- **Cachix**: Binary cache optimization (`claude-code.cachix.org`) for faster installations
+- **Language Toolchains**: Rust, Python, Node.js, Go, Java, C/C++, Nix with auto-detection
 
 ## Development Notes
 
@@ -258,7 +278,12 @@ This project enforces a structured development methodology through Claude Code i
 
 **Current Git Version**: 2.50.0 (includes ANSI vulnerability patches)
 
+**MegaLinter Integration**: The `smart-lint.sh` hook now uses Docker-based MegaLinter with automatic project detection and comprehensive language support. ANSI escape sequences are prevented through:
+- `TERM=dumb` environment setting
+- `NO_COLOR=1` enforcement in hooks
+- Docker container isolation
+
 **Hook Update Required**: After updating the source file, reinstall hooks with:
 ```bash
-./scripts/cf update --local  # Updates installed hooks with NO_COLOR support
+./scripts/cf update --local  # Updates installed hooks with MegaLinter integration and NO_COLOR support
 ```
