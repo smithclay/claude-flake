@@ -28,13 +28,17 @@ jobs:
       - name: Format check
         run: |
           set -euo pipefail
-          nix develop .#nix --command bash -c "
-            find . -name '*.nix' -type f | xargs nixfmt --check
-          "
+          echo "Checking Nix code formatting..."
+          nix fmt -- --check
 
-      - name: Lint check
+      - name: Build packages
         run: |
           set -euo pipefail
-          nix develop .#nix --command bash -c "
-            statix check .
-          "
+          echo "Building all packages..."
+          nix build
+
+      - name: Test home configuration build
+        run: |
+          set -euo pipefail
+          echo "Testing home configuration build..."
+          nix build --impure .#homeConfigurations.x86_64-linux.runner
