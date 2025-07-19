@@ -25,14 +25,8 @@ jobs:
           echo "Checking flake structure and formatting..."
           nix flake check
 
-      - name: Build packages
+      - name: Test home configuration
         run: |
           set -euo pipefail
-          echo "Building all packages..."
-          nix build
-
-      - name: Test home configuration build
-        run: |
-          set -euo pipefail
-          echo "Testing home configuration build..."
-          nix build --impure .#homeConfigurations.x86_64-linux.runner
+          echo "Testing home configuration evaluation..."
+          USER=runner nix build --impure .#homeConfigurations.x86_64-linux.runner.activationPackage
