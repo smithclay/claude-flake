@@ -424,7 +424,7 @@ install_nix() {
 
 	log_info "Usage:"
 	log_info "  claude                       # Start Claude CLI"
-	log_info "  cf [language]               # Enter language environment"
+	log_info "  cf                          # Show available commands"
 }
 
 # Restore backup

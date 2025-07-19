@@ -140,21 +140,20 @@ TERM=dumb nix run --impure .#apps.x86_64-linux.home 2>&1 | tee deploy.log
 
 1. **Nix Flake System** (`flake.nix`)
    - Multi-system support (x86_64-linux, aarch64-linux)
-   - Dynamic development shells for 9 languages
    - Home-manager integration for declarative user environments
+   - Claude Code AI assistant integration
 
 2. **CLI Interface** (`scripts/cf`)
    - Auto-detects project types based on configuration files
    - Unified development environment management
    - Built-in diagnostics and update mechanisms
 
-3. **Library Layer** (`lib/`)
-   - `default.nix`: Core development shell creation functions
-   - `language-packages.nix`: Language-specific tooling packages
+3. **Configuration Management**
+   - Declarative user environment setup
+   - Claude Code workflow integration
 
 4. **Workflow Integration** (`workflow/`)
    - `default.nix`: Main workflow orchestration
-   - `dev-environment.nix`: Development environment configuration
    - `claude-config.nix`: Claude Code specific configuration
    - `shell-integration.nix`: Shell environment integration
 
@@ -195,7 +194,7 @@ This project enforces a structured development methodology through Claude Code i
 
 ### Quality Enforcement
 - **MegaLinter Integration**: Comprehensive multi-language linting via Docker
-- **Language-Specific Tools**: Each shell includes appropriate linters (rustfmt, black, eslint, gofmt, etc.)
+- **Comprehensive Linting**: MegaLinter provides language-specific tools (rustfmt, black, eslint, gofmt, etc.)
 - **Blocking Hooks**: `smart-lint.sh` prevents commits until all issues are resolved
 - **Auto-Fixing**: Many linting issues are automatically corrected
 
@@ -206,7 +205,7 @@ This project enforces a structured development methodology through Claude Code i
 
 ## File Structure Significance
 
-- `flake.nix`: Main entry point defining all development environments
+- `flake.nix`: Main entry point for Nix configuration and Claude Code integration
 - `scripts/cf`: Primary user interface for environment management
 - `lib/`: Shared utilities and language package definitions
 - `workflow/`: Home-manager modules for user environment setup

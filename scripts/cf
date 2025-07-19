@@ -273,8 +273,7 @@ cmd_update() {
 	fi
 
 	echo ""
-	echo "🔄 To use the updated environment, exit any active shells and run:"
-	echo "   cf [language]  # Enter development shell"
+	echo "🔄 To use the updated environment, restart your shell to load the new configuration"
 }
 
 cmd_sandbox() {
@@ -284,9 +283,9 @@ cmd_sandbox() {
 	echo "instead of Docker containers. This will provide better integration"
 	echo "with the existing claude-flake development environments."
 	echo ""
-	echo "For now, you can use the development shells directly:"
-	echo "  cf [language]      # Enter language-specific development shell"
-	echo "  cf                 # Auto-detect and enter appropriate shell"
+	echo "For now, you can use standard Nix development commands:"
+	echo "  nix develop        # Enter Nix development shell"
+	echo "  nix run            # Run applications directly"
 	echo ""
 	echo "Stay tuned for the new Nix-based sandbox implementation!"
 	return 1
@@ -433,7 +432,7 @@ cmd_config_ntfy_show() {
 	# Check if yq is available
 	if ! command -v yq >/dev/null 2>&1; then
 		echo "❌ yq command not found (required for YAML parsing)"
-		echo "   Install yq or enter a claude-flake development shell"
+		echo "   Install yq using your package manager or nix-env"
 		return 1
 	fi
 
@@ -484,7 +483,7 @@ cmd_config_ntfy_set() {
 	# Check if yq is available
 	if ! command -v yq >/dev/null 2>&1; then
 		echo "❌ yq command not found (required for YAML manipulation)"
-		echo "   Install yq or enter a claude-flake development shell"
+		echo "   Install yq using your package manager or nix-env"
 		return 1
 	fi
 
@@ -529,7 +528,7 @@ cmd_config_ntfy_test() {
 
 	if [[ ${#missing_deps[@]} -gt 0 ]]; then
 		echo "❌ Missing required dependencies: ${missing_deps[*]}"
-		echo "   Install these tools or enter a claude-flake development shell"
+		echo "   Install these tools using your package manager or nix-env"
 		return 1
 	fi
 
