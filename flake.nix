@@ -7,6 +7,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    claude-code-nix = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -29,6 +33,7 @@
       self,
       nixpkgs,
       home-manager,
+      claude-code-nix,
       ...
     }:
     let
@@ -66,6 +71,7 @@
             inherit
               self
               nixpkgs
+              claude-code-nix
               username
               homeDirectory
               ;

@@ -86,11 +86,13 @@ bash install.sh --uninstall   # Remove installation
 - Go: `go.mod`/`go.sum`
 - Nix: `flake.nix`/`shell.nix`/`default.nix`
 
-**Multi-Shell Architecture**: Each language environment is isolated with its own development shell containing appropriate:
-- Language-specific linters and formatters
-- LSP servers for editor integration
-- Testing frameworks and build tools
-- Security scanners
+**Nix-First Philosophy**: Everything is declaratively defined using Nix expressions, ensuring reproducible environments across different systems.
+
+**Claude Code Integration**: Uses `claude-code-nix` for reliable, Nix-native Claude CLI installation with:
+- Bundled Node.js runtime eliminating version conflicts
+- Automatic daily updates from upstream repository
+- Stable binary paths and persistent configuration
+- Pre-built binaries via Cachix for faster installation
 
 ## Development Workflow
 
@@ -135,7 +137,7 @@ This project enforces a structured development methodology through Claude Code i
 - **Nix**: Primary package manager with flakes support
 - **Home-Manager**: User environment management
 - **MegaLinter**: Multi-language linting (Docker-based)
-- **Claude Code CLI**: AI assistant integration
+- **Claude Code CLI**: AI assistant integration via `claude-code-nix`
 - **Language Toolchains**: Rust, Python, Node.js, Go, etc.
 
 ## Development Notes

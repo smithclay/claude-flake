@@ -152,7 +152,6 @@ backup_existing_files() {
 		"$HOME/.config/claude-flake"
 		"$HOME/.bashrc"
 		"$HOME/.zshrc"
-		"$HOME/.npm-global"
 	)
 
 	log_step "Creating backup of existing files..."
@@ -297,9 +296,6 @@ restore_backup() {
 		.zshrc)
 			target="$HOME/.zshrc"
 			;;
-		.npm-global)
-			target="$HOME/.npm-global"
-			;;
 		backup_manifest.txt)
 			continue
 			;;
@@ -357,14 +353,8 @@ uninstall_nix() {
 		done
 	fi
 
-	# Remove NPM global packages
-	if command_exists npm && [[ -d "$HOME/.npm-global" ]]; then
-		npm uninstall -g @anthropic-ai/claude-code >/dev/null 2>&1 || true
-		log_info "Removed NPM global packages"
-	fi
-
 	# Clean up directories
-	for dir in "$HOME/.claude" "$HOME/.config/claude-flake" "$HOME/.npm-global"; do
+	for dir in "$HOME/.claude" "$HOME/.config/claude-flake"; do
 		if [[ -d "$dir" ]]; then
 			rm -rf "$dir"
 			log_info "Removed: $dir"
