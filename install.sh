@@ -218,6 +218,13 @@ install_nix() {
 		log_info "Enabled Nix flakes"
 	fi
 
+	# Configure Cachix binary cache for faster claude-code builds
+	if ! grep -q "claude-code.cachix.org" "$nix_conf" 2>/dev/null; then
+		echo "extra-substituters = https://claude-code.cachix.org" >>"$nix_conf"
+		echo "extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >>"$nix_conf"
+		log_info "Enabled claude-code Cachix cache for faster installations"
+	fi
+
 	# Install claude-flake via home-manager
 	log_step "Installing claude-flake home configuration..."
 	if [[ "$DRY_RUN" == true ]]; then
