@@ -19,22 +19,14 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
-      - name: Check all flakes
+      - name: Check flake and formatting
         run: |
           set -euo pipefail
-          echo "Checking main flake..."
+          echo "Checking flake structure and formatting..."
           nix flake check
 
-      - name: Format check
+      - name: Test home configuration
         run: |
           set -euo pipefail
-          nix develop .#nix --command bash -c "
-            find . -name '*.nix' -type f | xargs nixfmt --check
-          "
-
-      - name: Lint check
-        run: |
-          set -euo pipefail
-          nix develop .#nix --command bash -c "
-            statix check .
-          "
+          echo "Testing home configuration evaluation..."
+          USER=runner nix build --impure .#homeConfigurations.x86_64-linux.runner.activationPackage

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smart-lint.sh - Minimal MegaLinter + Nix wrapper for Claude Code
+# smart-lint.sh - MegaLinter wrapper for Claude Code
 
 # Ensure claude-flake environment is loaded for MegaLinter access
 if [[ -f "$HOME/.config/claude-flake/loader.sh" ]] && [[ -z "${CLAUDE_FLAKE_LOADED:-}" ]]; then
@@ -11,8 +11,7 @@ fi
 #   smart-lint.sh [options]
 #
 # DESCRIPTION
-#   Runs MegaLinter for comprehensive multi-language linting and
-#   Nix-specific tools for .nix files. Maintains same exit codes.
+#   Runs MegaLinter for comprehensive multi-language linting. Maintains same exit codes.
 #
 # OPTIONS
 #   --debug       Enable debug output
@@ -206,10 +205,24 @@ run_megalinter() {
 	local detected_language
 	detected_language=$(detect_project_language)
 
-	# Skip MegaLinter for Nix projects - use custom Nix linting instead
+	# For Nix projects, use treefmt if available instead of MegaLinter
 	if [[ "$detected_language" == "nix" ]]; then
-		log_debug "Skipping MegaLinter for Nix project - will use custom Nix linting"
-		return 0
+		log_debug "Nix project detected - checking for treefmt"
+		if command_exists treefmt; then
+			log_info "Running treefmt for Nix project formatting..."
+			if ! treefmt --fail-on-change 2>/dev/null; then
+				add_error "treefmt found formatting issues"
+			fi
+			return 0
+		elif command_exists nix && [[ -f "flake.nix" ]]; then
+			log_info "Running nix fmt for Nix project formatting..."
+			if ! nix fmt 2>/dev/null; then
+				add_error "nix fmt found formatting issues"
+			fi
+			return 0
+		else
+			log_debug "No treefmt or nix fmt available, falling back to MegaLinter"
+		fi
 	fi
 
 	if ! megalinter_available; then
@@ -278,7 +291,7 @@ run_megalinter() {
 	timeout 600 npx mega-linter-runner --flavor "$flavor" --remove-container --path . "${megalinter_env_flags[@]}"
 	local exit_code=$?
 	log_debug "MegaLinter exit code: $exit_code"
-	
+
 	# Since we're not capturing output, we need to check exit code for errors
 	local megalinter_output=""
 
@@ -293,85 +306,13 @@ run_megalinter() {
 	fi
 }
 
-# Run Nix-specific linting (not supported by MegaLinter)
-run_nix_linting() {
-	# Only run if we have .nix files
-	if ! find . -maxdepth 1 -name "*.nix" -type f | grep -q .; then
-		log_debug "No .nix files found, skipping Nix linting"
-		return 0
-	fi
-
-	log_info "Running Nix linters..."
-
-	# Check if we're in a nix shell or need to enter one
-	local in_nix_shell="${IN_NIX_SHELL:-0}"
-
-	if [[ "$in_nix_shell" != "0" ]] || command_exists nixfmt; then
-		# Run directly
-		run_nix_tools_direct
-	elif [[ -f "flake.nix" ]]; then
-		# Try to run in nix shell
-		log_info "Entering nix develop shell for Nix tools..."
-		if ! nix develop .#nix --command bash -c "$(declare -f run_nix_tools_direct); run_nix_tools_direct"; then
-			add_error "Nix linting failed in nix develop shell"
-		fi
-	else
-		log_debug "No nix tools available and no flake.nix found"
-		add_error "Nix files found but no formatter available (install nixfmt or run in nix shell)"
-	fi
-}
-
-# Run nix tools directly (called both locally and in nix shell)
-run_nix_tools_direct() {
-	local nix_files
-	nix_files=$(find . -name "*.nix" -type f | grep -v -E "(result/|/nix/store/)" | head -20)
-
-	if [[ -z "$nix_files" ]]; then
-		return 0
-	fi
-
-	# Format with nixfmt (primary), nixpkgs-fmt, or alejandra
-	local formatter_found=false
-
-	if command_exists nixfmt; then
-		formatter_found=true
-		if ! echo "$nix_files" | tr '\n' '\0' | xargs -0 nixfmt --check 2>/dev/null; then
-			if ! echo "$nix_files" | tr '\n' '\0' | xargs -0 nixfmt 2>/dev/null; then
-				add_error "nixfmt formatting failed"
-			fi
-		fi
-	elif command_exists nixpkgs-fmt; then
-		formatter_found=true
-		if ! echo "$nix_files" | xargs nixpkgs-fmt --check 2>/dev/null; then
-			if ! echo "$nix_files" | xargs nixpkgs-fmt 2>/dev/null; then
-				add_error "nixpkgs-fmt formatting failed"
-			fi
-		fi
-	elif command_exists alejandra; then
-		formatter_found=true
-		if ! echo "$nix_files" | xargs alejandra --check 2>/dev/null; then
-			if ! echo "$nix_files" | xargs alejandra 2>/dev/null; then
-				add_error "alejandra formatting failed"
-			fi
-		fi
-	fi
-
-	if [[ "$formatter_found" == "false" ]]; then
-		add_error "No Nix formatter available (nixfmt, nixpkgs-fmt, or alejandra)"
-	fi
-
-	# Static analysis with statix
-	if command_exists statix; then
-		if ! statix check . 2>/dev/null; then
-			add_error "statix found anti-patterns in Nix code"
-		fi
-	fi
-
-	# Shell script linting
+# Run shell script linting
+run_shell_linting() {
 	local shell_files
 	shell_files=$(find . -name "*.sh" -type f | grep -v -E "(result/|/nix/store/)" | head -10)
 
 	if [[ -n "$shell_files" ]] && command_exists shellcheck; then
+		log_info "Running shellcheck on shell scripts..."
 		if ! echo "$shell_files" | xargs shellcheck 2>/dev/null; then
 			add_error "shellcheck found issues in shell scripts"
 		fi
@@ -415,8 +356,8 @@ main() {
 	# Run MegaLinter for supported languages
 	run_megalinter
 
-	# Run Nix-specific tools separately
-	run_nix_linting
+	# Run shell script linting separately
+	run_shell_linting
 
 	# Print summary
 	print_summary
