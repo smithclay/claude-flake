@@ -93,6 +93,8 @@
         }
       );
 
+      # Formatters for nix fmt command
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
 
       # Function to create home configuration for any user (can be imported by other flakes)
       lib.mkHomeConfigurationForUser =

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# cf - Claude Flake unified command-line interface
-# Simplifies claude-flake lifecycle management and development shell access
+# cf - Claude Flake command-line interface
+# Simplifies claude-flake lifecycle management and configuration
 
 set -euo pipefail
 
@@ -24,7 +24,6 @@ fi
 # Configuration
 CLAUDE_FLAKE_SOURCE="${CLAUDE_FLAKE_SOURCE:-github:smithclay/claude-flake}"
 NIX_DEVELOP_CMD="nix develop --accept-flake-config"
-
 
 # Check if we're currently in a claude-flake shell
 is_in_cf_shell() {
@@ -670,7 +669,6 @@ cmd_config_ntfy_init() {
 		return 1
 	fi
 }
-
 
 # Main command dispatcher
 main() {

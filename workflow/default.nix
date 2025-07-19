@@ -4,7 +4,6 @@
 {
   # Import all workflow components
   imports = [
-    ./dev-environment.nix
     ./claude-config.nix
     ./shell-integration.nix
   ];

@@ -205,6 +205,25 @@ run_megalinter() {
 	local detected_language
 	detected_language=$(detect_project_language)
 
+	# For Nix projects, use treefmt if available instead of MegaLinter
+	if [[ "$detected_language" == "nix" ]]; then
+		log_debug "Nix project detected - checking for treefmt"
+		if command_exists treefmt; then
+			log_info "Running treefmt for Nix project formatting..."
+			if ! treefmt --fail-on-change 2>/dev/null; then
+				add_error "treefmt found formatting issues"
+			fi
+			return 0
+		elif command_exists nix && [[ -f "flake.nix" ]]; then
+			log_info "Running nix fmt for Nix project formatting..."
+			if ! nix fmt 2>/dev/null; then
+				add_error "nix fmt found formatting issues"
+			fi
+			return 0
+		else
+			log_debug "No treefmt or nix fmt available, falling back to MegaLinter"
+		fi
+	fi
 
 	if ! megalinter_available; then
 		log_error "MegaLinter requirements not met - need npx, node, and docker"
@@ -272,7 +291,7 @@ run_megalinter() {
 	timeout 600 npx mega-linter-runner --flavor "$flavor" --remove-container --path . "${megalinter_env_flags[@]}"
 	local exit_code=$?
 	log_debug "MegaLinter exit code: $exit_code"
-	
+
 	# Since we're not capturing output, we need to check exit code for errors
 	local megalinter_output=""
 

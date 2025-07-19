@@ -1,11 +1,36 @@
-# workflow/claude-config.nix - Claude + Task Master setup
+# workflow/claude-config.nix - Claude Code environment setup
 { pkgs, lib, ... }:
 
 {
   # NPM global configuration and Claude CLI setup
   home = {
-    # PATH management for NPM global packages
+    # Essential packages for Claude Code workflow
+    packages = with pkgs; [
+      # Core development tools
+      git
+      gh
+      gitui
+
+      # Modern CLI tools
+      bat
+      eza
+      fzf
+      ripgrep
+      yq
+      jq
+      tree
+
+      # Nix tooling
+      nixfmt-rfc-style # Official Nix formatter
+      nixfmt-tree # Zero-setup treefmt with nixfmt
+      nix-tree # Dependency visualization
+
+      nodejs_22 # Required for Claude CLI
+    ];
+
+    # PATH management
     sessionPath = [
+      "$HOME/.nix-profile/bin"
       "$HOME/.npm-global/bin"
     ];
 
