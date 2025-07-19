@@ -5,3 +5,4 @@ __pycache__/
 .pytest_cache/
 megalinter-reports
 .ruff_cache/
+test_scenarios/

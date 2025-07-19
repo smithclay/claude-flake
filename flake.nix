@@ -7,6 +7,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    claude-code-nix = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
@@ -22,6 +26,14 @@
     max-jobs = "auto";
     cores = 0; # Use all available cores
     connect-timeout = 5;
+
+    # Cachix support for faster claude-code builds
+    extra-substituters = [
+      "https://claude-code.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk="
+    ];
   };
 
   outputs =
@@ -29,6 +41,7 @@
       self,
       nixpkgs,
       home-manager,
+      claude-code-nix,
       ...
     }:
     let
@@ -66,6 +79,7 @@
             inherit
               self
               nixpkgs
+              claude-code-nix
               username
               homeDirectory
               ;
@@ -108,6 +122,22 @@
             if homeDirectory != null then homeDirectory else getHomeDirectory system username;
         in
         mkHomeConfiguration system username finalHomeDirectory;
+
+      # Default packages for easy building
+      packages = forAllSystems (
+        system:
+        let
+          # Get username from environment (requires --impure)
+          username = builtins.getEnv "USER";
+          finalUsername = if username != "" then username else "user";
+        in
+        {
+          # Default package is the home configuration activation package
+          default = self.homeConfigurations.${system}.${finalUsername}.activationPackage;
+          # Also provide explicit home package
+          home = self.homeConfigurations.${system}.${finalUsername}.activationPackage;
+        }
+      );
 
       # Apps for easy activation
       apps = forAllSystems (

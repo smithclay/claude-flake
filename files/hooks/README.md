@@ -5,18 +5,29 @@ Automated code quality checks that run after Claude Code modifies files, enforci
 ## Hooks
 
 ### `smart-lint.sh`
-Intelligent project-aware linting that automatically detects language and runs appropriate checks:
-- **Go**: `gofmt`, `golangci-lint` (enforces language-specific patterns)
-- **JavaScript/TypeScript**: `eslint`, `prettier`
-- **Nix**: `nixpkgs-fmt`/`alejandra`, `statix`
-- **Python**: `black`, `ruff` or `flake8`
-- **Rust**: `cargo fmt`, `cargo clippy`
+Intelligent project-aware linting powered by **MegaLinter** that automatically detects language and runs comprehensive checks:
 
-Features:
-- Detects project type automatically
-- Respects project-specific Makefiles (`make lint`)
-- Smart file filtering (only checks modified files)
-- Fast mode available (`--fast` to skip slow checks)
+**MegaLinter Integration**:
+- **Multi-language support**: Comprehensive linting via Docker-based MegaLinter
+- **Auto-detection**: Rust, Python, JavaScript/TypeScript, Go, Java, C/C++, Nix projects
+- **Flavor mapping**: Optimized MegaLinter flavors per project type
+- **Auto-fixing**: Automatic code corrections with `APPLY_FIXES=all`
+- **Performance**: Docker image caching and parallel processing
+
+**Language-specific toolchains**:
+- **Rust**: `rust` flavor (rustfmt, clippy, cargo-machete)
+- **Python**: `python` flavor (black, ruff, mypy, bandit)  
+- **JavaScript/TypeScript**: `javascript` flavor (eslint, prettier)
+- **Go**: `go` flavor (gofmt, golangci-lint, revive)
+- **Java**: `java` flavor (checkstyle, pmd, spotbugs)
+- **C/C++**: `c_cpp` flavor (clang-format, cppcheck, cpplint)
+- **Nix**: `cupcake` flavor with treefmt/nixfmt fallback
+
+**Advanced Features**:
+- Detects project type automatically via configuration files
+- Respects project-specific Makefiles (`make lint`) when available
+- Smart file filtering with configurable exclusions
+- Configurable thread count and timeout management
 - Exit code 2 means issues found - ALL must be fixed
 
 #### Failure

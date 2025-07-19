@@ -25,11 +25,11 @@ fi
 # Don't use set -e - we need to control exit codes carefully
 set +e
 
-# Color definitions
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# No color output to prevent ANSI escape sequence contamination
+RED=''
+YELLOW=''
+BLUE=''
+NC=''
 
 # Debug mode
 DEBUG_MODE=0
