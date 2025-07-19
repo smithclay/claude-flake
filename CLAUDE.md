@@ -28,20 +28,34 @@ mega-linter --flavor all       # Full linting suite (if MegaLinter installed)
 
 ### Build and Test
 ```bash
-# Nix flake operations
-nix flake check                # Validate flake structure
-nix flake show                 # Show available outputs
-nix build                      # Build all packages
-nix develop                    # Enter development shell
-nix run .#apps.x86_64-linux.home  # Deploy home-manager configuration
+# Nix flake operations (use --accept-flake-config to enable Cachix)
+nix flake check                                    # Validate flake structure
+nix flake show                                     # Show available outputs
+nix build --accept-flake-config                    # Build all packages with cache
+nix develop --accept-flake-config                  # Enter development shell with cache
+nix run --impure --accept-flake-config .#apps.x86_64-linux.home  # Deploy home-manager configuration
 ```
 
 ### Installation Testing
 ```bash
 # Test installation script
 bash install.sh               # Full installation
-bash install.sh --dry-run     # Show what would be installed
+bash install.sh --dry-run     # Show what would be identified
 bash install.sh --uninstall   # Remove installation
+```
+
+### Cachix Binary Cache Usage
+```bash
+# Enable Cachix cache for faster builds (recommended)
+nix build --impure --accept-flake-config .#homeConfigurations.x86_64-linux.${USER}.activationPackage
+
+# Without cache (slower, builds from source)
+nix build --impure .#homeConfigurations.x86_64-linux.${USER}.activationPackage
+
+# Configure cache manually (alternative)
+mkdir -p ~/.config/nix
+echo "substituters = https://cache.nixos.org/ https://claude-code.cachix.org" >> ~/.config/nix/nix.conf
+echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >> ~/.config/nix/nix.conf
 ```
 
 ### GitHub CLI Operations
@@ -101,7 +115,13 @@ gh pr merge 123                # Merge pull request
 - Bundled Node.js runtime eliminating version conflicts
 - Automatic daily updates from upstream repository
 - Stable binary paths and persistent configuration
-- Pre-built binaries via Cachix for faster installation
+- Pre-built binaries via `claude-code` Cachix cache for faster installation
+
+**Cachix Binary Cache**: Configured to use the `claude-code` cache for instant Claude CLI installation:
+- Cache URL: `https://claude-code.cachix.org`
+- Automatically enabled when using `--accept-flake-config` flag
+- Eliminates 5+ minute build times by downloading pre-built binaries
+- No authentication required for public cache access
 
 ## Development Workflow
 
