@@ -19,17 +19,11 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true
 
-      - name: Check all flakes
+      - name: Check flake and formatting
         run: |
           set -euo pipefail
-          echo "Checking main flake..."
+          echo "Checking flake structure and formatting..."
           nix flake check
-
-      - name: Format check
-        run: |
-          set -euo pipefail
-          echo "Checking Nix code formatting..."
-          nix fmt -- --check
 
       - name: Build packages
         run: |
