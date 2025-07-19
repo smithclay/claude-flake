@@ -11,6 +11,9 @@ GITHUB_REPO="smithclay/claude-flake"
 
 # Global options
 DRY_RUN=false
+USE_LOCAL=false
+LOCAL_PATH=""
+ACTION="install"
 
 # Colors for output
 RED='\033[0;31m'
@@ -143,6 +146,144 @@ check_existing_installation() {
 	fi
 }
 
+# Configure Cachix binary cache for faster claude-code builds
+configure_cachix_cache() {
+	log_step "Configuring Cachix binary cache for faster builds..."
+	
+	local nix_conf_dir="$HOME/.config/nix"
+	local nix_conf="$nix_conf_dir/nix.conf"
+	local system_nix_conf="/etc/nix/nix.custom.conf"
+	
+	# Check if fully configured (both substituters and trusted user for daemon mode)
+	local substituters_configured=false
+	local user_trusted=true  # Assume true for single-user mode
+	
+	if sudo test -f "$system_nix_conf" 2>/dev/null && sudo grep -q "^trusted-substituters.*claude-code.cachix.org" "$system_nix_conf" 2>/dev/null; then
+		substituters_configured=true
+	fi
+	
+	# For multi-user mode, also check if user is trusted
+	if pgrep -f nix-daemon >/dev/null 2>&1; then
+		if ! sudo grep -q "^trusted-users.*$USER" "$system_nix_conf" 2>/dev/null; then
+			user_trusted=false
+		fi
+	fi
+	
+	if [[ "$substituters_configured" == "true" && "$user_trusted" == "true" ]]; then
+		log_info "Claude-code Cachix cache and trusted users already configured"
+		return 0
+	elif [[ "$substituters_configured" == "true" && "$user_trusted" == "false" ]]; then
+		log_info "Claude-code Cachix cache configured, but $USER is not a trusted user"
+	fi
+	
+	# Check if this is single-user or multi-user Nix
+	if pgrep -f nix-daemon >/dev/null 2>&1; then
+		log_info "Detected multi-user Nix installation with daemon"
+		# Prompt for system-wide configuration
+		echo ""
+		log_info "To avoid 'untrusted substituter' warnings, claude-flake needs to configure"
+		log_info "the Cachix binary cache in system-wide trusted substituters."
+		echo ""
+		read -p "Configure system-wide trusted substituters? (requires sudo) [Y/n]: " -r configure_system
+	else
+		log_info "Detected single-user Nix installation (no daemon)"
+		log_info "For single-user Nix, you need to be added as a trusted user to use binary caches."
+		echo ""
+		log_info "This requires adding 'trusted-users = $USER' to the Nix configuration."
+		read -p "Configure trusted user for binary cache access? (requires sudo) [Y/n]: " -r configure_system
+	fi
+	
+	if [[ ! "$configure_system" =~ ^[Nn]$ ]]; then
+		if pgrep -f nix-daemon >/dev/null 2>&1; then
+			log_step "Configuring system-wide trusted substituters..."
+		else
+			log_step "Configuring trusted users and substituters for single-user Nix..."
+		fi
+		
+		# Create /etc/nix directory
+		if sudo mkdir -p /etc/nix; then
+			# Add current user as trusted user (required for both single-user and multi-user to access caches)
+			if ! sudo grep -q "^trusted-users.*$USER" "$system_nix_conf" 2>/dev/null; then
+				if ! sudo grep -q "^trusted-users" "$system_nix_conf" 2>/dev/null; then
+					echo "trusted-users = root $USER" | sudo tee -a "$system_nix_conf" >/dev/null
+					log_info "Added $USER as trusted user"
+				else
+					sudo sed -i "s|^trusted-users = \(.*\)|trusted-users = \1 $USER|" "$system_nix_conf"
+					log_info "Added $USER to existing trusted-users"
+				fi
+			fi
+			
+			# For Determinate Systems Nix, also add to extra-trusted-substituters
+			if sudo grep -q "^extra-trusted-substituters" "$system_nix_conf" 2>/dev/null; then
+				if ! sudo grep "^extra-trusted-substituters" "$system_nix_conf" | grep -q "claude-code.cachix.org"; then
+					sudo sed -i 's|^extra-trusted-substituters = \(.*\)|extra-trusted-substituters = \1 https://claude-code.cachix.org|' "$system_nix_conf"
+					log_info "Added claude-code.cachix.org to extra-trusted-substituters"
+				fi
+			fi
+			# Ensure base trusted-substituters line exists (required for non-trusted users)
+			if ! sudo grep -q "^trusted-substituters" "$system_nix_conf" 2>/dev/null; then
+				echo "trusted-substituters = https://cache.nixos.org https://claude-code.cachix.org" | sudo tee -a "$system_nix_conf" >/dev/null
+				log_info "Created base trusted-substituters line"
+			else
+				# Check if claude-code.cachix.org is already in trusted-substituters
+				if ! sudo grep "^trusted-substituters" "$system_nix_conf" | grep -q "claude-code.cachix.org"; then
+					sudo sed -i 's|^trusted-substituters = \(.*\)|trusted-substituters = \1 https://claude-code.cachix.org|' "$system_nix_conf"
+					log_info "Added claude-code.cachix.org to existing trusted-substituters"
+				fi
+			fi
+
+			# Ensure base trusted-public-keys line exists
+			if ! sudo grep -q "^trusted-public-keys" "$system_nix_conf" 2>/dev/null; then
+				echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" | sudo tee -a "$system_nix_conf" >/dev/null
+				log_info "Created base trusted-public-keys line"
+			else
+				# Check if claude-code public key is already in trusted-public-keys
+				if ! sudo grep "^trusted-public-keys" "$system_nix_conf" | grep -q "claude-code.cachix.org-1:"; then
+					sudo sed -i 's|^trusted-public-keys = \(.*\)|trusted-public-keys = \1 claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=|' "$system_nix_conf"
+					log_info "Added claude-code public key to existing trusted-public-keys"
+				fi
+			fi
+			log_success "Configured claude-code Cachix cache in system-wide trusted substituters"
+			
+			# Restart Nix daemon to pick up configuration changes
+			if systemctl is-active --quiet nix-daemon 2>/dev/null; then
+				log_step "Restarting Nix daemon to apply configuration changes..."
+				if sudo systemctl restart nix-daemon; then
+					log_success "Nix daemon restarted successfully"
+				else
+					log_warning "Failed to restart Nix daemon - configuration may not take effect immediately"
+					log_info "You may need to restart your shell or run: sudo systemctl restart nix-daemon"
+				fi
+			else
+				log_info "Nix daemon not running or not using systemd - configuration will take effect on next Nix operation"
+			fi
+			
+			log_info "Trusted substituters configured - this will eliminate 'untrusted substituter' warnings"
+		else
+			log_warning "Failed to configure system-wide settings, falling back to user config"
+			configure_user_cachix_cache "$nix_conf_dir" "$nix_conf"
+		fi
+	else
+		log_info "Skipping system-wide configuration, using user-level config"
+		configure_user_cachix_cache "$nix_conf_dir" "$nix_conf"
+	fi
+}
+
+# Configure user-level Cachix cache (fallback)
+configure_user_cachix_cache() {
+	local nix_conf_dir="$1"
+	local nix_conf="$2"
+	
+	mkdir -p "$nix_conf_dir"
+	
+	if ! grep -q "claude-code.cachix.org" "$nix_conf" 2>/dev/null; then
+		echo "extra-substituters = https://claude-code.cachix.org" >>"$nix_conf"
+		echo "extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >>"$nix_conf"
+		log_warning "Added claude-code Cachix cache to user config"
+		log_warning "Note: You may see 'untrusted substituter' warnings (safe to ignore)"
+	fi
+}
+
 # Backup existing files for Nix installation
 backup_existing_files() {
 	local backup_dir
@@ -187,7 +328,20 @@ install_nix() {
 	local backup_dir
 	backup_dir=$(echo "$backup_result" | grep "^backup:" | cut -d: -f2)
 
+	# Determine flake source
+	local flake_source="github:$GITHUB_REPO"
+	if [[ "$USE_LOCAL" == "true" ]]; then
+		if [[ -f "${LOCAL_PATH}/flake.nix" ]]; then
+			flake_source="path:${LOCAL_PATH}"
+			log_info "Using local development path: ${LOCAL_PATH}"
+		else
+			log_error "No flake.nix found in specified path: ${LOCAL_PATH}"
+			exit 1
+		fi
+	fi
+
 	log_step "Installing claude-flake via Nix..."
+	log_info "Flake source: $flake_source"
 
 	# Check if Nix is installed
 	if ! command_exists nix; then
@@ -218,18 +372,18 @@ install_nix() {
 		log_info "Enabled Nix flakes"
 	fi
 
-	# Configure Cachix binary cache for faster claude-code builds
-	if ! grep -q "claude-code.cachix.org" "$nix_conf" 2>/dev/null; then
-		echo "extra-substituters = https://claude-code.cachix.org" >>"$nix_conf"
-		echo "extra-trusted-public-keys = claude-code.cachix.org-1:YeXf2aNu7UTX8Vwrze0za1WEDS+4DuI2kVeWEE4fsRk=" >>"$nix_conf"
-		log_info "Enabled claude-code Cachix cache for faster installations"
-	fi
+	# Configure Cachix binary cache
+	configure_cachix_cache
 
 	# Install claude-flake via home-manager
 	log_step "Installing claude-flake home configuration..."
+	# Detect current system architecture for os-agnostic operation
+	local current_system
+	current_system=$(nix eval --impure --expr 'builtins.currentSystem' 2>/dev/null | tr -d '"' || echo "x86_64-linux")
+	
 	if [[ "$DRY_RUN" == true ]]; then
-		log_dry_run "Would run: nix run --impure --accept-flake-config \"github:$GITHUB_REPO#apps.x86_64-linux.home\""
-	elif ! nix run --impure --accept-flake-config "github:$GITHUB_REPO#apps.x86_64-linux.home"; then
+		log_dry_run "Would run: nix run --impure --accept-flake-config \"${flake_source}#apps.${current_system}.home\""
+	elif ! nix run --impure --accept-flake-config "${flake_source}#apps.${current_system}.home"; then
 		log_error "Failed to install claude-flake"
 
 		# Restore backup if available
@@ -399,14 +553,39 @@ upgrade_installation() {
 		echo ""
 	fi
 
+	# Determine flake source
+	local flake_source="github:$GITHUB_REPO"
+	if [[ "$USE_LOCAL" == "true" ]]; then
+		if [[ -f "${LOCAL_PATH}/flake.nix" ]]; then
+			flake_source="path:${LOCAL_PATH}"
+			log_info "Using local development path: ${LOCAL_PATH}"
+		else
+			log_error "No flake.nix found in specified path: ${LOCAL_PATH}"
+			exit 1
+		fi
+	fi
+
 	local installation_check
 	installation_check=$(check_existing_installation)
 
 	case "$installation_check" in
 	existing*)
 		log_step "Upgrading Nix installation..."
-		nix flake update "github:$GITHUB_REPO" >/dev/null 2>&1 || true
-		nix run --impure --accept-flake-config "github:$GITHUB_REPO#apps.x86_64-linux.home"
+		log_info "Flake source: $flake_source"
+		
+		# Configure Cachix binary cache
+		configure_cachix_cache
+		
+		# Update flake if it's a GitHub source
+		if [[ "$flake_source" == github:* ]]; then
+			nix flake update "$flake_source" >/dev/null 2>&1 || true
+		fi
+		
+		# Detect current system architecture
+		local current_system
+		current_system=$(nix eval --impure --expr 'builtins.currentSystem' 2>/dev/null | tr -d '"' || echo "x86_64-linux")
+		
+		nix run --impure --accept-flake-config "${flake_source}#apps.${current_system}.home"
 		log_success "Nix installation upgraded"
 		;;
 	none)
@@ -532,6 +711,7 @@ OPTIONS:
     --install          Install claude-flake (default)
     --uninstall        Remove claude-flake from system
     --upgrade          Upgrade existing installation
+    --local            Use current directory as flake source (for development)
     --dry-run          Show what would be done without making changes
     --help             Show this help message
 
@@ -542,11 +722,17 @@ EXAMPLES:
     # Install (interactive method selection)
     curl -sSL https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh | bash
 
+    # Install using local development version
+    bash install.sh --local
+
     # Uninstall
     curl -sSL https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh | bash -s -- --uninstall
 
     # Upgrade
     curl -sSL https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh | bash -s -- --upgrade
+
+    # Upgrade using local development version
+    bash install.sh --upgrade --local
 
 For more information: https://github.com/$GITHUB_REPO
 EOF
@@ -554,20 +740,25 @@ EOF
 
 # Parse command-line arguments
 parse_args() {
-	local action="install"
+	ACTION="install"
 
 	while [[ $# -gt 0 ]]; do
 		case $1 in
 		--install)
-			action="install"
+			ACTION="install"
 			shift
 			;;
 		--uninstall)
-			action="uninstall"
+			ACTION="uninstall"
 			shift
 			;;
 		--upgrade)
-			action="upgrade"
+			ACTION="upgrade"
+			shift
+			;;
+		--local)
+			USE_LOCAL=true
+			LOCAL_PATH="$(pwd)"
 			shift
 			;;
 		--dry-run)
@@ -575,7 +766,7 @@ parse_args() {
 			shift
 			;;
 		--help | -h)
-			action="help"
+			ACTION="help"
 			shift
 			;;
 		*)
@@ -585,21 +776,18 @@ parse_args() {
 			;;
 		esac
 	done
-
-	echo "$action"
 }
 
 # Main script logic
 main() {
-	local action
-	action=$(parse_args "$@")
+	parse_args "$@"
 
 	if [[ "$DRY_RUN" == true ]]; then
 		log_warning "DRY RUN MODE - No changes will be made"
 		echo ""
 	fi
 
-	case "$action" in
+	case "$ACTION" in
 	install)
 		install_claude_flake
 		;;
@@ -613,7 +801,7 @@ main() {
 		show_usage
 		;;
 	*)
-		log_error "Unknown action: $action"
+		log_error "Unknown action: $ACTION"
 		show_usage
 		exit 1
 		;;
